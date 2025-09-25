@@ -1,15 +1,9 @@
-package org.mordvinov.social_network.Communication_Network.entities;
+package ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
-import jakarta.persistence.Index;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
+import jakarta.persistence.*;
+import lombok.*;
 
+@Builder
 @Getter
 @Setter
 @NoArgsConstructor
@@ -21,7 +15,7 @@ import lombok.EqualsAndHashCode;
         @Index(name = "idx_city", columnList = "city")
 })
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
-public class User extends BaseEntity{
+public class User extends BaseEntity {
 
     @EqualsAndHashCode.Include
     @Column(nullable = false, unique = true, length = 50)
@@ -30,12 +24,6 @@ public class User extends BaseEntity{
     @EqualsAndHashCode.Include
     @Column(nullable = false, unique = true, length = 50)
     private String email;
-
-    @Column(name = "first_name", nullable = false, length = 50)
-    private String firstName;
-
-    @Column(name = "last_name", nullable = false, length = 50)
-    private String lastName;
 
     @Column(nullable = false, length = 50)
     private String city;
@@ -60,4 +48,8 @@ public class User extends BaseEntity{
 
     @Column(length = 500)
     private String bio;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.ROLE_USER;
 }

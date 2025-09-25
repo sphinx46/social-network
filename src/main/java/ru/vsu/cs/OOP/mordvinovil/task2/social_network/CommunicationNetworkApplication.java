@@ -1,4 +1,4 @@
-package org.mordvinov.social_network.Communication_Network;
+package ru.vsu.cs.OOP.mordvinovil.task2.social_network;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
