@@ -53,6 +53,11 @@ public class UserService {
 
     }
 
+    public User getById(Long id) {
+        return repository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("Пользователь с id " + id + " не найден"));
+    }
+
     /**
      * Получение пользователя по имени пользователя
      * <p>

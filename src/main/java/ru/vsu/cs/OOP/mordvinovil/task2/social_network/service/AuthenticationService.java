@@ -1,5 +1,6 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,6 +23,7 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final ProfileService profileService;
 
     /**
      * Регистрация пользователя
@@ -29,8 +31,8 @@ public class AuthenticationService {
      * @param request данные пользователя
      * @return токен
      */
+    @Transactional
     public JwtAuthenticationResponse signUp(SignUpRequest request) {
-
         var user = User.builder()
                 .username(request.getUsername())
                 .email(request.getEmail())
@@ -41,9 +43,11 @@ public class AuthenticationService {
                 .role(Role.ROLE_USER)
                 .build();
 
-        userService.create(user);
+        User savedUser = userService.create(user);
 
-        UserDetails userDetails = UserDetailsImpl.build(user);
+        profileService.createDefaultProfile(savedUser);
+
+        UserDetails userDetails = UserDetailsImpl.build(savedUser);
         var jwt = jwtService.generateToken(userDetails);
         return new JwtAuthenticationResponse(jwt);
     }

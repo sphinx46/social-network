@@ -3,9 +3,9 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+
 @Builder
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
@@ -40,16 +40,11 @@ public class User extends BaseEntity {
     @Column(name = "last_login")
     private java.time.LocalDateTime lastLogin;
 
-    @Column(name = "profile_picture_url")
-    private String profilePictureUrl;
-
-    @Column(name = "date_of_birth")
-    private java.time.LocalDate dateOfBirth;
-
-    @Column(length = 500)
-    private String bio;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.ROLE_USER;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Profile profile;
+
 }
