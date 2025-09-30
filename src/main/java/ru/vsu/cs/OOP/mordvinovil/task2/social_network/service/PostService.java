@@ -11,7 +11,6 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PostResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.post.PostNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.security.AccessDeniedException;
 
@@ -24,7 +23,6 @@ import java.util.List;
 public class PostService {
     private final FileStorageService fileStorageService;
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
     private final ModelMapper modelMapper;
 
     @Transactional

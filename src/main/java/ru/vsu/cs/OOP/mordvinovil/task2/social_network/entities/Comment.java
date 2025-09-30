@@ -3,21 +3,24 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDate;
 
-
-@Entity
 @Getter
 @Setter
+@Entity
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
-@Table(name = "posts")
-public class Post extends BaseEntity {
+@Table(name = "comment")
+public class Comment extends BaseEntity {
+    @ManyToOne(optional = false, targetEntity = Post.class)
+    @JoinColumn(name = "post_id", referencedColumnName = "id")
+    private Post post;
 
     @ManyToOne(optional = false, targetEntity = User.class)
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private User user;
+    @JoinColumn(name = "creator_id", referencedColumnName = "id")
+    private User creator;
 
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
@@ -25,6 +28,6 @@ public class Post extends BaseEntity {
     @Column(name = "image_url")
     private String imageUrl;
 
-    @Column(name = "time_added", nullable = false)
+    @Column(name = "time", nullable = false)
     private LocalDate time;
 }

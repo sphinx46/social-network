@@ -5,6 +5,7 @@ import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,15 +22,16 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.security.AccessDenie
 import java.util.List;
 
 @RestController
-@RequestMapping("/post")
+@RequestMapping("/posts")
 @RequiredArgsConstructor
 public class PostController {
     private final PostService service;
     private final UserService userService;
 
+    @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Получение списка постов текущего пользователя")
     @GetMapping("/me")
-    public ResponseEntity<List<PostResponse>> getPostsByCurrentProfile(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<List<PostResponse>> getPostsByCurrentUser(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         if (userDetails == null) {
             return ResponseEntity.status(401).build();
         }

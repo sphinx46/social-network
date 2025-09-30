@@ -7,7 +7,7 @@ import lombok.Data;
 
 
 @Data
-@Schema(description = "Запрос на создание поста")
+@Schema(description = "Запрос на создание/редактирование поста")
 public class PostRequest {
 
     @NotBlank
