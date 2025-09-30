@@ -9,10 +9,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.SignInRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.SignUpRequest;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.response.JwtAuthenticationResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.JwtAuthenticationResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Role;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.security.config.filters.UserDetailsImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.security.filters.UserDetailsImpl;
 
 import java.time.LocalDateTime;
 

@@ -1,4 +1,4 @@
-package ru.vsu.cs.OOP.mordvinovil.task2.social_network.security.config.filters;
+package ru.vsu.cs.OOP.mordvinovil.task2.social_network.security.filters;
 
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;

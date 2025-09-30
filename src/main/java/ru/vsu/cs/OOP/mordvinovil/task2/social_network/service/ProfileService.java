@@ -7,12 +7,12 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.ProfileRequest;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.response.ProfileResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.ProfileResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Profile;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.ProfileRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.exceptions.profile.ProfileAlreadyExistsException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.exceptions.profile.ProfileNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.profile.ProfileAlreadyExistsException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.profile.ProfileNotFoundException;
 
 import java.io.IOException;
 import java.time.LocalDate;

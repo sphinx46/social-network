@@ -1,4 +1,4 @@
-package ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.response;
+package ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

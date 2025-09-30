@@ -1,4 +1,4 @@
-package ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.file;
+package ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.file;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
