@@ -34,19 +34,13 @@ public class PostService {
                 .build();
 
         Post savedPost = postRepository.save(post);
-        PostResponse response = modelMapper.map(savedPost, PostResponse.class);
-        response.setUsername(user.getUsername());
-        return response;
+        return modelMapper.map(savedPost, PostResponse.class);
     }
 
     public List<PostResponse> getAllPostsByUser(User user) {
         List<Post> posts = postRepository.getAllPostsByUser(user);
         return posts.stream()
-                .map(post -> {
-                    PostResponse response = modelMapper.map(post, PostResponse.class);
-                    response.setUsername(post.getUser().getUsername());
-                    return response;
-                })
+                .map(post -> modelMapper.map(post, PostResponse.class))
                 .toList();
     }
 
@@ -68,9 +62,7 @@ public class PostService {
         }
 
         Post updatedPost = postRepository.save(post);
-        PostResponse response = modelMapper.map(updatedPost, PostResponse.class);
-        response.setUsername(post.getUser().getUsername());
-        return response;
+        return modelMapper.map(updatedPost, PostResponse.class);
     }
 
     @Transactional
@@ -92,9 +84,7 @@ public class PostService {
         post.setImageUrl(imageUrl);
         Post updatedPost = postRepository.save(post);
 
-        PostResponse response = modelMapper.map(updatedPost, PostResponse.class);
-        response.setUsername(post.getUser().getUsername());
-        return response;
+        return modelMapper.map(updatedPost, PostResponse.class);
     }
 
     @Transactional
@@ -109,17 +99,13 @@ public class PostService {
         post.setImageUrl(null);
         Post updatedPost = postRepository.save(post);
 
-        PostResponse response = modelMapper.map(updatedPost, PostResponse.class);
-        response.setUsername(post.getUser().getUsername());
-        return response;
+        return modelMapper.map(updatedPost, PostResponse.class);
     }
 
     public PostResponse getPostById(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
-        PostResponse response = modelMapper.map(post, PostResponse.class);
-        response.setUsername(post.getUser().getUsername());
-        return response;
+        return modelMapper.map(post, PostResponse.class);
     }
 }

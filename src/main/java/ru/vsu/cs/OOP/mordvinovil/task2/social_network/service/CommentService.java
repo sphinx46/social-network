@@ -40,9 +40,7 @@ public class CommentService {
                 .build();
 
         Comment savedComment = commentRepository.save(comment);
-        CommentResponse response = modelMapper.map(savedComment, CommentResponse.class);
-        response.setUsername(currentUser.getUsername());
-        return response;
+        return modelMapper.map(savedComment, CommentResponse.class);
     }
 
     public CommentResponse editComment(Long id, CommentRequest request, User currentUser) {
@@ -62,8 +60,7 @@ public class CommentService {
         }
 
         Comment updatedComment = commentRepository.save(comment);
-        CommentResponse response = modelMapper.map(updatedComment, CommentResponse.class);
-        return response;
+        return modelMapper.map(updatedComment, CommentResponse.class);
     }
 
     @Transactional
@@ -86,8 +83,6 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CommentNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
-        CommentResponse response = modelMapper.map(comment, CommentResponse.class);
-        response.setUsername(comment.getCreator().getUsername());
-        return response;
+        return modelMapper.map(comment, CommentResponse.class);
     }
 }

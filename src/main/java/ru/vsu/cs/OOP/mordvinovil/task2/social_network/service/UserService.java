@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Role;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.security.filters.UserDetailsImpl;
 
@@ -78,7 +79,11 @@ public class UserService {
      * @return текущий пользователь
      */
     public User getCurrentUser() {
-        var username = SecurityContextHolder.getContext().getAuthentication().getName();
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("Пользователь не аутентифицирован");
+        }
+        var username = authentication.getName();
         return getByUsername(username);
     }
 

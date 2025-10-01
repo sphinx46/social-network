@@ -17,7 +17,6 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMe
 import java.time.LocalDate;
 import java.time.Period;
 
-
 @Service
 @RequiredArgsConstructor
 public class ProfileService {
@@ -26,14 +25,9 @@ public class ProfileService {
     private final UserService userService;
     private final ModelMapper modelMapper;
 
-    public Profile save(Profile profile) {
-        return profileRepository.save(profile);
-    }
-
     public Profile create(User user, ProfileRequest request) {
         if (profileRepository.findByUser(user).isPresent()) {
             throw new ProfileAlreadyExistsException(ResponseMessageConstants.FAILURE_CREATE_PROFILE);
-
         }
 
         var profile = Profile.builder()
@@ -45,7 +39,6 @@ public class ProfileService {
                 .build();
 
         return profileRepository.save(profile);
-
     }
 
     public ProfileResponse getProfileByUser(User user) {
@@ -53,12 +46,7 @@ public class ProfileService {
                 .orElseThrow(() -> new ProfileNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         ProfileResponse response = modelMapper.map(profile, ProfileResponse.class);
-
-        response.setUsername(user.getUsername());
         response.setAge(calculateAge(profile.getDateOfBirth()));
-        response.setIsOnline(user.isOnline());
-        response.setCreatedAt(user.getCreatedAt());
-
         return response;
     }
 
@@ -68,12 +56,7 @@ public class ProfileService {
                 .orElseThrow(() -> new ProfileNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         ProfileResponse response = modelMapper.map(profile, ProfileResponse.class);
-
-        response.setUsername(user.getUsername());
         response.setAge(calculateAge(profile.getDateOfBirth()));
-        response.setIsOnline(user.isOnline());
-        response.setCreatedAt(user.getCreatedAt());
-
         return response;
     }
 
@@ -96,12 +79,10 @@ public class ProfileService {
         }
 
         String avatarUrl = fileStorageService.saveAvatar(imageFile, user.getId());
-
         profile.setImageUrl(avatarUrl);
         Profile updatedProfile = profileRepository.save(profile);
 
-        ProfileResponse response = modelMapper.map(updatedProfile, ProfileResponse.class);
-        return response;
+        return modelMapper.map(updatedProfile, ProfileResponse.class);
     }
 
     @Transactional
@@ -116,8 +97,7 @@ public class ProfileService {
         profile.setImageUrl(null);
         Profile updatedProfile = profileRepository.save(profile);
 
-        ProfileResponse response = modelMapper.map(updatedProfile, ProfileResponse.class);
-        return response;
+        return modelMapper.map(updatedProfile, ProfileResponse.class);
     }
 
     @Transactional
@@ -146,8 +126,7 @@ public class ProfileService {
         }
 
         Profile updatedProfile = profileRepository.save(profile);
-        ProfileResponse response = modelMapper.map(updatedProfile, ProfileResponse.class);
-        return response;
+        return modelMapper.map(updatedProfile, ProfileResponse.class);
     }
 
     @Transactional
