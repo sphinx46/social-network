@@ -14,6 +14,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.CommentN
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.PostNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.CommentRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
 import java.time.LocalDate;
 import java.util.concurrent.CompletableFuture;
@@ -28,7 +29,7 @@ public class CommentService {
     @Transactional
     public CommentResponse create(CommentRequest request, User currentUser) {
         Post post = postRepository.findById(request.getPostId())
-                .orElseThrow(() -> new PostNotFoundException("Пост не найден."));
+                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         var comment = Comment.builder()
                 .post(post)
@@ -46,10 +47,10 @@ public class CommentService {
 
     public CommentResponse editComment(Long id, CommentRequest request, User currentUser) {
         Comment comment = commentRepository.findById(id)
-                .orElseThrow(() -> new CommentNotFoundException("Комментарий не найден."));
+                .orElseThrow(() -> new CommentNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         if (!comment.getCreator().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("У вас нет прав для редактирования этого комментария.");
+            throw new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED);
         }
 
         if (request.getContent() != null) {
@@ -68,7 +69,7 @@ public class CommentService {
     @Transactional
     public CompletableFuture<Boolean> deleteComment(Long commentId, User currentUser) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new CommentNotFoundException("Комментарий не найден."));
+                .orElseThrow(() -> new CommentNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         boolean isCommentCreator = comment.getCreator().getId().equals(currentUser.getId());
         boolean isPostOwner = comment.getPost().getUser().getId().equals(currentUser.getId());
@@ -77,13 +78,13 @@ public class CommentService {
             commentRepository.delete(comment);
             return CompletableFuture.completedFuture(true);
         } else {
-            throw new AccessDeniedException("У вас нет прав для удаления этого комментария.");
+            throw new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED);
         }
     }
 
     public CommentResponse getCommentById(Long commentId) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new CommentNotFoundException("Комментарий не найден."));;
+                .orElseThrow(() -> new CommentNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         CommentResponse response = modelMapper.map(comment, CommentResponse.class);
         response.setUsername(comment.getCreator().getUsername());

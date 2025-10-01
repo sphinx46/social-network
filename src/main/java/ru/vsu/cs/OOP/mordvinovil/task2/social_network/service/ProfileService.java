@@ -12,6 +12,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.ProfileAlreadyExistsException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.ProfileNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.ProfileRepository;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -31,7 +32,7 @@ public class ProfileService {
 
     public Profile create(User user, ProfileRequest request) {
         if (profileRepository.findByUser(user).isPresent()) {
-            throw new ProfileAlreadyExistsException("Профиль уже существует");
+            throw new ProfileAlreadyExistsException(ResponseMessageConstants.FAILURE_CREATE_PROFILE);
 
         }
 
@@ -49,7 +50,7 @@ public class ProfileService {
 
     public ProfileResponse getProfileByUser(User user) {
         Profile profile = profileRepository.findByUser(user)
-                .orElseThrow(() -> new ProfileNotFoundException("Профиль не найден"));
+                .orElseThrow(() -> new ProfileNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         ProfileResponse response = modelMapper.map(profile, ProfileResponse.class);
 
@@ -64,7 +65,7 @@ public class ProfileService {
     public ProfileResponse getProfileByUserId(Long id) {
         User user = userService.getById(id);
         Profile profile = profileRepository.findByUser(user)
-                .orElseThrow(() -> new ProfileNotFoundException("Профиль с таким user id не найден"));
+                .orElseThrow(() -> new ProfileNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         ProfileResponse response = modelMapper.map(profile, ProfileResponse.class);
 
@@ -83,18 +84,18 @@ public class ProfileService {
         return Period.between(dateOfBirth, LocalDate.now()).getYears();
     }
 
-
+    @Transactional
     public ProfileResponse uploadAvatar(User user, MultipartFile imageFile) {
         fileStorageService.validateImageFile(imageFile);
 
         Profile profile = profileRepository.findByUser(user)
-                .orElseThrow(() -> new ProfileNotFoundException("Профиль не найден"));
+                .orElseThrow(() -> new ProfileNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         if (profile.getImageUrl() != null && !profile.getImageUrl().isEmpty()) {
             fileStorageService.deleteFile(profile.getImageUrl());
         }
 
-        String avatarUrl = fileStorageService.saveFile(imageFile, "avatars");
+        String avatarUrl = fileStorageService.saveAvatar(imageFile, user.getId());
 
         profile.setImageUrl(avatarUrl);
         Profile updatedProfile = profileRepository.save(profile);
@@ -106,7 +107,7 @@ public class ProfileService {
     @Transactional
     public ProfileResponse removeAvatar(User user){
         Profile profile = profileRepository.findByUser(user)
-                .orElseThrow(() -> new ProfileNotFoundException("Профиль не найден"));
+                .orElseThrow(() -> new ProfileNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         if (profile.getImageUrl() != null && !profile.getImageUrl().isEmpty()) {
             fileStorageService.deleteFile(profile.getImageUrl());
@@ -122,7 +123,7 @@ public class ProfileService {
     @Transactional
     public ProfileResponse updateProfile(User user, ProfileRequest request) {
         Profile profile = profileRepository.findByUser(user)
-                .orElseThrow(() -> new ProfileNotFoundException("Профиль не найден"));
+                .orElseThrow(() -> new ProfileNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         if (request.getBio() != null) {
             profile.setBio(request.getBio());

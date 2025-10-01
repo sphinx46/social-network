@@ -94,4 +94,14 @@ public class FileStorageService {
             }
         }
     }
+
+    public String savePostImage(MultipartFile file, Long postId) {
+        String subDirectory = "post-images/" + postId;
+        return saveFile(file, subDirectory);
+    }
+
+    public String saveAvatar(MultipartFile file, Long userId) {
+        String subDirectory = "avatars/" + userId;
+        return saveFile(file, subDirectory);
+    }
 }

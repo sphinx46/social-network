@@ -12,6 +12,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.PostNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -52,10 +53,10 @@ public class PostService {
     @Transactional
     public PostResponse editPost(PostRequest request, Long id, User currentUser) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new PostNotFoundException("Пост не найден"));
+                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         if (!post.getUser().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("У вас нет прав для редактирования этого поста");
+            throw new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED);
         }
 
         if (request.getContent() != null) {
@@ -72,22 +73,22 @@ public class PostService {
         return response;
     }
 
-
+    @Transactional
     public PostResponse uploadImage(Long id, MultipartFile imageFile, User currentUser) {
         fileStorageService.validateImageFile(imageFile);
 
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new PostNotFoundException("Пост не найден"));
+                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         if (!post.getUser().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("У вас нет прав для изменения этого поста");
+            throw new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED);
         }
 
         if (post.getImageUrl() != null) {
             fileStorageService.deleteFile(post.getImageUrl());
         }
 
-        String imageUrl = fileStorageService.saveFile(imageFile, "post-images");
+        String imageUrl = fileStorageService.savePostImage(imageFile, id);
         post.setImageUrl(imageUrl);
         Post updatedPost = postRepository.save(post);
 
@@ -99,10 +100,10 @@ public class PostService {
     @Transactional
     public PostResponse removeImage(Long id, User currentUser) {
         Post post = postRepository.findById(id)
-                .orElseThrow(() -> new PostNotFoundException("Пост не найден"));
+                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         if (!post.getUser().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException("У вас нет прав для изменения этого поста");
+            throw new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED);
         }
 
         post.setImageUrl(null);
@@ -115,7 +116,7 @@ public class PostService {
 
     public PostResponse getPostById(Long postId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new PostNotFoundException("Пост не найден"));
+                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         PostResponse response = modelMapper.map(post, PostResponse.class);
         response.setUsername(post.getUser().getUsername());
