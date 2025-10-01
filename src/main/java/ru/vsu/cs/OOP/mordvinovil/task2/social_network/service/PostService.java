@@ -2,7 +2,6 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -10,11 +9,10 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PostRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PostResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.PostNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.post.PostNotFoundException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.security.AccessDeniedException;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -75,32 +73,27 @@ public class PostService {
     }
 
 
-    @Transactional
-    public PostResponse uploadImage(Long id, MultipartFile imageFile, User currentUser) throws FileUploadException {
-        try {
-            fileStorageService.validateImageFile(imageFile);
+    public PostResponse uploadImage(Long id, MultipartFile imageFile, User currentUser) {
+        fileStorageService.validateImageFile(imageFile);
 
-            Post post = postRepository.findById(id)
-                    .orElseThrow(() -> new PostNotFoundException("Пост не найден"));
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new PostNotFoundException("Пост не найден"));
 
-            if (!post.getUser().getId().equals(currentUser.getId())) {
-                throw new AccessDeniedException("У вас нет прав для изменения этого поста");
-            }
-
-            if (post.getImageUrl() != null) {
-                fileStorageService.deleteFile(post.getImageUrl());
-            }
-
-            String imageUrl = fileStorageService.saveFile(imageFile, "post-images");
-            post.setImageUrl(imageUrl);
-            Post updatedPost = postRepository.save(post);
-
-            PostResponse response = modelMapper.map(updatedPost, PostResponse.class);
-            response.setUsername(post.getUser().getUsername());
-            return response;
-        } catch (IOException e) {
-            throw new FileUploadException("Ошибка при сохранении файла", e);
+        if (!post.getUser().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("У вас нет прав для изменения этого поста");
         }
+
+        if (post.getImageUrl() != null) {
+            fileStorageService.deleteFile(post.getImageUrl());
+        }
+
+        String imageUrl = fileStorageService.saveFile(imageFile, "post-images");
+        post.setImageUrl(imageUrl);
+        Post updatedPost = postRepository.save(post);
+
+        PostResponse response = modelMapper.map(updatedPost, PostResponse.class);
+        response.setUsername(post.getUser().getUsername());
+        return response;
     }
 
     @Transactional

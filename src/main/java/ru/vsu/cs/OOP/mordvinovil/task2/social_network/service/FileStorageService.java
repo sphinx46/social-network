@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.FileProcessingException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,21 +19,25 @@ public class FileStorageService {
     @Value("${app.upload.dir:uploads}")
     private String uploadDir;
 
-    public String saveFile(MultipartFile file, String subDirectory) throws IOException {
-        Path uploadPath = Paths.get(uploadDir, subDirectory);
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
+    public String saveFile(MultipartFile file, String subDirectory) {
+        try {
+            Path uploadPath = Paths.get(uploadDir, subDirectory);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            String originalFilename = file.getOriginalFilename();
+            String fileExtension = getFileExtension(originalFilename);
+            String uniqueFilename = UUID.randomUUID() + fileExtension;
+
+            Path filePath = uploadPath.resolve(uniqueFilename);
+            Files.copy(file.getInputStream(), filePath);
+
+            log.info("Файл сохранен: {}", filePath);
+            return "/uploads/" + subDirectory + "/" + uniqueFilename;
+        } catch (IOException e) {
+            throw new FileProcessingException("Ошибка при сохранении файла", e);
         }
-
-        String originalFilename = file.getOriginalFilename();
-        String fileExtension = getFileExtension(originalFilename);
-        String uniqueFilename = UUID.randomUUID() + fileExtension;
-
-        Path filePath = uploadPath.resolve(uniqueFilename);
-        Files.copy(file.getInputStream(), filePath);
-
-        log.info("Файл сохранен: {}", filePath);
-        return "/uploads/" + subDirectory + "/" + uniqueFilename;
     }
 
     public boolean deleteFile(String fileUrl) {

@@ -2,7 +2,6 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -10,11 +9,10 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.ProfileRequest
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.ProfileResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Profile;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.ProfileAlreadyExistsException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.ProfileNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.ProfileRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.profile.ProfileAlreadyExistsException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.profile.ProfileNotFoundException;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Period;
 
@@ -86,28 +84,23 @@ public class ProfileService {
     }
 
 
-    public ProfileResponse uploadAvatar(User user, MultipartFile imageFile) throws FileUploadException {
-        try {
-            fileStorageService.validateImageFile(imageFile);
+    public ProfileResponse uploadAvatar(User user, MultipartFile imageFile) {
+        fileStorageService.validateImageFile(imageFile);
 
-            Profile profile = profileRepository.findByUser(user)
-                    .orElseThrow(() -> new ProfileNotFoundException("Профиль не найден"));
+        Profile profile = profileRepository.findByUser(user)
+                .orElseThrow(() -> new ProfileNotFoundException("Профиль не найден"));
 
-            if (profile.getImageUrl() != null && !profile.getImageUrl().isEmpty()) {
-                fileStorageService.deleteFile(profile.getImageUrl());
-            }
-
-            String avatarUrl = fileStorageService.saveFile(imageFile, "avatars");
-
-            profile.setImageUrl(avatarUrl);
-            Profile updatedProfile = profileRepository.save(profile);
-
-            ProfileResponse response = modelMapper.map(updatedProfile, ProfileResponse.class);
-
-            return response;
-        } catch (IOException e) {
-            throw new FileUploadException("Ошибка при сохранении файла", e);
+        if (profile.getImageUrl() != null && !profile.getImageUrl().isEmpty()) {
+            fileStorageService.deleteFile(profile.getImageUrl());
         }
+
+        String avatarUrl = fileStorageService.saveFile(imageFile, "avatars");
+
+        profile.setImageUrl(avatarUrl);
+        Profile updatedProfile = profileRepository.save(profile);
+
+        ProfileResponse response = modelMapper.map(updatedProfile, ProfileResponse.class);
+        return response;
     }
 
     @Transactional

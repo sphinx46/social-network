@@ -1,7 +1,6 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,9 +14,6 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.security.filters.UserDetailsImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.PostService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.UserService;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.post.PostNotFoundException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.profile.ProfileNotFoundException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.security.AccessDeniedException;
 
 import java.util.List;
 
@@ -32,10 +28,6 @@ public class PostController {
     @Operation(summary = "Получение списка постов текущего пользователя")
     @GetMapping("/me")
     public ResponseEntity<List<PostResponse>> getPostsByCurrentUser(@AuthenticationPrincipal UserDetailsImpl userDetails) {
-        if (userDetails == null) {
-            return ResponseEntity.status(401).build();
-        }
-
         User user = userService.getByUsername(userDetails.getUsername());
         List<PostResponse> responses = service.getAllPostsByUser(user);
         return ResponseEntity.ok(responses);
@@ -48,21 +40,9 @@ public class PostController {
             @Valid @RequestBody PostRequest request,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        if (userDetails == null) {
-            return ResponseEntity.status(401).build();
-        }
-
-        try {
-            User currentUser = userService.getByUsername(userDetails.getUsername());
-            PostResponse response = service.editPost(request, id, currentUser);
-            return ResponseEntity.ok(response);
-        } catch (PostNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (AccessDeniedException e) {
-            return ResponseEntity.status(403).build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+        User currentUser = userService.getByUsername(userDetails.getUsername());
+        PostResponse response = service.editPost(request, id, currentUser);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Загрузка фото для поста")
@@ -72,58 +52,28 @@ public class PostController {
             @RequestParam("file") MultipartFile imageFile,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        if (userDetails == null) {
-            return ResponseEntity.status(401).build();
-        }
-
-        try {
-            User currentUser = userService.getByUsername(userDetails.getUsername());
-            PostResponse response = service.uploadImage(id, imageFile, currentUser);
-            return ResponseEntity.ok(response);
-        } catch (PostNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (AccessDeniedException e) {
-            return ResponseEntity.status(403).build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+        User currentUser = userService.getByUsername(userDetails.getUsername());
+        PostResponse response = service.uploadImage(id, imageFile, currentUser);
+        return ResponseEntity.ok(response);
     }
 
-    @Transactional
     @Operation(summary = "Удаление изображения поста")
     @DeleteMapping("/{postId}/image")
     public ResponseEntity<PostResponse> removeImage(
             @PathVariable Long postId,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        if (userDetails == null) {
-            return ResponseEntity.status(401).build();
-        }
-
-        try {
-            User currentUser = userService.getByUsername(userDetails.getUsername());
-            PostResponse response = service.removeImage(postId, currentUser);
-            return ResponseEntity.ok(response);
-        } catch (PostNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        } catch (AccessDeniedException e) {
-            return ResponseEntity.status(403).build();
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+        User currentUser = userService.getByUsername(userDetails.getUsername());
+        PostResponse response = service.removeImage(postId, currentUser);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "Получение поста по Id")
     @GetMapping("/{postId}")
     public ResponseEntity<PostResponse> getPostById(@PathVariable Long postId) {
-        try {
-            PostResponse response = service.getPostById(postId);
-            return ResponseEntity.ok(response);
-        } catch (ProfileNotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
+        PostResponse response = service.getPostById(postId);
+        return ResponseEntity.ok(response);
     }
-
 
     @Operation(summary = "Создание нового поста")
     @PostMapping("/create")
@@ -131,16 +81,8 @@ public class PostController {
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Valid @RequestBody PostRequest request) {
 
-        if (userDetails == null) {
-            return ResponseEntity.status(401).build();
-        }
-
-        try {
-            User user = userService.getByUsername(userDetails.getUsername());
-            PostResponse response = service.create(user, request);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+        User user = userService.getByUsername(userDetails.getUsername());
+        PostResponse response = service.create(user, request);
+        return ResponseEntity.ok(response);
     }
 }
