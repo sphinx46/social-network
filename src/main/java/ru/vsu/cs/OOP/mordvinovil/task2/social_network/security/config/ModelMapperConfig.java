@@ -18,6 +18,7 @@ public class ModelMapperConfig {
         configurePostMappings(modelMapper);
         configureCommentMappings(modelMapper);
         configureProfileMappings(modelMapper);
+        configureRelationshipMappings(modelMapper);
 
         modelMapper.getConfiguration()
                 .setFieldMatchingEnabled(true)
@@ -60,6 +61,20 @@ public class ModelMapperConfig {
                 map().setContent(source.getContent());
                 map().setImageUrl(source.getImageUrl());
                 map().setTime(source.getTime());
+            }
+        });
+    }
+
+    private void configureRelationshipMappings(ModelMapper modelMapper) {
+        modelMapper.addMappings(new PropertyMap<Relationship, RelationshipResponse>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getId());
+                map().setCreatedAt(source.getCreatedAt());
+                map().setSenderId(source.getSender().getId());
+                map().setReceiverId(source.getReceiver().getId());
+                map().setStatus(source.getStatus());
+                map().setUpdatedAt(source.getUpdatedAt());
             }
         });
     }
