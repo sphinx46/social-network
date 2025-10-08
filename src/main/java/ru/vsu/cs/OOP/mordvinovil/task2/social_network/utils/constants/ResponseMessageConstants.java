@@ -17,5 +17,8 @@ public final class ResponseMessageConstants {
     // PROFILE CONSTANTS
     public static final String FAILURE_CREATE_PROFILE = "Профиль уже существует.";
 
+    // Message CONSTANTS
+    public static final String FAILURE_CREATE_SELF_MESSAGE = "Нельзя отправить сообщение самому себе.";
+
     private ResponseMessageConstants() {}
 }
