@@ -53,6 +53,8 @@ public class SecurityConfiguration {
                         .requestMatchers("/profile/**").authenticated()
                         .requestMatchers("/comments/**").authenticated()
                         .requestMatchers("/posts/**").authenticated()
+                        .requestMatchers("/messages/**").authenticated()
+                        .requestMatchers("/relationships/**").authenticated()
                         .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/swagger-ui.html").permitAll()
                         .requestMatchers("/v3/api-docs/**").permitAll()

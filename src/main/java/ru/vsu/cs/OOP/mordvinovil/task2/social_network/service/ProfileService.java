@@ -15,6 +15,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.ProfileReposi
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 
 @Service
@@ -60,11 +61,11 @@ public class ProfileService {
         return response;
     }
 
-    private Integer calculateAge(LocalDate dateOfBirth) {
+    private Integer calculateAge(LocalDateTime dateOfBirth) {
         if (dateOfBirth == null) {
             return null;
         }
-        return Period.between(dateOfBirth, LocalDate.now()).getYears();
+        return Period.between(LocalDate.from(dateOfBirth), LocalDate.now()).getYears();
     }
 
     @Transactional

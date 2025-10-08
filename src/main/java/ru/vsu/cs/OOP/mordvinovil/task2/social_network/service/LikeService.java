@@ -1,8 +1,8 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.LikeCommentRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.LikePostRequest;
@@ -20,7 +20,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.LikeRepositor
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,7 +45,7 @@ public class LikeService {
                 .user(currentUser)
                 .post(null)
                 .comment(comment)
-                .createdAt(LocalDate.now())
+                .createdAt(LocalDateTime.now())
                 .build();
 
         Like savedLike = likeRepository.save(like);
@@ -65,7 +65,7 @@ public class LikeService {
                 .user(currentUser)
                 .post(post)
                 .comment(null)
-                .createdAt(LocalDate.now())
+                .createdAt(LocalDateTime.now())
                 .build();
 
         Like savedLike = likeRepository.save(like);

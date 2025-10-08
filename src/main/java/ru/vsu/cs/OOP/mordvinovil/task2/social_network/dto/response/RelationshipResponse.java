@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.FriendshipStatus;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Schema(description = "Ответ с данными о запросе на дружбу")
@@ -22,8 +22,8 @@ public class RelationshipResponse {
     private FriendshipStatus status;
 
     @Schema(description = "Дата создания")
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
 
     @Schema(description = "Дата обновления")
-    private LocalDate updatedAt;
+    private LocalDateTime updatedAt;
 }

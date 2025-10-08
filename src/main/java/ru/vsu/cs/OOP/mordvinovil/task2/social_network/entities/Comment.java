@@ -2,12 +2,14 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities;
 
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-@Getter
-@Setter
+@Data
 @Entity
 @Builder
 @AllArgsConstructor
@@ -29,5 +31,5 @@ public class Comment extends BaseEntity {
     private String imageUrl;
 
     @Column(name = "time", nullable = false)
-    private LocalDate time;
+    private LocalDateTime time;
 }

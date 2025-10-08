@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.FriendshipStatus;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -28,8 +28,8 @@ public class Relationship extends BaseEntity {
     private FriendshipStatus status;
 
     @Column(name = "time_added", nullable = false)
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "time_updated", nullable = false)
-    private LocalDate updatedAt;
+    private LocalDateTime updatedAt;
 }

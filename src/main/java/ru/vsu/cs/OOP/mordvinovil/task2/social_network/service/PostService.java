@@ -14,7 +14,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.PostNotF
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -30,7 +30,7 @@ public class PostService {
                 .user(user)
                 .content(request.getContent())
                 .imageUrl(request.getImageUrl() != null ? request.getImageUrl() : null)
-                .time(LocalDate.now())
+                .time(LocalDateTime.now())
                 .build();
 
         Post savedPost = postRepository.save(post);

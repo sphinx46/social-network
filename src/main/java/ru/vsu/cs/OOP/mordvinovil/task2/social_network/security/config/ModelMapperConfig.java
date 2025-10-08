@@ -19,6 +19,7 @@ public class ModelMapperConfig {
         configureCommentMappings(modelMapper);
         configureProfileMappings(modelMapper);
         configureRelationshipMappings(modelMapper);
+        configureMessagesMappings(modelMapper);
 
         modelMapper.getConfiguration()
                 .setFieldMatchingEnabled(true)
@@ -103,6 +104,22 @@ public class ModelMapperConfig {
                 map().setDateOfBirth(source.getDateOfBirth());
                 map().setCreatedAt(source.getUser().getCreatedAt());
                 map().setIsOnline(source.getUser().isOnline());
+            }
+        });
+    }
+
+    private void configureMessagesMappings(ModelMapper modelMapper) {
+        modelMapper.addMappings(new PropertyMap<Message, MessageResponse>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getId());
+                map().setSenderUsername(source.getSender().getUsername());
+                map().setReceiverUsername(source.getReceiver().getUsername());
+                map().setContent(source.getContent());
+                map().setImageUrl(source.getImageUrl());
+                map().setStatus(source.getStatus());
+                map().setCreatedAt(source.getCreatedAt());
+                map().setUpdatedAt(source.getUpdatedAt());
             }
         });
     }

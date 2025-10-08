@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.MessageStatus;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -34,8 +34,8 @@ public class Message extends BaseEntity {
     private MessageStatus status;
 
     @Column(name = "time_create", nullable = false)
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "time_update", nullable = false)
-    private LocalDate updatedAt;
+    private LocalDateTime updatedAt;
 }

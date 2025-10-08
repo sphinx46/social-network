@@ -17,7 +17,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.RelationshipR
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,15 +29,15 @@ public class RelationshipService {
     private final ModelMapper modelMapper;
 
     public RelationshipResponse sendFriendRequest(RelationshipRequest request, User currentUser) {
-        User receiver = userRepository.findById(request.getUserReceiverId())
+        User receiver = userRepository.findById(request.getTargetUserId())
                 .orElseThrow(() -> new UserNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
-        if (currentUser.getId().equals(request.getUserReceiverId())) {
+        if (currentUser.getId().equals(request.getTargetUserId())) {
             throw new SelfRelationshipException("Нельзя отправить запрос самому себе");
         }
 
         Optional<Relationship> existingRelationship = relationShipRepository
-                .findRelationshipBetweenUsers(currentUser.getId(), request.getUserReceiverId());
+                .findRelationshipBetweenUsers(currentUser.getId(), request.getTargetUserId());
 
         if (existingRelationship.isPresent()) {
             throw new DuplicateRelationshipException("Связь между пользователями уже существует");
@@ -46,8 +46,8 @@ public class RelationshipService {
         var relationship = Relationship.builder()
                 .sender(currentUser)
                 .receiver(receiver)
-                .createdAt(LocalDate.now())
-                .updatedAt(LocalDate.now())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .status(FriendshipStatus.PENDING)
                 .build();
 
@@ -77,7 +77,7 @@ public class RelationshipService {
 
     private RelationshipResponse changeStatusAndSave(RelationshipRequest request, FriendshipStatus toStatus, User currentUser) {
         Relationship relationship = relationShipRepository
-                .findBySenderIdAndReceiverIdAndStatus(request.getUserReceiverId(), currentUser.getId(), FriendshipStatus.PENDING)
+                .findBySenderIdAndReceiverIdAndStatus(request.getTargetUserId(), currentUser.getId(), FriendshipStatus.PENDING)
                 .orElseThrow(() -> new RelationshipNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         if (!relationship.getReceiver().getId().equals(currentUser.getId())) {
@@ -85,7 +85,7 @@ public class RelationshipService {
         }
 
         relationship.setStatus(toStatus);
-        relationship.setUpdatedAt(LocalDate.now());
+        relationship.setUpdatedAt(LocalDateTime.now());
 
         Relationship savedRelationship = relationShipRepository.save(relationship);
         return modelMapper.map(savedRelationship, RelationshipResponse.class);
@@ -93,7 +93,7 @@ public class RelationshipService {
 
     public RelationshipResponse blockUser(RelationshipRequest request, User currentUser) {
         Optional<Relationship> existing = relationShipRepository
-                .findRelationshipBetweenUsers(currentUser.getId(), request.getUserReceiverId());
+                .findRelationshipBetweenUsers(currentUser.getId(), request.getTargetUserId());
 
         Relationship relationship;
         if (existing.isPresent()) {
@@ -102,11 +102,11 @@ public class RelationshipService {
         } else {
             relationship = Relationship.builder()
                     .sender(currentUser)
-                    .receiver(userRepository.findById(request.getUserReceiverId())
-                            .orElseThrow(() -> new UserNotFoundException("Пользователь не найден")))
+                    .receiver(userRepository.findById(request.getTargetUserId()).orElseThrow(()
+                     -> new UserNotFoundException("Пользователь не найден")))
                     .status(FriendshipStatus.BLOCKED)
-                    .createdAt(LocalDate.now())
-                    .updatedAt(LocalDate.now())
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
                     .build();
         }
         return modelMapper.map(relationShipRepository.save(relationship), RelationshipResponse.class);

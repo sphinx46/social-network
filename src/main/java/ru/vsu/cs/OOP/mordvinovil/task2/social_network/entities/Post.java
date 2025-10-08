@@ -3,7 +3,8 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDate;
+
+import java.time.LocalDateTime;
 
 
 @Entity
@@ -26,5 +27,5 @@ public class Post extends BaseEntity {
     private String imageUrl;
 
     @Column(name = "time_added", nullable = false)
-    private LocalDate time;
+    private LocalDateTime time;
 }

@@ -16,7 +16,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.CommentReposi
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -35,7 +35,7 @@ public class CommentService {
                 .post(post)
                 .creator(currentUser)
                 .content(request.getContent())
-                .time(LocalDate.now())
+                .time(LocalDateTime.now())
                 .imageUrl(request.getImageUrl() != null ? request.getImageUrl() : null)
                 .build();
 

@@ -3,6 +3,8 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 
 @Builder
 @Data
@@ -35,10 +37,10 @@ public class User extends BaseEntity {
     private String password;
 
     @Column(name = "created_at", nullable = false, updatable = false)
-    private java.time.LocalDateTime createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "last_login")
-    private java.time.LocalDateTime lastLogin;
+    private LocalDateTime lastLogin;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

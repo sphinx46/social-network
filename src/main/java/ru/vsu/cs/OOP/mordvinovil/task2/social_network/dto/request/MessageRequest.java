@@ -11,17 +11,13 @@ import lombok.Data;
 @Schema(description = "Запрос на создание/редактирование сообщения")
 public class MessageRequest {
     @NotNull(message = "ID не может быть null.")
-    @Schema(description = "ID отправителя", example = "1", required = true)
-    private Long senderUserId;
-
-    @NotNull(message = "ID не может быть null.")
-    @Schema(description = "ID получателя", example = "1", required = true)
+    @Schema(description = "ID получателя", example = "1")
     private Long receiverUserId;
 
     @NotBlank
     @Schema(description = "Содержание", example = "Привет! Как дела?")
     private String content;
 
-    @Schema(description = "Фото")
+    @Schema(description = "Фото", example = "image.jpg")
     private String imageUrl;
 }

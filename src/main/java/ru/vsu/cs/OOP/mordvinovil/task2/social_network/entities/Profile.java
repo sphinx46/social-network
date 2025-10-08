@@ -4,7 +4,7 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "profile")
@@ -24,7 +24,7 @@ public class Profile extends BaseEntity {
     private String city;
 
     @Column(name = "date_of_birth")
-    private LocalDate dateOfBirth;
+    private LocalDateTime dateOfBirth;
 
     @OneToOne(optional = false)
     @JoinColumn(name = "user_id")

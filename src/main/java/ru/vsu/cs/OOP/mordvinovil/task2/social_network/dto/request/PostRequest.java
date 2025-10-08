@@ -3,9 +3,10 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Data;
 
-
+@Builder
 @Data
 @Schema(description = "Запрос на создание/редактирование поста")
 public class PostRequest {

@@ -24,64 +24,92 @@ public class MessageController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Создание нового сообщения")
     @PostMapping("/create")
-    public ResponseEntity<MessageResponse> createMessage (
-            @Valid @RequestBody MessageRequest request) {
-
-        MessageResponse response = service.create(request);
+    public ResponseEntity<MessageResponse> createMessage(@Valid @RequestBody MessageRequest request) {
+        User user = userService.getCurrentUser();
+        MessageResponse response = service.create(request, user);
         return ResponseEntity.ok(response);
     }
 
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Изменить статус сообщения на 'Доставлено'")
-    @PatchMapping("/updateStatus/receive")
-    public ResponseEntity<List<MessageResponse>> receiveMessage(@Valid @RequestBody MessageRequest request) {
+    @Operation(summary = "Получить сообщение по ID")
+    @GetMapping("/{messageId}")
+    public ResponseEntity<MessageResponse> getMessage(@PathVariable Long messageId) {
         User user = userService.getCurrentUser();
-        List<MessageResponse> response = service.receiveMessages(request, user);
+        MessageResponse response = service.getMessageById(messageId, user);
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Получить переписку с пользователем")
+    @GetMapping("/conversation/{userId}")
+    public ResponseEntity<List<MessageResponse>> getConversation(@PathVariable Long userId) {
+        User user = userService.getCurrentUser();
+        List<MessageResponse> response = service.getConversation(userId, user);
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Получить отправленные сообщения")
+    @GetMapping("/sent")
+    public ResponseEntity<List<MessageResponse>> getSentMessages() {
+        User user = userService.getCurrentUser();
+        List<MessageResponse> response = service.getSentMessages(user);
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Получить полученные сообщения")
+    @GetMapping("/received")
+    public ResponseEntity<List<MessageResponse>> getReceivedMessages() {
+        User user = userService.getCurrentUser();
+        List<MessageResponse> response = service.getReceivedMessages(user);
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Получить прочитанные сообщения")
+    @GetMapping("/read")
+    public ResponseEntity<List<MessageResponse>> getReadMessages() {
+        User user = userService.getCurrentUser();
+        List<MessageResponse> response = service.getReadMessages(user);
+        return ResponseEntity.ok(response);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Изменить сообщение")
+    @PutMapping("/{messageId}")
+    public ResponseEntity<MessageResponse> editMessage(@PathVariable Long messageId,
+                                                       @Valid @RequestBody MessageRequest request) {
+        User user = userService.getCurrentUser();
+        MessageResponse response = service.editMessage(messageId, request, user);
+        return ResponseEntity.ok(response);
+    }
+
+
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Изменить статус сообщения на 'Доставлено'")
+    @PatchMapping("/{messageId}/receive")
+    public ResponseEntity<MessageResponse> receiveMessage(@PathVariable Long messageId) {
+        User user = userService.getCurrentUser();
+        MessageResponse response = service.markAsReceived(messageId, user);
         return ResponseEntity.ok(response);
     }
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Изменить статус сообщения на 'Прочитано'")
-    @PatchMapping("/updateStatus/read")
-    public ResponseEntity<List<MessageResponse>> readMessage(@Valid @RequestBody MessageRequest request) {
+    @PatchMapping("/{messageId}/read")
+    public ResponseEntity<MessageResponse> readMessage(@PathVariable Long messageId) {
         User user = userService.getCurrentUser();
-        List<MessageResponse> responseList = service.readMessages(request, user);
-        return ResponseEntity.ok(responseList);
+        MessageResponse response = service.markAsRead(messageId, user);
+        return ResponseEntity.ok(response);
     }
 
     @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Получение списка отправленных сообщений")
-    @GetMapping("/sent")
-    public ResponseEntity<List<MessageResponse>> getSentMessages(@Valid @RequestBody MessageRequest request) {
+    @Operation(summary = "Удалить сообщение")
+    @DeleteMapping("/{messageId}")
+    public ResponseEntity<Void> deleteMessage(@PathVariable Long messageId) {
         User user = userService.getCurrentUser();
-        List<MessageResponse> responseList = service.getSentMessages(request, user);
-        return ResponseEntity.ok(responseList);
-    }
-
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Получение списка доставленных сообщений")
-    @GetMapping("/received")
-    public ResponseEntity<List<MessageResponse>> getReceivedMessages(@Valid @RequestBody MessageRequest request) {
-        User user = userService.getCurrentUser();
-        List<MessageResponse> responseList = service.getReceivedMessages(request, user);
-        return ResponseEntity.ok(responseList);
-    }
-
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Получение списка прочитанных сообщений")
-    @GetMapping("/read")
-    public ResponseEntity<List<MessageResponse>> getReadMessages(@Valid @RequestBody MessageRequest request) {
-        User user = userService.getCurrentUser();
-        List<MessageResponse> responseList = service.getReadMessages(request, user);
-        return ResponseEntity.ok(responseList);
-    }
-
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Получение переписки между двумя пользователями")
-    @GetMapping("/messages")
-    public ResponseEntity<List<MessageResponse>> getMessageListBetweenUsers(@Valid @RequestBody MessageRequest request) {
-        User user = userService.getCurrentUser();
-        List<MessageResponse> responseList = service.getMessageListBetweenUsers(request, user);
-        return ResponseEntity.ok(responseList);
+        service.deleteMessage(messageId, user);
+        return ResponseEntity.noContent().build();
     }
 }

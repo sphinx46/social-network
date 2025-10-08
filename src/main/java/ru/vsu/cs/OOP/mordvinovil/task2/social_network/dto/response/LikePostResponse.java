@@ -3,7 +3,7 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @Schema(description = "Ответ с данными о лайке")
@@ -21,5 +21,5 @@ public class LikePostResponse {
     private Long postId;
 
     @Schema(description = "Дата создания")
-    private LocalDate createdAt;
+    private LocalDateTime createdAt;
 }
