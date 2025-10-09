@@ -96,6 +96,10 @@ public class PostService {
             throw new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED);
         }
 
+         if (post.getImageUrl() != null) {
+             fileStorageService.deleteFile(post.getImageUrl());
+         }
+
         post.setImageUrl(null);
         Post updatedPost = postRepository.save(post);
 
