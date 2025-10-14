@@ -66,6 +66,7 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Получение поста по Id")
     @GetMapping("/{postId}")
     public ResponseEntity<PostResponse> getPostById(@PathVariable Long postId) {

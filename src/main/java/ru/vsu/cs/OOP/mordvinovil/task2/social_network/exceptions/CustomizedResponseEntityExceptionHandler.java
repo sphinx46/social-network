@@ -14,7 +14,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.FileProcessingException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.*;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.ExceptionResponse;
 
 import java.util.Date;
 

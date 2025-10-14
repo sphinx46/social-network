@@ -19,6 +19,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.UserService;
 
 import java.io.IOException;
 
+
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {

@@ -33,7 +33,6 @@ public class MessageService {
         User receiver = userRepository.findById(request.getReceiverUserId())
                 .orElseThrow(() -> new UserNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
-
         if (currentUser.getId().equals(receiver.getId())) {
             throw new SelfMessageException(ResponseMessageConstants.FAILURE_CREATE_SELF_MESSAGE);
         }

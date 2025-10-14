@@ -47,6 +47,7 @@ public class ProfileController {
         return ResponseEntity.ok(response);
     }
 
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Получения профиля по Id пользователя")
     @GetMapping("/{userId}")
     public ResponseEntity<ProfileResponse> getProfile(@PathVariable Long userId) {
