@@ -2,19 +2,19 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PostRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PostResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.PostNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.ContentFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.AccessValidator;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -22,36 +22,26 @@ import java.util.List;
 public class PostService {
     private final FileStorageService fileStorageService;
     private final PostRepository postRepository;
-    private final ModelMapper modelMapper;
+    private final EntityMapper entityMapper;
+    private final ContentFactory contentFactory;
+    private final AccessValidator accessValidator;
 
     @Transactional
     public PostResponse create(User user, PostRequest request) {
-        var post = Post.builder()
-                .user(user)
-                .content(request.getContent())
-                .imageUrl(request.getImageUrl() != null ? request.getImageUrl() : null)
-                .time(LocalDateTime.now())
-                .build();
-
+        Post post = contentFactory.createPost(user, request.getContent(), request.getImageUrl());
         Post savedPost = postRepository.save(post);
-        return modelMapper.map(savedPost, PostResponse.class);
+        return entityMapper.map(savedPost, PostResponse.class);
     }
 
     public List<PostResponse> getAllPostsByUser(User user) {
         List<Post> posts = postRepository.getAllPostsByUser(user);
-        return posts.stream()
-                .map(post -> modelMapper.map(post, PostResponse.class))
-                .toList();
+        return entityMapper.mapList(posts, PostResponse.class);
     }
 
     @Transactional
     public PostResponse editPost(PostRequest request, Long id, User currentUser) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
-
-        if (!post.getUser().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED);
-        }
+        Post post = getPostEntity(id);
+        accessValidator.validatePostOwnership(currentUser, post);
 
         if (request.getContent() != null) {
             post.setContent(request.getContent());
@@ -62,19 +52,15 @@ public class PostService {
         }
 
         Post updatedPost = postRepository.save(post);
-        return modelMapper.map(updatedPost, PostResponse.class);
+        return entityMapper.map(updatedPost, PostResponse.class);
     }
 
     @Transactional
     public PostResponse uploadImage(Long id, MultipartFile imageFile, User currentUser) {
         fileStorageService.validateImageFile(imageFile);
 
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
-
-        if (!post.getUser().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED);
-        }
+        Post post = getPostEntity(id);
+        accessValidator.validatePostOwnership(currentUser, post);
 
         if (post.getImageUrl() != null) {
             fileStorageService.deleteFile(post.getImageUrl());
@@ -84,32 +70,31 @@ public class PostService {
         post.setImageUrl(imageUrl);
         Post updatedPost = postRepository.save(post);
 
-        return modelMapper.map(updatedPost, PostResponse.class);
+        return entityMapper.map(updatedPost, PostResponse.class);
     }
 
     @Transactional
     public PostResponse removeImage(Long id, User currentUser) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
+        Post post = getPostEntity(id);
+        accessValidator.validatePostOwnership(currentUser, post);
 
-        if (!post.getUser().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED);
+        if (post.getImageUrl() != null) {
+            fileStorageService.deleteFile(post.getImageUrl());
         }
-
-         if (post.getImageUrl() != null) {
-             fileStorageService.deleteFile(post.getImageUrl());
-         }
 
         post.setImageUrl(null);
         Post updatedPost = postRepository.save(post);
 
-        return modelMapper.map(updatedPost, PostResponse.class);
+        return entityMapper.map(updatedPost, PostResponse.class);
     }
 
     public PostResponse getPostById(Long postId) {
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
+        Post post = getPostEntity(postId);
+        return entityMapper.map(post, PostResponse.class);
+    }
 
-        return modelMapper.map(post, PostResponse.class);
+    private Post getPostEntity(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
     }
 }

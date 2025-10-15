@@ -2,21 +2,21 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.CommentRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.CommentResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.CommentNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.PostNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.ContentFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.CommentRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.AccessValidator;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
-import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -24,32 +24,22 @@ import java.util.concurrent.CompletableFuture;
 public class CommentService {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
-    private final ModelMapper modelMapper;
+    private final EntityMapper entityMapper;
+    private final ContentFactory contentFactory;
+    private final AccessValidator accessValidator;
 
     @Transactional
     public CommentResponse create(CommentRequest request, User currentUser) {
-        Post post = postRepository.findById(request.getPostId())
-                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
-
-        var comment = Comment.builder()
-                .post(post)
-                .creator(currentUser)
-                .content(request.getContent())
-                .time(LocalDateTime.now())
-                .imageUrl(request.getImageUrl() != null ? request.getImageUrl() : null)
-                .build();
-
+        Post post = getPostEntity(request.getPostId());
+        Comment comment = contentFactory.createComment(currentUser, post, request.getContent(), request.getImageUrl());
         Comment savedComment = commentRepository.save(comment);
-        return modelMapper.map(savedComment, CommentResponse.class);
+
+        return entityMapper.map(savedComment, CommentResponse.class);
     }
 
     public CommentResponse editComment(Long id, CommentRequest request, User currentUser) {
-        Comment comment = commentRepository.findById(id)
-                .orElseThrow(() -> new CommentNotFoundException(ResponseMessageConstants.NOT_FOUND));
-
-        if (!comment.getCreator().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED);
-        }
+        Comment comment = getCommentEntity(id);
+        accessValidator.validateCommentOwnership(currentUser, comment);
 
         if (request.getContent() != null) {
             comment.setContent(request.getContent());
@@ -60,29 +50,30 @@ public class CommentService {
         }
 
         Comment updatedComment = commentRepository.save(comment);
-        return modelMapper.map(updatedComment, CommentResponse.class);
+        return entityMapper.map(updatedComment, CommentResponse.class);
     }
 
     @Transactional
     public CompletableFuture<Boolean> deleteComment(Long commentId, User currentUser) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new CommentNotFoundException(ResponseMessageConstants.NOT_FOUND));
+        Comment comment = getCommentEntity(commentId);
+        accessValidator.validateCommentOwnership(currentUser, comment);
 
-        boolean isCommentCreator = comment.getCreator().getId().equals(currentUser.getId());
-        boolean isPostOwner = comment.getPost().getUser().getId().equals(currentUser.getId());
-
-        if (isCommentCreator || isPostOwner) {
-            commentRepository.delete(comment);
-            return CompletableFuture.completedFuture(true);
-        } else {
-            throw new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED);
-        }
+        commentRepository.delete(comment);
+        return CompletableFuture.completedFuture(true);
     }
 
     public CommentResponse getCommentById(Long commentId) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new CommentNotFoundException(ResponseMessageConstants.NOT_FOUND));
+        Comment comment = getCommentEntity(commentId);
+        return entityMapper.map(comment, CommentResponse.class);
+    }
 
-        return modelMapper.map(comment, CommentResponse.class);
+    private Post getPostEntity(Long postId) {
+        return postRepository.findById(postId)
+                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
+    }
+
+    private Comment getCommentEntity(Long commentId) {
+        return commentRepository.findById(commentId)
+                .orElseThrow(() -> new CommentNotFoundException(ResponseMessageConstants.NOT_FOUND));
     }
 }
