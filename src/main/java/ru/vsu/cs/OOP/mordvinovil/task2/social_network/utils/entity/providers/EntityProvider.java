@@ -1,4 +1,4 @@
-package ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity;
+package ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.providers;
 
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.EntityNotFoundException;
 

@@ -10,9 +10,9 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.ContentFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.PostValidator;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
 import java.util.List;
 
@@ -24,6 +24,7 @@ public class PostService {
     private final EntityMapper entityMapper;
     private final ContentFactory contentFactory;
     private final PostValidator postValidator;
+    private final EntityUtils entityUtils;
 
     @Transactional
     public PostResponse create(User user, PostRequest request) {
@@ -43,7 +44,7 @@ public class PostService {
     public PostResponse editPost(PostRequest request, Long id, User currentUser) {
         postValidator.validatePostUpdate(request, id, currentUser);
 
-        Post post = getPostEntity(id);
+        Post post = entityUtils.getPost(id);
 
         if (request.getContent() != null) {
             post.setContent(request.getContent());
@@ -62,7 +63,7 @@ public class PostService {
         fileStorageService.validateImageFile(imageFile);
         postValidator.validatePostOwnership(id, currentUser);
 
-        Post post = getPostEntity(id);
+        Post post = entityUtils.getPost(id);
 
         if (post.getImageUrl() != null) {
             fileStorageService.deleteFile(post.getImageUrl());
@@ -79,7 +80,7 @@ public class PostService {
     public PostResponse removeImage(Long id, User currentUser) {
         postValidator.validatePostOwnership(id, currentUser);
 
-        Post post = getPostEntity(id);
+        Post post = entityUtils.getPost(id);
 
         if (post.getImageUrl() != null) {
             fileStorageService.deleteFile(post.getImageUrl());
@@ -92,12 +93,7 @@ public class PostService {
     }
 
     public PostResponse getPostById(Long postId) {
-        Post post = getPostEntity(postId);
+        Post post = entityUtils.getPost(postId);
         return entityMapper.map(post, PostResponse.class);
-    }
-
-    private Post getPostEntity(Long postId) {
-        return postRepository.findById(postId)
-                .orElseThrow(() -> new ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
     }
 }

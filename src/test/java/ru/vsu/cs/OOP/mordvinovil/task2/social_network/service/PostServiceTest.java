@@ -12,16 +12,15 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PostResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.PostNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.AccessValidator;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.ContentFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.PostValidator;
 
-import java.util.Optional;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -47,7 +46,7 @@ class PostServiceTest {
     private PostValidator postValidator;
 
     @Mock
-    private AccessValidator accessValidator;
+    private EntityUtils entityUtils;
 
     @InjectMocks
     private PostService postService;
@@ -99,7 +98,7 @@ class PostServiceTest {
         updatedPost.setId(1L);
         PostResponse expectedResponse = createTestPostResponse(updatedPost);
 
-        when(postRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(entityUtils.getPost(1L)).thenReturn(post);
         doNothing().when(postValidator).validatePostUpdate(request, 1L, owner);
         when(postRepository.save(any(Post.class))).thenReturn(updatedPost);
         when(entityMapper.map(updatedPost, PostResponse.class)).thenReturn(expectedResponse);
@@ -110,22 +109,10 @@ class PostServiceTest {
         assertEquals("Updated content", result.getContent());
         assertEquals("new-image.jpg", result.getImageUrl());
 
-        verify(postRepository).findById(1L);
+        verify(entityUtils).getPost(1L);
         verify(postValidator).validatePostUpdate(request, 1L, owner);
         verify(postRepository).save(any(Post.class));
         verify(entityMapper).map(updatedPost, PostResponse.class);
-    }
-
-    @Test
-    void editPost_whenPostNotFound() {
-        PostRequest request = createTestPostRequest("Updated", "image.jpg");
-
-        when(postRepository.findById(1L)).thenReturn(Optional.empty());
-
-        PostNotFoundException exception = assertThrows(PostNotFoundException.class,
-                () -> postService.editPost(request, 1L, owner));
-
-        assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
     }
 
     @Test
@@ -135,7 +122,7 @@ class PostServiceTest {
         postAfterUpdate.setId(1L);
         PostResponse expectedResponse = createTestPostResponse(postAfterUpdate);
 
-        when(postRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(entityUtils.getPost(1L)).thenReturn(post);
         doNothing().when(postValidator).validatePostOwnership(1L, owner);
         when(fileStorageService.savePostImage(imageFile, 1L)).thenReturn("new-image.jpg");
         when(postRepository.save(any(Post.class))).thenReturn(postAfterUpdate);
@@ -147,23 +134,11 @@ class PostServiceTest {
         assertEquals("new-image.jpg", result.getImageUrl());
 
         verify(fileStorageService).validateImageFile(imageFile);
-        verify(postRepository).findById(1L);
+        verify(entityUtils).getPost(1L);
         verify(postValidator).validatePostOwnership(1L, owner);
         verify(fileStorageService).savePostImage(imageFile, 1L);
         verify(postRepository).save(any(Post.class));
         verify(entityMapper).map(postAfterUpdate, PostResponse.class);
-    }
-
-    @Test
-    void uploadImage_whenPostNotFound() {
-        MultipartFile imageFile = mock(MultipartFile.class);
-
-        when(postRepository.findById(1L)).thenReturn(Optional.empty());
-
-        PostNotFoundException exception = assertThrows(PostNotFoundException.class,
-                () -> postService.uploadImage(1L, imageFile, owner));
-
-        assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
     }
 
     @Test
@@ -172,7 +147,7 @@ class PostServiceTest {
         postAfterRemoval.setId(1L);
         PostResponse expectedResponse = createTestPostResponse(postAfterRemoval);
 
-        when(postRepository.findById(1L)).thenReturn(Optional.of(postWithImage));
+        when(entityUtils.getPost(1L)).thenReturn(postWithImage);
         doNothing().when(postValidator).validatePostOwnership(1L, owner);
         when(postRepository.save(any(Post.class))).thenReturn(postAfterRemoval);
         when(entityMapper.map(postAfterRemoval, PostResponse.class)).thenReturn(expectedResponse);
@@ -182,7 +157,7 @@ class PostServiceTest {
         assertNotNull(result);
         assertNull(result.getImageUrl());
 
-        verify(postRepository).findById(1L);
+        verify(entityUtils).getPost(1L);
         verify(postValidator).validatePostOwnership(1L, owner);
         verify(fileStorageService).deleteFile("existing.jpg");
         verify(postRepository).save(argThat(p -> p.getImageUrl() == null));
@@ -190,20 +165,10 @@ class PostServiceTest {
     }
 
     @Test
-    void removeImage_whenPostNotFound() {
-        when(postRepository.findById(1L)).thenReturn(Optional.empty());
-
-        PostNotFoundException exception = assertThrows(PostNotFoundException.class,
-                () -> postService.removeImage(1L, owner));
-
-        assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
-    }
-
-    @Test
     void getPostById_whenPostExists() {
         PostResponse expectedResponse = createTestPostResponse(post);
 
-        when(postRepository.findById(1L)).thenReturn(Optional.of(post));
+        when(entityUtils.getPost(1L)).thenReturn(post);
         when(entityMapper.map(post, PostResponse.class)).thenReturn(expectedResponse);
 
         PostResponse result = postService.getPostById(1L);
@@ -211,25 +176,15 @@ class PostServiceTest {
         assertNotNull(result);
         assertEquals(expectedResponse.getId(), result.getId());
 
-        verify(postRepository).findById(1L);
+        verify(entityUtils).getPost(1L);
         verify(entityMapper).map(post, PostResponse.class);
-    }
-
-    @Test
-    void getPostById_whenPostNotFound() {
-        when(postRepository.findById(1L)).thenReturn(Optional.empty());
-
-        PostNotFoundException exception = assertThrows(PostNotFoundException.class,
-                () -> postService.getPostById(1L));
-
-        assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
     }
 
     @Test
     void getAllPostsByUser() {
         Post post1 = createTestPost(owner, "Post 1", null);
         Post post2 = createTestPost(owner, "Post 2", "img.jpg");
-        var posts = java.util.List.of(post1, post2);
+        var posts = List.of(post1, post2);
         var responses = posts.stream().map(TestDataFactory::createTestPostResponse).toList();
 
         when(postRepository.getAllPostsByUser(owner)).thenReturn(posts);

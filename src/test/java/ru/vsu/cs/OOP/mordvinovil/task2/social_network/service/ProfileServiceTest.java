@@ -11,11 +11,11 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.ProfileRespon
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Profile;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.ProfileAlreadyExistsException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.ProfileNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.ProfileRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.ProfileAgeCalculator;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.ProfileFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.ProfileValidator;
 
@@ -50,6 +50,9 @@ public class ProfileServiceTest {
 
     @Mock
     private ProfileValidator profileValidator;
+
+    @Mock
+    private EntityUtils entityUtils;
 
     @InjectMocks
     private ProfileService profileService;
@@ -100,7 +103,7 @@ public class ProfileServiceTest {
         ProfileResponse response = createProfileResponse();
         response.setAge(25);
 
-        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        when(entityUtils.getProfileByUser(user)).thenReturn(profile);
         when(entityMapper.map(profile, ProfileResponse.class)).thenReturn(response);
         when(ageCalculator.calculateAge(profile.getDateOfBirth())).thenReturn(25);
 
@@ -109,21 +112,9 @@ public class ProfileServiceTest {
         assertNotNull(result);
         assertEquals(25, result.getAge());
 
-        verify(profileRepository).findByUser(user);
+        verify(entityUtils).getProfileByUser(user);
         verify(entityMapper).map(profile, ProfileResponse.class);
         verify(ageCalculator).calculateAge(profile.getDateOfBirth());
-    }
-
-    @Test
-    void getProfileByUser_whenProfileNotFound() {
-        User user = createTestUser(1L, "user", "user@example.com");
-
-        when(profileRepository.findByUser(user)).thenReturn(Optional.empty());
-
-        ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class,
-                () -> profileService.getProfileByUser(user));
-
-        assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
     }
 
     @Test
@@ -136,7 +127,7 @@ public class ProfileServiceTest {
         response.setAge(30);
 
         when(userService.getById(1L)).thenReturn(user);
-        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        when(entityUtils.getProfileByUser(user)).thenReturn(profile);
         when(entityMapper.map(profile, ProfileResponse.class)).thenReturn(response);
         when(ageCalculator.calculateAge(profile.getDateOfBirth())).thenReturn(30);
 
@@ -146,7 +137,7 @@ public class ProfileServiceTest {
         assertEquals(30, result.getAge());
 
         verify(userService).getById(1L);
-        verify(profileRepository).findByUser(user);
+        verify(entityUtils).getProfileByUser(user);
         verify(entityMapper).map(profile, ProfileResponse.class);
         verify(ageCalculator).calculateAge(profile.getDateOfBirth());
     }
@@ -164,7 +155,7 @@ public class ProfileServiceTest {
         ProfileResponse expectedResponse = createProfileResponse();
         expectedResponse.setImageUrl("new-avatar.jpg");
 
-        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        when(entityUtils.getProfileByUser(user)).thenReturn(profile);
         doNothing().when(profileValidator).validateAvatarUpload(user);
         when(fileStorageService.saveAvatar(imageFile, 1L)).thenReturn("new-avatar.jpg");
         when(profileRepository.save(any(Profile.class))).thenReturn(updatedProfile);
@@ -177,24 +168,11 @@ public class ProfileServiceTest {
 
         verify(fileStorageService).validateImageFile(imageFile);
         verify(profileValidator).validateAvatarUpload(user);
-        verify(profileRepository).findByUser(user);
+        verify(entityUtils).getProfileByUser(user);
         verify(fileStorageService).deleteFile("old-avatar.jpg");
         verify(fileStorageService).saveAvatar(imageFile, 1L);
         verify(profileRepository).save(any(Profile.class));
         verify(entityMapper).map(updatedProfile, ProfileResponse.class);
-    }
-
-    @Test
-    void uploadAvatar_whenProfileNotFound() {
-        User user = createTestUser(1L, "user", "user@example.com");
-        MultipartFile imageFile = mock(MultipartFile.class);
-
-        when(profileRepository.findByUser(user)).thenReturn(Optional.empty());
-
-        ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class,
-                () -> profileService.uploadAvatar(user, imageFile));
-
-        assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
     }
 
     @Test
@@ -209,7 +187,7 @@ public class ProfileServiceTest {
         ProfileResponse expectedResponse = createProfileResponse();
         expectedResponse.setImageUrl(null);
 
-        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        when(entityUtils.getProfileByUser(user)).thenReturn(profile);
         doNothing().when(profileValidator).validateAvatarUpload(user);
         when(profileRepository.save(any(Profile.class))).thenReturn(updatedProfile);
         when(entityMapper.map(updatedProfile, ProfileResponse.class)).thenReturn(expectedResponse);
@@ -220,22 +198,10 @@ public class ProfileServiceTest {
         assertNull(result.getImageUrl());
 
         verify(profileValidator).validateAvatarUpload(user);
-        verify(profileRepository).findByUser(user);
+        verify(entityUtils).getProfileByUser(user);
         verify(fileStorageService).deleteFile("avatar.jpg");
         verify(profileRepository).save(any(Profile.class));
         verify(entityMapper).map(updatedProfile, ProfileResponse.class);
-    }
-
-    @Test
-    void removeAvatar_whenProfileNotFound() {
-        User user = createTestUser(1L, "user", "user@example.com");
-
-        when(profileRepository.findByUser(user)).thenReturn(Optional.empty());
-
-        ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class,
-                () -> profileService.removeAvatar(user));
-
-        assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
     }
 
     @Test
@@ -257,7 +223,7 @@ public class ProfileServiceTest {
         updatedProfile.setImageUrl(request.getImageUrl());
         ProfileResponse expectedResponse = createProfileResponse();
 
-        when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        when(entityUtils.getProfileByUser(user)).thenReturn(profile);
         doNothing().when(profileValidator).validateProfileUpdate(request, user);
         when(profileRepository.save(any(Profile.class))).thenReturn(updatedProfile);
         when(entityMapper.map(updatedProfile, ProfileResponse.class)).thenReturn(expectedResponse);
@@ -267,23 +233,10 @@ public class ProfileServiceTest {
         assertNotNull(result);
 
         verify(profileValidator).validateProfileUpdate(request, user);
-        verify(profileRepository).findByUser(user);
+        verify(entityUtils).getProfileByUser(user);
         verify(fileStorageService).deleteFile("old.jpg");
         verify(profileRepository).save(any(Profile.class));
         verify(entityMapper).map(updatedProfile, ProfileResponse.class);
-    }
-
-    @Test
-    void updateProfile_whenProfileNotFound() {
-        User user = createTestUser(1L, "user", "user@example.com");
-        ProfileRequest request = createProfileRequest();
-
-        when(profileRepository.findByUser(user)).thenReturn(Optional.empty());
-
-        ProfileNotFoundException exception = assertThrows(ProfileNotFoundException.class,
-                () -> profileService.updateProfile(user, request));
-
-        assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
     }
 
     @Test

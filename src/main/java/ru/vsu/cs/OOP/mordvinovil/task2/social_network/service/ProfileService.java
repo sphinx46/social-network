@@ -11,9 +11,9 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.ProfileRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.ProfileAgeCalculator;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.ProfileFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.ProfileValidator;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +25,7 @@ public class ProfileService {
     private final ProfileFactory profileFactory;
     private final ProfileAgeCalculator ageCalculator;
     private final ProfileValidator profileValidator;
+    private final EntityUtils entityUtils;
 
     public Profile create(User user, ProfileRequest request) {
         profileValidator.validate(request, user);
@@ -34,7 +35,7 @@ public class ProfileService {
     }
 
     public ProfileResponse getProfileByUser(User user) {
-        Profile profile = getProfileEntity(user);
+        Profile profile = entityUtils.getProfileByUser(user);
         ProfileResponse response = entityMapper.map(profile, ProfileResponse.class);
         response.setAge(ageCalculator.calculateAge(profile.getDateOfBirth()));
         return response;
@@ -50,7 +51,7 @@ public class ProfileService {
         fileStorageService.validateImageFile(imageFile);
         profileValidator.validateAvatarUpload(user);
 
-        Profile profile = getProfileEntity(user);
+        Profile profile = entityUtils.getProfileByUser(user);
 
         if (profile.getImageUrl() != null && !profile.getImageUrl().isEmpty()) {
             fileStorageService.deleteFile(profile.getImageUrl());
@@ -67,7 +68,7 @@ public class ProfileService {
     public ProfileResponse removeAvatar(User user) {
         profileValidator.validateAvatarUpload(user);
 
-        Profile profile = getProfileEntity(user);
+        Profile profile = entityUtils.getProfileByUser(user);
 
         if (profile.getImageUrl() != null && !profile.getImageUrl().isEmpty()) {
             fileStorageService.deleteFile(profile.getImageUrl());
@@ -82,7 +83,7 @@ public class ProfileService {
     public ProfileResponse updateProfile(User user, ProfileRequest request) {
         profileValidator.validateProfileUpdate(request, user);
 
-        Profile profile = getProfileEntity(user);
+        Profile profile = entityUtils.getProfileByUser(user);
         updateProfileFromRequest(profile, user, request);
 
         Profile updatedProfile = profileRepository.save(profile);
@@ -93,11 +94,6 @@ public class ProfileService {
     public Profile createDefaultProfile(User user) {
         return profileRepository.findByUser(user)
                 .orElseGet(() -> profileRepository.save(profileFactory.createDefaultProfile(user)));
-    }
-
-    private Profile getProfileEntity(User user) {
-        return profileRepository.findByUser(user)
-                .orElseThrow(() -> new ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.ProfileNotFoundException(ResponseMessageConstants.NOT_FOUND));
     }
 
     private void updateProfileFromRequest(Profile profile, User user, ProfileRequest request) {
