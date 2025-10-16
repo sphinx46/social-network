@@ -10,16 +10,15 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.MessageRespon
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Message;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.MessageStatus;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.MessageNotFoundException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.SelfMessageException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.UserNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.MessageRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.AccessValidator;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.MessageFactory;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.AccessValidator;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.MessageValidator;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -45,6 +44,9 @@ public class MessageServiceTest {
     private MessageFactory messageFactory;
 
     @Mock
+    private MessageValidator messageValidator;
+
+    @Mock
     private AccessValidator accessValidator;
 
     @InjectMocks
@@ -68,6 +70,7 @@ public class MessageServiceTest {
 
         assertNotNull(result);
 
+        verify(messageValidator).validateMessageCreation(request, currentUser);
         verify(userRepository).findById(receiverUser.getId());
         verify(messageFactory).createMessage(currentUser, receiverUser, request);
         verify(messageRepository).save(any(Message.class));
@@ -88,24 +91,6 @@ public class MessageServiceTest {
     }
 
     @Test
-    void createMessage_whenSendingToSelf() {
-        User currentUser = createTestUser(1L, "user", "example@example.com");
-        MessageRequest request = createTestRequest(currentUser.getId(), "привет", null);
-
-        when(userRepository.findById(currentUser.getId())).thenReturn(Optional.of(currentUser));
-
-        doThrow(new SelfMessageException(ResponseMessageConstants.FAILURE_CREATE_SELF_MESSAGE))
-                .when(accessValidator).validateSelfMessage(currentUser, currentUser);
-
-        SelfMessageException exception = assertThrows(SelfMessageException.class,
-                () -> messageService.create(request, currentUser));
-
-        assertEquals(ResponseMessageConstants.FAILURE_CREATE_SELF_MESSAGE, exception.getMessage());
-
-        verify(accessValidator).validateSelfMessage(currentUser, currentUser);
-    }
-
-    @Test
     void markAsReceived_whenMessageExistsAndReceiverIsCorrect() {
         User sender = createTestUser(1L, "sender", "sender@example.com");
         User receiver = createTestUser(2L, "receiver", "receiver@example.com");
@@ -118,8 +103,6 @@ public class MessageServiceTest {
         when(messageRepository.findById(1L)).thenReturn(Optional.of(message));
         when(messageRepository.save(any(Message.class))).thenReturn(message);
         when(entityMapper.map(message, MessageResponse.class)).thenReturn(expectedResponse);
-
-        doNothing().when(accessValidator).validateMessageReceiver(eq(receiver), eq(message));
 
         MessageResponse result = messageService.markAsReceived(1L, receiver);
 
@@ -157,7 +140,6 @@ public class MessageServiceTest {
         when(messageRepository.findById(1L)).thenReturn(Optional.of(message));
         when(messageRepository.save(any(Message.class))).thenReturn(message);
         when(entityMapper.map(message, MessageResponse.class)).thenReturn(expectedResponse);
-        doNothing().when(accessValidator).validateMessageReceiver(eq(receiver), eq(message));
 
         MessageResponse result = messageService.markAsRead(1L, receiver);
 
@@ -198,7 +180,6 @@ public class MessageServiceTest {
         when(messageRepository.findById(1L)).thenReturn(Optional.of(originalMessage));
         when(messageRepository.save(any(Message.class))).thenReturn(updatedMessage);
         when(entityMapper.map(updatedMessage, MessageResponse.class)).thenReturn(expectedResponse);
-        doNothing().when(accessValidator).validateMessageOwnership(eq(owner), eq(originalMessage));
 
         MessageResponse result = messageService.editMessage(1L, updateRequest, owner);
 
@@ -206,6 +187,7 @@ public class MessageServiceTest {
         assertEquals("пока", result.getContent());
         assertEquals("image.jpg", result.getImageUrl());
 
+        verify(messageValidator).validateMessageUpdate(updateRequest, owner);
         verify(messageRepository).findById(1L);
         verify(messageRepository).save(any(Message.class));
         verify(entityMapper).map(updatedMessage, MessageResponse.class);
@@ -226,29 +208,6 @@ public class MessageServiceTest {
     }
 
     @Test
-    void editMessage_whenUserIsNotOwner() {
-        User owner = createTestUser(1L, "owner", "owner@example.com");
-        User receiver = createTestUser(2L, "receiver", "receiver@example.com");
-        User impostor = createTestUser(3L, "impostor", "impostor@example.com");
-        Message message = createTestMessage(owner, receiver, "привет", null,
-                MessageStatus.SENT, LocalDateTime.now(), LocalDateTime.now());
-        message.setId(1L);
-        MessageRequest request = createTestRequest(receiver.getId(), "пока", "image.jpg");
-
-        when(messageRepository.findById(1L)).thenReturn(Optional.of(message));
-        doThrow(new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED))
-                .when(accessValidator).validateMessageOwnership(eq(impostor), eq(message));
-
-        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
-                () -> messageService.editMessage(1L, request, impostor));
-
-        assertEquals(ResponseMessageConstants.ACCESS_DENIED, exception.getMessage());
-
-        verify(accessValidator).validateMessageOwnership(impostor, message);
-        verify(messageRepository, never()).save(any());
-    }
-
-    @Test
     void deleteMessage_whenMessageExistsAndUserIsOwner() {
         User owner = createTestUser(1L, "owner", "owner@example.com");
         User receiver = createTestUser(2L, "receiver", "receiver@example.com");
@@ -257,7 +216,6 @@ public class MessageServiceTest {
         message.setId(1L);
 
         when(messageRepository.findById(1L)).thenReturn(Optional.of(message));
-        doNothing().when(accessValidator).validateMessageOwnership(eq(owner), eq(message));
 
         assertDoesNotThrow(() -> messageService.deleteMessage(1L, owner));
 
@@ -276,27 +234,5 @@ public class MessageServiceTest {
                 () -> messageService.deleteMessage(1L, user));
 
         assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
-    }
-
-    @Test
-    void deleteMessage_whenUserIsNotOwner() {
-        User owner = createTestUser(1L, "owner", "owner@example.com");
-        User receiver = createTestUser(2L, "receiver", "receiver@example.com");
-        User impostor = createTestUser(3L, "impostor", "impostor@example.com");
-        Message message = createTestMessage(owner, receiver, "привет", null,
-                MessageStatus.SENT, LocalDateTime.now(), LocalDateTime.now());
-        message.setId(1L);
-
-        when(messageRepository.findById(1L)).thenReturn(Optional.of(message));
-        doThrow(new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED))
-                .when(accessValidator).validateMessageOwnership(eq(impostor), eq(message));
-
-        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
-                () -> messageService.deleteMessage(1L, impostor));
-
-        assertEquals(ResponseMessageConstants.ACCESS_DENIED, exception.getMessage());
-
-        verify(accessValidator).validateMessageOwnership(impostor, message);
-        verify(messageRepository, never()).delete(any());
     }
 }

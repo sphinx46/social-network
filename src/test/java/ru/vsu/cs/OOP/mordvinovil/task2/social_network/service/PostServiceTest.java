@@ -14,18 +14,17 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.PostNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.AccessValidator;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.AccessValidator;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.ContentFactory;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.PostValidator;
 
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.argThat;
 import static org.mockito.Mockito.*;
 import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory.*;
 
@@ -43,6 +42,9 @@ class PostServiceTest {
 
     @Mock
     private ContentFactory contentFactory;
+
+    @Mock
+    private PostValidator postValidator;
 
     @Mock
     private AccessValidator accessValidator;
@@ -84,6 +86,7 @@ class PostServiceTest {
         assertEquals(expectedResponse.getContent(), result.getContent());
         assertEquals(expectedResponse.getImageUrl(), result.getImageUrl());
 
+        verify(postValidator).validate(request, owner);
         verify(contentFactory).createPost(owner, request.getContent(), request.getImageUrl());
         verify(postRepository).save(any(Post.class));
         verify(entityMapper).map(savedPost, PostResponse.class);
@@ -97,7 +100,7 @@ class PostServiceTest {
         PostResponse expectedResponse = createTestPostResponse(updatedPost);
 
         when(postRepository.findById(1L)).thenReturn(Optional.of(post));
-        doNothing().when(accessValidator).validatePostOwnership(eq(owner), eq(post));
+        doNothing().when(postValidator).validatePostUpdate(request, 1L, owner);
         when(postRepository.save(any(Post.class))).thenReturn(updatedPost);
         when(entityMapper.map(updatedPost, PostResponse.class)).thenReturn(expectedResponse);
 
@@ -108,7 +111,7 @@ class PostServiceTest {
         assertEquals("new-image.jpg", result.getImageUrl());
 
         verify(postRepository).findById(1L);
-        verify(accessValidator).validatePostOwnership(owner, post);
+        verify(postValidator).validatePostUpdate(request, 1L, owner);
         verify(postRepository).save(any(Post.class));
         verify(entityMapper).map(updatedPost, PostResponse.class);
     }
@@ -126,23 +129,6 @@ class PostServiceTest {
     }
 
     @Test
-    void editPost_whenUserIsNotOwner() {
-        PostRequest request = createTestPostRequest("Updated", "image.jpg");
-
-        when(postRepository.findById(1L)).thenReturn(Optional.of(post));
-        doThrow(new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED))
-                .when(accessValidator).validatePostOwnership(eq(notOwner), eq(post));
-
-        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
-                () -> postService.editPost(request, 1L, notOwner));
-
-        assertEquals(ResponseMessageConstants.ACCESS_DENIED, exception.getMessage());
-
-        verify(accessValidator).validatePostOwnership(notOwner, post);
-        verify(postRepository, never()).save(any());
-    }
-
-    @Test
     void uploadImage_whenUserIsOwner() {
         MultipartFile imageFile = mock(MultipartFile.class);
         Post postAfterUpdate = createTestPost(owner, post.getContent(), "new-image.jpg");
@@ -150,7 +136,7 @@ class PostServiceTest {
         PostResponse expectedResponse = createTestPostResponse(postAfterUpdate);
 
         when(postRepository.findById(1L)).thenReturn(Optional.of(post));
-        doNothing().when(accessValidator).validatePostOwnership(eq(owner), eq(post));
+        doNothing().when(postValidator).validatePostOwnership(1L, owner);
         when(fileStorageService.savePostImage(imageFile, 1L)).thenReturn("new-image.jpg");
         when(postRepository.save(any(Post.class))).thenReturn(postAfterUpdate);
         when(entityMapper.map(postAfterUpdate, PostResponse.class)).thenReturn(expectedResponse);
@@ -162,28 +148,10 @@ class PostServiceTest {
 
         verify(fileStorageService).validateImageFile(imageFile);
         verify(postRepository).findById(1L);
-        verify(accessValidator).validatePostOwnership(owner, post);
+        verify(postValidator).validatePostOwnership(1L, owner);
         verify(fileStorageService).savePostImage(imageFile, 1L);
         verify(postRepository).save(any(Post.class));
         verify(entityMapper).map(postAfterUpdate, PostResponse.class);
-    }
-
-    @Test
-    void uploadImage_whenUserIsNotOwner() {
-        MultipartFile imageFile = mock(MultipartFile.class);
-
-        when(postRepository.findById(1L)).thenReturn(Optional.of(post));
-        doThrow(new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED))
-                .when(accessValidator).validatePostOwnership(eq(notOwner), eq(post));
-
-        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
-                () -> postService.uploadImage(1L, imageFile, notOwner));
-
-        assertEquals(ResponseMessageConstants.ACCESS_DENIED, exception.getMessage());
-
-        verify(accessValidator).validatePostOwnership(notOwner, post);
-        verify(fileStorageService, never()).savePostImage(any(), anyLong());
-        verify(postRepository, never()).save(any());
     }
 
     @Test
@@ -205,7 +173,7 @@ class PostServiceTest {
         PostResponse expectedResponse = createTestPostResponse(postAfterRemoval);
 
         when(postRepository.findById(1L)).thenReturn(Optional.of(postWithImage));
-        doNothing().when(accessValidator).validatePostOwnership(eq(owner), eq(postWithImage));
+        doNothing().when(postValidator).validatePostOwnership(1L, owner);
         when(postRepository.save(any(Post.class))).thenReturn(postAfterRemoval);
         when(entityMapper.map(postAfterRemoval, PostResponse.class)).thenReturn(expectedResponse);
 
@@ -215,26 +183,10 @@ class PostServiceTest {
         assertNull(result.getImageUrl());
 
         verify(postRepository).findById(1L);
-        verify(accessValidator).validatePostOwnership(owner, postWithImage);
+        verify(postValidator).validatePostOwnership(1L, owner);
         verify(fileStorageService).deleteFile("existing.jpg");
         verify(postRepository).save(argThat(p -> p.getImageUrl() == null));
         verify(entityMapper).map(postAfterRemoval, PostResponse.class);
-    }
-
-    @Test
-    void removeImage_whenUserIsNotOwner() {
-        when(postRepository.findById(1L)).thenReturn(Optional.of(postWithImage));
-        doThrow(new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED))
-                .when(accessValidator).validatePostOwnership(eq(notOwner), eq(postWithImage));
-
-        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
-                () -> postService.removeImage(1L, notOwner));
-
-        assertEquals(ResponseMessageConstants.ACCESS_DENIED, exception.getMessage());
-
-        verify(accessValidator).validatePostOwnership(notOwner, postWithImage);
-        verify(fileStorageService, never()).deleteFile(anyString());
-        verify(postRepository, never()).save(any());
     }
 
     @Test
@@ -290,5 +242,53 @@ class PostServiceTest {
 
         verify(postRepository).getAllPostsByUser(owner);
         verify(entityMapper).mapList(posts, PostResponse.class);
+    }
+
+    @Test
+    void editPost_whenUserIsNotOwner() {
+        PostRequest request = createTestPostRequest("Updated", "image.jpg");
+
+        doThrow(new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED))
+                .when(postValidator).validatePostUpdate(request, 1L, notOwner);
+
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+                () -> postService.editPost(request, 1L, notOwner));
+
+        assertEquals(ResponseMessageConstants.ACCESS_DENIED, exception.getMessage());
+
+        verify(postValidator).validatePostUpdate(request, 1L, notOwner);
+        verify(postRepository, never()).save(any());
+    }
+
+    @Test
+    void uploadImage_whenUserIsNotOwner() {
+        MultipartFile imageFile = mock(MultipartFile.class);
+
+        doThrow(new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED))
+                .when(postValidator).validatePostOwnership(1L, notOwner);
+
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+                () -> postService.uploadImage(1L, imageFile, notOwner));
+
+        assertEquals(ResponseMessageConstants.ACCESS_DENIED, exception.getMessage());
+
+        verify(postValidator).validatePostOwnership(1L, notOwner);
+        verify(fileStorageService, never()).savePostImage(any(), anyLong());
+        verify(postRepository, never()).save(any());
+    }
+
+    @Test
+    void removeImage_whenUserIsNotOwner() {
+        doThrow(new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED))
+                .when(postValidator).validatePostOwnership(1L, notOwner);
+
+        AccessDeniedException exception = assertThrows(AccessDeniedException.class,
+                () -> postService.removeImage(1L, notOwner));
+
+        assertEquals(ResponseMessageConstants.ACCESS_DENIED, exception.getMessage());
+
+        verify(postValidator).validatePostOwnership(1L, notOwner);
+        verify(fileStorageService, never()).deleteFile(anyString());
+        verify(postRepository, never()).save(any());
     }
 }

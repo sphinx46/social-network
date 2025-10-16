@@ -10,15 +10,14 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.CommentRespon
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.CommentNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.PostNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.CommentRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.AccessValidator;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.ContentFactory;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.CommentValidator;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -43,7 +42,7 @@ public class CommentServiceTest {
     private ContentFactory contentFactory;
 
     @Mock
-    private AccessValidator accessValidator;
+    private CommentValidator commentValidator;
 
     @InjectMocks
     private CommentService commentService;
@@ -65,6 +64,7 @@ public class CommentServiceTest {
 
         assertNotNull(result);
 
+        verify(commentValidator).validate(request, currentUser);
         verify(postRepository).findById(post.getId());
         verify(contentFactory).createComment(currentUser, post, request.getContent(), request.getImageUrl());
         verify(commentRepository).save(any(Comment.class));
@@ -103,8 +103,8 @@ public class CommentServiceTest {
         assertEquals("New content", result.getContent());
         assertEquals("image.jpg", result.getImageUrl());
 
+        verify(commentValidator).validateCommentUpdate(request, comment.getId(), currentUser);
         verify(commentRepository).findById(comment.getId());
-        verify(accessValidator).validateCommentOwnership(currentUser, comment);
         verify(commentRepository).save(any(Comment.class));
         verify(entityMapper).map(updatedComment, CommentResponse.class);
     }
@@ -123,25 +123,6 @@ public class CommentServiceTest {
     }
 
     @Test
-    void editComment_whenUserIsNotOwner() {
-        User commentOwner = createTestUser(1L, "owner", "owner@example.com");
-        User currentUser = createTestUser(2L, "user", "user@example.com");
-        Post post = createTestPost(commentOwner, "Test post", null);
-        Comment comment = createTestComment(1L, commentOwner, post, "Old content", null);
-        CommentRequest request = createTestCommentRequest(post.getId(), "New content", null);
-
-        when(commentRepository.findById(comment.getId())).thenReturn(Optional.of(comment));
-
-        doThrow(new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED))
-                .when(accessValidator).validateCommentOwnership(currentUser, comment);
-
-        AccessDeniedException accessDeniedException = assertThrows(AccessDeniedException.class,
-                () -> commentService.editComment(comment.getId(), request, currentUser));
-
-        assertEquals(ResponseMessageConstants.ACCESS_DENIED, accessDeniedException.getMessage());
-    }
-
-    @Test
     void deleteComment_whenUserIsCommentCreator() throws Exception {
         User currentUser = createTestUser(1L, "user", "example@example.com");
         Post post = createTestPost(currentUser, "Test post", null);
@@ -153,46 +134,9 @@ public class CommentServiceTest {
 
         assertTrue(result.get());
 
+        verify(commentValidator).validateCommentOwnership(comment.getId(), currentUser);
         verify(commentRepository).findById(comment.getId());
-        verify(accessValidator).validateCommentOwnership(currentUser, comment);
         verify(commentRepository).delete(comment);
-    }
-
-    @Test
-    void deleteComment_whenUserIsPostOwner() throws Exception {
-        User postOwner = createTestUser(1L, "postOwner", "owner@example.com");
-        User commentCreator = createTestUser(2L, "commentCreator", "creator@example.com");
-        Post post = createTestPost(postOwner, "Test post", null);
-        Comment comment = createTestComment(1L, commentCreator, post, "Test comment", null);
-
-        when(commentRepository.findById(comment.getId())).thenReturn(Optional.of(comment));
-
-        CompletableFuture<Boolean> result = commentService.deleteComment(comment.getId(), postOwner);
-
-        assertTrue(result.get());
-
-        verify(commentRepository).findById(comment.getId());
-        verify(accessValidator).validateCommentOwnership(postOwner, comment);
-        verify(commentRepository).delete(comment);
-    }
-
-    @Test
-    void deleteComment_whenUserHasNoAccess() {
-        User commentCreator = createTestUser(1L, "creator", "creator@example.com");
-        User postOwner = createTestUser(2L, "owner", "owner@example.com");
-        User otherUser = createTestUser(3L, "other", "other@example.com");
-        Post post = createTestPost(postOwner, "Test post", null);
-        Comment comment = createTestComment(1L, commentCreator, post, "Test comment", null);
-
-        when(commentRepository.findById(comment.getId())).thenReturn(Optional.of(comment));
-
-        doThrow(new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED))
-                .when(accessValidator).validateCommentOwnership(otherUser, comment);
-
-        AccessDeniedException accessDeniedException = assertThrows(AccessDeniedException.class,
-                () -> commentService.deleteComment(comment.getId(), otherUser));
-
-        assertEquals(ResponseMessageConstants.ACCESS_DENIED, accessDeniedException.getMessage());
     }
 
     @Test

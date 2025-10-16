@@ -10,12 +10,13 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.CommentNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.PostNotFoundException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.ContentFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.CommentRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.AccessValidator;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.ContentFactory;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.AccessValidator;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.CommentValidator;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -27,9 +28,12 @@ public class CommentService {
     private final EntityMapper entityMapper;
     private final ContentFactory contentFactory;
     private final AccessValidator accessValidator;
+    private final CommentValidator commentValidator;
 
     @Transactional
     public CommentResponse create(CommentRequest request, User currentUser) {
+        commentValidator.validate(request, currentUser);
+
         Post post = getPostEntity(request.getPostId());
         Comment comment = contentFactory.createComment(currentUser, post, request.getContent(), request.getImageUrl());
         Comment savedComment = commentRepository.save(comment);
@@ -38,8 +42,9 @@ public class CommentService {
     }
 
     public CommentResponse editComment(Long id, CommentRequest request, User currentUser) {
+        commentValidator.validateCommentUpdate(request, id, currentUser);
+
         Comment comment = getCommentEntity(id);
-        accessValidator.validateCommentOwnership(currentUser, comment);
 
         if (request.getContent() != null) {
             comment.setContent(request.getContent());
@@ -55,9 +60,9 @@ public class CommentService {
 
     @Transactional
     public CompletableFuture<Boolean> deleteComment(Long commentId, User currentUser) {
-        Comment comment = getCommentEntity(commentId);
-        accessValidator.validateCommentOwnership(currentUser, comment);
+        commentValidator.validateCommentOwnership(commentId, currentUser);
 
+        Comment comment = getCommentEntity(commentId);
         commentRepository.delete(comment);
         return CompletableFuture.completedFuture(true);
     }

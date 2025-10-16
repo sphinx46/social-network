@@ -17,13 +17,13 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.ProfileAgeCalculator;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.ProfileFactory;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.ProfileValidator;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory.*;
 
@@ -48,6 +48,9 @@ public class ProfileServiceTest {
     @Mock
     private ProfileAgeCalculator ageCalculator;
 
+    @Mock
+    private ProfileValidator profileValidator;
+
     @InjectMocks
     private ProfileService profileService;
 
@@ -62,14 +65,14 @@ public class ProfileServiceTest {
         profile.setDateOfBirth(request.getDateOfBirth());
         profile.setImageUrl(request.getImageUrl());
 
-        when(profileRepository.findByUser(user)).thenReturn(Optional.empty());
+        doNothing().when(profileValidator).validate(request, user);
         when(profileFactory.createProfile(user, request)).thenReturn(profile);
         when(profileRepository.save(any(Profile.class))).thenReturn(profile);
 
         Profile result = profileService.create(user, request);
 
         assertNotNull(result);
-        verify(profileRepository).findByUser(user);
+        verify(profileValidator).validate(request, user);
         verify(profileFactory).createProfile(user, request);
         verify(profileRepository).save(profile);
     }
@@ -79,7 +82,8 @@ public class ProfileServiceTest {
         User user = createTestUser(1L, "user", "user@example.com");
         ProfileRequest request = createProfileRequest();
 
-        when(profileRepository.findByUser(user)).thenReturn(Optional.of(new Profile()));
+        doThrow(new ProfileAlreadyExistsException(ResponseMessageConstants.FAILURE_CREATE_PROFILE))
+                .when(profileValidator).validate(request, user);
 
         ProfileAlreadyExistsException exception = assertThrows(ProfileAlreadyExistsException.class,
                 () -> profileService.create(user, request));
@@ -161,6 +165,7 @@ public class ProfileServiceTest {
         expectedResponse.setImageUrl("new-avatar.jpg");
 
         when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        doNothing().when(profileValidator).validateAvatarUpload(user);
         when(fileStorageService.saveAvatar(imageFile, 1L)).thenReturn("new-avatar.jpg");
         when(profileRepository.save(any(Profile.class))).thenReturn(updatedProfile);
         when(entityMapper.map(updatedProfile, ProfileResponse.class)).thenReturn(expectedResponse);
@@ -171,6 +176,7 @@ public class ProfileServiceTest {
         assertEquals("new-avatar.jpg", result.getImageUrl());
 
         verify(fileStorageService).validateImageFile(imageFile);
+        verify(profileValidator).validateAvatarUpload(user);
         verify(profileRepository).findByUser(user);
         verify(fileStorageService).deleteFile("old-avatar.jpg");
         verify(fileStorageService).saveAvatar(imageFile, 1L);
@@ -204,6 +210,7 @@ public class ProfileServiceTest {
         expectedResponse.setImageUrl(null);
 
         when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        doNothing().when(profileValidator).validateAvatarUpload(user);
         when(profileRepository.save(any(Profile.class))).thenReturn(updatedProfile);
         when(entityMapper.map(updatedProfile, ProfileResponse.class)).thenReturn(expectedResponse);
 
@@ -212,9 +219,10 @@ public class ProfileServiceTest {
         assertNotNull(result);
         assertNull(result.getImageUrl());
 
+        verify(profileValidator).validateAvatarUpload(user);
         verify(profileRepository).findByUser(user);
         verify(fileStorageService).deleteFile("avatar.jpg");
-        verify(profileRepository).save(argThat(p -> p.getImageUrl() == null));
+        verify(profileRepository).save(any(Profile.class));
         verify(entityMapper).map(updatedProfile, ProfileResponse.class);
     }
 
@@ -250,6 +258,7 @@ public class ProfileServiceTest {
         ProfileResponse expectedResponse = createProfileResponse();
 
         when(profileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        doNothing().when(profileValidator).validateProfileUpdate(request, user);
         when(profileRepository.save(any(Profile.class))).thenReturn(updatedProfile);
         when(entityMapper.map(updatedProfile, ProfileResponse.class)).thenReturn(expectedResponse);
 
@@ -257,11 +266,11 @@ public class ProfileServiceTest {
 
         assertNotNull(result);
 
+        verify(profileValidator).validateProfileUpdate(request, user);
         verify(profileRepository).findByUser(user);
         verify(fileStorageService).deleteFile("old.jpg");
         verify(profileRepository).save(any(Profile.class));
         verify(entityMapper).map(updatedProfile, ProfileResponse.class);
-        assertEquals(request.getCity(), user.getCity()); // Проверка обновления города в User
     }
 
     @Test

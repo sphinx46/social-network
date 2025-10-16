@@ -7,20 +7,17 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.RelationshipR
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Relationship;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.FriendshipStatus;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.DuplicateRelationshipException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.RelationshipNotFoundException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.SelfRelationshipException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.UserNotFoundException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.RelationshipFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.RelationshipRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.AccessValidator;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.RelationshipFactory;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.RelationshipValidator;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -29,14 +26,13 @@ public class RelationshipService {
     private final UserRepository userRepository;
     private final EntityMapper entityMapper;
     private final RelationshipFactory relationshipFactory;
-    private final AccessValidator accessValidator;
+    private final RelationshipValidator relationshipValidator;
 
     public RelationshipResponse sendFriendRequest(RelationshipRequest request, User currentUser) {
+        relationshipValidator.validate(request, currentUser);
+
         User receiver = userRepository.findById(request.getTargetUserId())
                 .orElseThrow(() -> new UserNotFoundException(ResponseMessageConstants.NOT_FOUND));
-
-        validateSelfRelationship(currentUser, receiver);
-        validateDuplicateRelationship(currentUser, receiver);
 
         Relationship relationship = relationshipFactory.createPendingRelationship(currentUser, receiver);
         Relationship savedRelationship = relationshipRepository.save(relationship);
@@ -57,6 +53,8 @@ public class RelationshipService {
     }
 
     public RelationshipResponse blockUser(RelationshipRequest request, User currentUser) {
+        relationshipValidator.validateBlockUser(request, currentUser);
+
         User targetUser = userRepository.findById(request.getTargetUserId())
                 .orElseThrow(() -> new UserNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
@@ -70,10 +68,14 @@ public class RelationshipService {
     }
 
     public RelationshipResponse acceptFriendRequest(RelationshipRequest request, User currentUser) {
+        relationshipValidator.validateStatusChange(request, currentUser);
+
         return changeRelationshipStatus(request, FriendshipStatus.ACCEPTED, currentUser);
     }
 
     public RelationshipResponse declineFriendRequest(RelationshipRequest request, User currentUser) {
+        relationshipValidator.validateStatusChange(request, currentUser);
+
         return changeRelationshipStatus(request, FriendshipStatus.DECLINED, currentUser);
     }
 
@@ -87,27 +89,10 @@ public class RelationshipService {
                 .findBySenderIdAndReceiverIdAndStatus(request.getTargetUserId(), currentUser.getId(), FriendshipStatus.PENDING)
                 .orElseThrow(() -> new RelationshipNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
-        accessValidator.validateRelationshipAccess(currentUser, relationship);
-        accessValidator.validateRelationshipStatus(relationship, FriendshipStatus.PENDING);
-
         relationship.setStatus(status);
         relationship.setUpdatedAt(LocalDateTime.now());
         Relationship savedRelationship = relationshipRepository.save(relationship);
         return entityMapper.map(savedRelationship, RelationshipResponse.class);
-    }
-
-    private void validateSelfRelationship(User currentUser, User targetUser) {
-        if (currentUser.getId().equals(targetUser.getId())) {
-            throw new SelfRelationshipException("Нельзя отправить запрос самому себе");
-        }
-    }
-
-    private void validateDuplicateRelationship(User currentUser, User targetUser) {
-        Optional<Relationship> existingRelationship = relationshipRepository
-                .findRelationshipBetweenUsers(currentUser.getId(), targetUser.getId());
-        if (existingRelationship.isPresent()) {
-            throw new DuplicateRelationshipException("Связь между пользователями уже существует");
-        }
     }
 
     private Relationship updateRelationshipStatus(Relationship relationship, FriendshipStatus status) {

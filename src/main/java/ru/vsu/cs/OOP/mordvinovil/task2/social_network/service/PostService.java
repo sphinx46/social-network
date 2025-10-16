@@ -8,11 +8,10 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PostRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PostResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.PostNotFoundException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.ContentFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.AccessValidator;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.ContentFactory;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.PostValidator;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
 import java.util.List;
@@ -24,10 +23,12 @@ public class PostService {
     private final PostRepository postRepository;
     private final EntityMapper entityMapper;
     private final ContentFactory contentFactory;
-    private final AccessValidator accessValidator;
+    private final PostValidator postValidator;
 
     @Transactional
     public PostResponse create(User user, PostRequest request) {
+        postValidator.validate(request, user);
+
         Post post = contentFactory.createPost(user, request.getContent(), request.getImageUrl());
         Post savedPost = postRepository.save(post);
         return entityMapper.map(savedPost, PostResponse.class);
@@ -40,8 +41,9 @@ public class PostService {
 
     @Transactional
     public PostResponse editPost(PostRequest request, Long id, User currentUser) {
+        postValidator.validatePostUpdate(request, id, currentUser);
+
         Post post = getPostEntity(id);
-        accessValidator.validatePostOwnership(currentUser, post);
 
         if (request.getContent() != null) {
             post.setContent(request.getContent());
@@ -58,9 +60,9 @@ public class PostService {
     @Transactional
     public PostResponse uploadImage(Long id, MultipartFile imageFile, User currentUser) {
         fileStorageService.validateImageFile(imageFile);
+        postValidator.validatePostOwnership(id, currentUser);
 
         Post post = getPostEntity(id);
-        accessValidator.validatePostOwnership(currentUser, post);
 
         if (post.getImageUrl() != null) {
             fileStorageService.deleteFile(post.getImageUrl());
@@ -75,8 +77,9 @@ public class PostService {
 
     @Transactional
     public PostResponse removeImage(Long id, User currentUser) {
+        postValidator.validatePostOwnership(id, currentUser);
+
         Post post = getPostEntity(id);
-        accessValidator.validatePostOwnership(currentUser, post);
 
         if (post.getImageUrl() != null) {
             fileStorageService.deleteFile(post.getImageUrl());
@@ -95,6 +98,6 @@ public class PostService {
 
     private Post getPostEntity(Long postId) {
         return postRepository.findById(postId)
-                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
     }
 }

@@ -1,4 +1,4 @@
-package ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils;
+package ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

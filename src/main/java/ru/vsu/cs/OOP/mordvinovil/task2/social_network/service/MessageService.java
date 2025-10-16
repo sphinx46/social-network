@@ -12,13 +12,17 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.MessageN
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.UserNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.MessageRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.AccessValidator;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.MessageFactory;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.AccessValidator;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.MessageValidator;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.MessageStatusValidator.isStatusAllowed;
+
 
 @Service
 @RequiredArgsConstructor
@@ -27,13 +31,14 @@ public class MessageService {
     private final UserRepository userRepository;
     private final EntityMapper entityMapper;
     private final MessageFactory messageFactory;
+    private final MessageValidator messageValidator;
     private final AccessValidator accessValidator;
 
     @Transactional
     public MessageResponse create(MessageRequest request, User currentUser) {
-        User receiver = getUserEntity(request.getReceiverUserId());
-        accessValidator.validateSelfMessage(currentUser, receiver);
+        messageValidator.validateMessageCreation(request, currentUser);
 
+        User receiver = getUserEntity(request.getReceiverUserId());
         Message message = messageFactory.createMessage(currentUser, receiver, request);
         Message savedMessage = messageRepository.save(message);
 
@@ -79,6 +84,8 @@ public class MessageService {
 
     @Transactional
     public MessageResponse editMessage(Long messageId, MessageRequest request, User currentUser) {
+        messageValidator.validateMessageUpdate(request, currentUser);
+
         Message message = getMessageEntity(messageId);
         accessValidator.validateMessageOwnership(currentUser, message);
 
@@ -114,15 +121,6 @@ public class MessageService {
         }
 
         return entityMapper.map(message, MessageResponse.class);
-    }
-
-    private boolean isStatusAllowed(MessageStatus currentStatus, MessageStatus... allowedStatuses) {
-        for (MessageStatus allowed : allowedStatuses) {
-            if (currentStatus == allowed) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private User getUserEntity(Long userId) {

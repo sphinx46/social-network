@@ -17,18 +17,17 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.SelfRela
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.UserNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.RelationshipRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.AccessValidator;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.RelationshipFactory;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.RelationshipValidator;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory.*;
 
@@ -48,7 +47,7 @@ public class RelationshipServiceTest {
     private RelationshipFactory relationshipFactory;
 
     @Mock
-    private AccessValidator accessValidator;
+    private RelationshipValidator relationshipValidator;
 
     @InjectMocks
     private RelationshipService relationshipService;
@@ -61,8 +60,8 @@ public class RelationshipServiceTest {
         Relationship relationship = createTestRelationship(currentUser, receiverUser, FriendshipStatus.PENDING);
         RelationshipResponse expectedResponse = createTestRelationshipResponse(relationship);
 
+        doNothing().when(relationshipValidator).validate(request, currentUser);
         when(userRepository.findById(receiverUser.getId())).thenReturn(Optional.of(receiverUser));
-        when(relationshipRepository.findRelationshipBetweenUsers(currentUser.getId(), receiverUser.getId())).thenReturn(Optional.empty());
         when(relationshipFactory.createPendingRelationship(currentUser, receiverUser)).thenReturn(relationship);
         when(relationshipRepository.save(any(Relationship.class))).thenReturn(relationship);
         when(entityMapper.map(relationship, RelationshipResponse.class)).thenReturn(expectedResponse);
@@ -71,8 +70,8 @@ public class RelationshipServiceTest {
 
         assertNotNull(result);
 
+        verify(relationshipValidator).validate(request, currentUser);
         verify(userRepository).findById(receiverUser.getId());
-        verify(relationshipRepository).findRelationshipBetweenUsers(currentUser.getId(), receiverUser.getId());
         verify(relationshipFactory).createPendingRelationship(currentUser, receiverUser);
         verify(relationshipRepository).save(any(Relationship.class));
         verify(entityMapper).map(relationship, RelationshipResponse.class);
@@ -83,7 +82,8 @@ public class RelationshipServiceTest {
         User currentUser = createTestUser(1L, "user", "example@example.com");
         RelationshipRequest request = createTestRelationshipRequest(2L);
 
-        when(userRepository.findById(2L)).thenReturn(Optional.empty());
+        doThrow(new UserNotFoundException(ResponseMessageConstants.NOT_FOUND))
+                .when(relationshipValidator).validate(request, currentUser);
 
         UserNotFoundException exception = assertThrows(UserNotFoundException.class,
                 () -> relationshipService.sendFriendRequest(request, currentUser));
@@ -96,7 +96,8 @@ public class RelationshipServiceTest {
         User currentUser = createTestUser(1L, "user", "example@example.com");
         RelationshipRequest request = createTestRelationshipRequest(currentUser.getId());
 
-        when(userRepository.findById(currentUser.getId())).thenReturn(Optional.of(currentUser));
+        doThrow(new SelfRelationshipException("Нельзя отправить запрос самому себе"))
+                .when(relationshipValidator).validate(request, currentUser);
 
         SelfRelationshipException exception = assertThrows(SelfRelationshipException.class,
                 () -> relationshipService.sendFriendRequest(request, currentUser));
@@ -109,10 +110,9 @@ public class RelationshipServiceTest {
         User currentUser = createTestUser(1L, "user", "example@example.com");
         User receiverUser = createTestUser(2L, "receiver", "123@example.com");
         RelationshipRequest request = createTestRelationshipRequest(receiverUser.getId());
-        Relationship existingRelationship = createTestRelationship(currentUser, receiverUser, FriendshipStatus.PENDING);
 
-        when(userRepository.findById(receiverUser.getId())).thenReturn(Optional.of(receiverUser));
-        when(relationshipRepository.findRelationshipBetweenUsers(currentUser.getId(), receiverUser.getId())).thenReturn(Optional.of(existingRelationship));
+        doThrow(new DuplicateRelationshipException("Связь между пользователями уже существует"))
+                .when(relationshipValidator).validate(request, currentUser);
 
         DuplicateRelationshipException exception = assertThrows(DuplicateRelationshipException.class,
                 () -> relationshipService.sendFriendRequest(request, currentUser));
@@ -129,10 +129,9 @@ public class RelationshipServiceTest {
         Relationship updatedRelationship = createTestRelationship(senderUser, currentUser, FriendshipStatus.ACCEPTED);
         RelationshipResponse expectedResponse = createTestRelationshipResponse(updatedRelationship);
 
+        doNothing().when(relationshipValidator).validateStatusChange(request, currentUser);
         when(relationshipRepository.findBySenderIdAndReceiverIdAndStatus(senderUser.getId(), currentUser.getId(), FriendshipStatus.PENDING))
                 .thenReturn(Optional.of(relationship));
-        doNothing().when(accessValidator).validateRelationshipAccess(eq(currentUser), eq(relationship));
-        doNothing().when(accessValidator).validateRelationshipStatus(eq(relationship), eq(FriendshipStatus.PENDING));
         when(relationshipRepository.save(any(Relationship.class))).thenReturn(updatedRelationship);
         when(entityMapper.map(updatedRelationship, RelationshipResponse.class)).thenReturn(expectedResponse);
 
@@ -141,9 +140,8 @@ public class RelationshipServiceTest {
         assertNotNull(result);
         assertEquals(FriendshipStatus.ACCEPTED, result.getStatus());
 
+        verify(relationshipValidator).validateStatusChange(request, currentUser);
         verify(relationshipRepository).findBySenderIdAndReceiverIdAndStatus(senderUser.getId(), currentUser.getId(), FriendshipStatus.PENDING);
-        verify(accessValidator).validateRelationshipAccess(currentUser, relationship);
-        verify(accessValidator).validateRelationshipStatus(relationship, FriendshipStatus.PENDING);
         verify(relationshipRepository).save(any(Relationship.class));
         verify(entityMapper).map(updatedRelationship, RelationshipResponse.class);
     }
@@ -153,8 +151,8 @@ public class RelationshipServiceTest {
         User currentUser = createTestUser(1L, "user", "example@example.com");
         RelationshipRequest request = createTestRelationshipRequest(2L);
 
-        when(relationshipRepository.findBySenderIdAndReceiverIdAndStatus(2L, currentUser.getId(), FriendshipStatus.PENDING))
-                .thenReturn(Optional.empty());
+        doThrow(new RelationshipNotFoundException(ResponseMessageConstants.NOT_FOUND))
+                .when(relationshipValidator).validateStatusChange(request, currentUser);
 
         RelationshipNotFoundException exception = assertThrows(RelationshipNotFoundException.class,
                 () -> relationshipService.acceptFriendRequest(request, currentUser));
@@ -167,20 +165,14 @@ public class RelationshipServiceTest {
         User currentUser = createTestUser(1L, "user", "example@example.com");
         User senderUser = createTestUser(2L, "sender", "sender@example.com");
         RelationshipRequest request = createTestRelationshipRequest(senderUser.getId());
-        Relationship relationship = createTestRelationship(senderUser, createTestUser(3L, "other", "other@example.com"), FriendshipStatus.PENDING);
 
-        when(relationshipRepository.findBySenderIdAndReceiverIdAndStatus(senderUser.getId(), currentUser.getId(), FriendshipStatus.PENDING))
-                .thenReturn(Optional.of(relationship));
         doThrow(new AccessDeniedException("Вы не можете изменить этот запрос"))
-                .when(accessValidator).validateRelationshipAccess(eq(currentUser), eq(relationship));
+                .when(relationshipValidator).validateStatusChange(request, currentUser);
 
         AccessDeniedException exception = assertThrows(AccessDeniedException.class,
                 () -> relationshipService.acceptFriendRequest(request, currentUser));
 
         assertEquals("Вы не можете изменить этот запрос", exception.getMessage());
-
-        verify(accessValidator).validateRelationshipAccess(currentUser, relationship);
-        verify(relationshipRepository, never()).save(any());
     }
 
     @Test
@@ -192,6 +184,7 @@ public class RelationshipServiceTest {
         Relationship updatedRelationship = createTestRelationship(currentUser, targetUser, FriendshipStatus.BLOCKED);
         RelationshipResponse expectedResponse = createTestRelationshipResponse(updatedRelationship);
 
+        doNothing().when(relationshipValidator).validateBlockUser(request, currentUser);
         when(userRepository.findById(targetUser.getId())).thenReturn(Optional.of(targetUser));
         when(relationshipRepository.findRelationshipBetweenUsers(currentUser.getId(), targetUser.getId()))
                 .thenReturn(Optional.of(existingRelationship));
@@ -203,6 +196,7 @@ public class RelationshipServiceTest {
         assertNotNull(result);
         assertEquals(FriendshipStatus.BLOCKED, result.getStatus());
 
+        verify(relationshipValidator).validateBlockUser(request, currentUser);
         verify(relationshipRepository).findRelationshipBetweenUsers(currentUser.getId(), targetUser.getId());
         verify(relationshipRepository).save(any(Relationship.class));
         verify(entityMapper).map(updatedRelationship, RelationshipResponse.class);
@@ -216,9 +210,10 @@ public class RelationshipServiceTest {
         Relationship newRelationship = createTestRelationship(currentUser, targetUser, FriendshipStatus.BLOCKED);
         RelationshipResponse expectedResponse = createTestRelationshipResponse(newRelationship);
 
+        doNothing().when(relationshipValidator).validateBlockUser(request, currentUser);
+        when(userRepository.findById(targetUser.getId())).thenReturn(Optional.of(targetUser));
         when(relationshipRepository.findRelationshipBetweenUsers(currentUser.getId(), targetUser.getId()))
                 .thenReturn(Optional.empty());
-        when(userRepository.findById(targetUser.getId())).thenReturn(Optional.of(targetUser));
         when(relationshipFactory.createBlockedRelationship(currentUser, targetUser)).thenReturn(newRelationship);
         when(relationshipRepository.save(any(Relationship.class))).thenReturn(newRelationship);
         when(entityMapper.map(newRelationship, RelationshipResponse.class)).thenReturn(expectedResponse);
@@ -227,6 +222,7 @@ public class RelationshipServiceTest {
 
         assertNotNull(result);
 
+        verify(relationshipValidator).validateBlockUser(request, currentUser);
         verify(relationshipRepository).findRelationshipBetweenUsers(currentUser.getId(), targetUser.getId());
         verify(userRepository).findById(targetUser.getId());
         verify(relationshipFactory).createBlockedRelationship(currentUser, targetUser);
