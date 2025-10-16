@@ -15,7 +15,6 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.MessageFactory;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.AccessValidator;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.MessageValidator;
 
 import java.time.LocalDateTime;
@@ -24,7 +23,8 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,9 +41,6 @@ public class MessageServiceTest {
 
     @Mock
     private MessageValidator messageValidator;
-
-    @Mock
-    private AccessValidator accessValidator;
 
     @Mock
     private EntityUtils entityUtils;
@@ -98,7 +95,7 @@ public class MessageServiceTest {
         verify(entityUtils).getMessage(1L);
         verify(messageRepository).save(any(Message.class));
         verify(entityMapper).map(message, MessageResponse.class);
-        verify(accessValidator).validateMessageReceiver(receiver, message);
+        verify(messageValidator).validateMessageReceiver(receiver, message);
     }
 
     @Test
@@ -123,7 +120,7 @@ public class MessageServiceTest {
         verify(entityUtils).getMessage(1L);
         verify(messageRepository).save(any(Message.class));
         verify(entityMapper).map(message, MessageResponse.class);
-        verify(accessValidator).validateMessageReceiver(receiver, message);
+        verify(messageValidator).validateMessageReceiver(receiver, message);
     }
 
     @Test
@@ -153,7 +150,7 @@ public class MessageServiceTest {
         verify(entityUtils).getMessage(1L);
         verify(messageRepository).save(any(Message.class));
         verify(entityMapper).map(updatedMessage, MessageResponse.class);
-        verify(accessValidator).validateMessageOwnership(owner, originalMessage);
+        verify(messageValidator).validateMessageOwnership(owner, originalMessage);
     }
 
     @Test
@@ -170,7 +167,7 @@ public class MessageServiceTest {
 
         verify(entityUtils).getMessage(1L);
         verify(messageRepository).delete(message);
-        verify(accessValidator).validateMessageOwnership(owner, message);
+        verify(messageValidator).validateMessageOwnership(owner, message);
     }
 
     @Test

@@ -9,11 +9,9 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Message;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.MessageStatus;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.MessageRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.MessageFactory;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.AccessValidator;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.MessageValidator;
 
 import java.time.LocalDateTime;
@@ -26,11 +24,9 @@ import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.Message
 @RequiredArgsConstructor
 public class MessageService {
     private final MessageRepository messageRepository;
-    private final UserRepository userRepository;
     private final EntityMapper entityMapper;
     private final MessageFactory messageFactory;
     private final MessageValidator messageValidator;
-    private final AccessValidator accessValidator;
     private final EntityUtils entityUtils;
 
     @Transactional
@@ -46,7 +42,7 @@ public class MessageService {
 
     public MessageResponse getMessageById(Long messageId, User currentUser) {
         Message message = entityUtils.getMessage(messageId);
-        accessValidator.validateMessageAccess(currentUser, message);
+        messageValidator.validateMessageAccess(currentUser, message);
         return entityMapper.map(message, MessageResponse.class);
     }
 
@@ -86,7 +82,7 @@ public class MessageService {
         messageValidator.validateMessageUpdate(request, currentUser);
 
         Message message = entityUtils.getMessage(messageId);
-        accessValidator.validateMessageOwnership(currentUser, message);
+        messageValidator.validateMessageOwnership(currentUser, message);
 
         message.setContent(request.getContent());
         message.setImageUrl(request.getImageUrl());
@@ -99,7 +95,7 @@ public class MessageService {
     @Transactional
     public void deleteMessage(Long messageId, User currentUser) {
         Message message = entityUtils.getMessage(messageId);
-        accessValidator.validateMessageOwnership(currentUser, message);
+        messageValidator.validateMessageOwnership(currentUser, message);
         messageRepository.delete(message);
     }
 
@@ -111,7 +107,7 @@ public class MessageService {
 
     private MessageResponse updateMessageStatus(Long messageId, User currentUser, MessageStatus newStatus, MessageStatus... allowedCurrentStatuses) {
         Message message = entityUtils.getMessage(messageId);
-        accessValidator.validateMessageReceiver(currentUser, message);
+        messageValidator.validateMessageReceiver(currentUser, message);
 
         if (isStatusAllowed(message.getStatus(), allowedCurrentStatuses)) {
             message.setStatus(newStatus);

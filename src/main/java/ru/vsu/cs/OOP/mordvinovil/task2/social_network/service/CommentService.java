@@ -9,11 +9,9 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.CommentRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.ContentFactory;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.AccessValidator;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.CommentValidator;
 
 import java.util.concurrent.CompletableFuture;
@@ -22,10 +20,8 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class CommentService {
     private final CommentRepository commentRepository;
-    private final PostRepository postRepository;
     private final EntityMapper entityMapper;
     private final ContentFactory contentFactory;
-    private final AccessValidator accessValidator;
     private final CommentValidator commentValidator;
     private final EntityUtils entityUtils;
 
