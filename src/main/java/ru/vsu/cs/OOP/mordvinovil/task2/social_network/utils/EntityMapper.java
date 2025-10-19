@@ -28,9 +28,12 @@ public class EntityMapper {
                 .collect(Collectors.toList());
     }
 
-    public <S, T> void mapToExisting(S source, T target) {
-        if (source != null && target != null) {
-            modelMapper.map(source, target);
+    public <S, T> List<T> mapListWithName(List<S> source, Class<T> targetClass, String name) {
+        if (source == null) {
+            return List.of();
         }
+        return source.stream()
+                .map(element -> modelMapper.map(element, targetClass, name))
+                .collect(Collectors.toList());
     }
 }

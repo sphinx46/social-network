@@ -1,11 +1,15 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.security.config;
 
+import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.*;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 public class ModelMapperConfig {
@@ -20,6 +24,8 @@ public class ModelMapperConfig {
         configureProfileMappings(modelMapper);
         configureRelationshipMappings(modelMapper);
         configureMessagesMappings(modelMapper);
+        configurePostWithDetailsMappings(modelMapper);
+        configureNewsFeedMappings(modelMapper);
 
         modelMapper.getConfiguration()
                 .setFieldMatchingEnabled(true)
@@ -64,6 +70,22 @@ public class ModelMapperConfig {
                 map().setTime(source.getTime());
             }
         });
+    }
+
+    private void configurePostWithDetailsMappings(ModelMapper modelMapper) {
+        modelMapper.createTypeMap(Post.class, PostResponse.class, "withDetails")
+                .addMappings(mapper -> {
+                    mapper.map(Post::getId, PostResponse::setId);
+                    mapper.map(src -> src.getUser().getUsername(), PostResponse::setUsername);
+                    mapper.map(Post::getContent, PostResponse::setContent);
+                    mapper.map(Post::getImageUrl, PostResponse::setImageUrl);
+                    mapper.map(Post::getTime, PostResponse::setTime);
+
+                    mapper.using(createCommentsConverter(modelMapper))
+                            .map(Post::getComments, PostResponse::setCommentResponseList);
+                    mapper.using(createLikesConverter(modelMapper))
+                            .map(Post::getLikes, PostResponse::setLikePostResponseList);
+                });
     }
 
     private void configureRelationshipMappings(ModelMapper modelMapper) {
@@ -123,4 +145,37 @@ public class ModelMapperConfig {
             }
         });
     }
+
+    private void configureNewsFeedMappings(ModelMapper modelMapper) {
+        Converter<Post, PostResponse> postToPostResponseConverter = context -> {
+            Post post = context.getSource();
+            return modelMapper.map(post, PostResponse.class, "withDetails");
+        };
+
+        modelMapper.createTypeMap(Post.class, NewsFeedResponse.class, "fullNewsFeed")
+                .addMappings(mapper -> {
+                    mapper.map(Post::getId, NewsFeedResponse::setId);
+                    mapper.map(src -> src.getUser().getUsername(), NewsFeedResponse::setAuthor);
+
+                    mapper.using(postToPostResponseConverter)
+                            .map(source -> source, NewsFeedResponse::setPostResponse);
+                });
+    }
+
+    private Converter<List<Comment>, List<CommentResponse>> createCommentsConverter(ModelMapper modelMapper) {
+        return ctx -> ctx.getSource() == null ?
+                List.of() :
+                ctx.getSource().stream()
+                        .map(comment -> modelMapper.map(comment, CommentResponse.class))
+                        .collect(Collectors.toList());
+    }
+
+    private Converter<List<Like>, List<LikePostResponse>> createLikesConverter(ModelMapper modelMapper) {
+        return ctx -> ctx.getSource() == null ?
+                List.of() :
+                ctx.getSource().stream()
+                        .map(like -> modelMapper.map(like, LikePostResponse.class))
+                        .collect(Collectors.toList());
+    }
 }
+
