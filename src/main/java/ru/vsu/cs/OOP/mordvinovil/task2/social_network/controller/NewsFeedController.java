@@ -26,7 +26,7 @@ public class NewsFeedController {
     @GetMapping()
     public ResponseEntity<List<NewsFeedResponse>> getNewsFeedByCurrentUser() {
         User user = userService.getCurrentUser();
-        List<NewsFeedResponse> newsFeedResponseList = newsFeedService.getPostsByFriends(user.getId());
+        List<NewsFeedResponse> newsFeedResponseList = newsFeedService.getPostsByFriends(user);
         return ResponseEntity.ok(newsFeedResponseList);
     }
 }

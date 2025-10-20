@@ -282,6 +282,22 @@ public class TestDataFactory {
                 .build();
     }
 
+    public static List<PostResponse> createPostResponseList() {
+        List<PostResponse> result = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            var response = PostResponse.builder()
+                    .id(Long.valueOf(i))
+                    .username("username" + i)
+                    .content("test")
+                    .imageUrl("http://example.com/image.jpg")
+                    .time(LocalDateTime.now())
+                    .build();
+            result.add(response);
+        }
+        return result;
+    }
+
     public static PostResponse createTestPostResponse(Post post) {
         return PostResponse.builder()
                 .id(post.getId())
@@ -496,13 +512,26 @@ public class TestDataFactory {
         response.setId(like.getId());
         response.setUserId(like.getUser().getId());
         response.setUsername(like.getUser().getUsername());
-        // Добавляем проверку на null для поста
         if (like.getPost() != null) {
             response.setPostId(like.getPost().getId());
         } else {
-            response.setPostId(1L); // или любое другое значение по умолчанию
+            response.setPostId(1L);
         }
         response.setCreatedAt(like.getCreatedAt());
         return response;
+    }
+
+    public static List<NewsFeedResponse> createTestNewsFeedResponseList() {
+        List<PostResponse> postResponseList = createPostResponseList();
+        List<NewsFeedResponse> newsFeedResponseList = new ArrayList<>();
+        for (PostResponse response : postResponseList) {
+            var newsFeedResponse = NewsFeedResponse.builder()
+                    .postResponse(response)
+                    .author(response.getUsername())
+                    .id(response.getId())
+                    .build();
+            newsFeedResponseList.add(newsFeedResponse);
+        }
+        return newsFeedResponseList;
     }
 }
