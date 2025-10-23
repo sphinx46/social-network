@@ -10,6 +10,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.MessageRespon
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Message;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.MessageStatus;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.MessageRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
@@ -23,6 +24,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory.*;
@@ -41,6 +43,9 @@ public class MessageServiceTest {
 
     @Mock
     private MessageValidator messageValidator;
+
+    @Mock
+    private EventPublisherService eventPublisherService;
 
     @Mock
     private EntityUtils entityUtils;
@@ -70,6 +75,8 @@ public class MessageServiceTest {
         verify(entityUtils).getUser(receiverUser.getId());
         verify(messageFactory).createMessage(currentUser, receiverUser, request);
         verify(messageRepository).save(any(Message.class));
+        verify(eventPublisherService).publishMessageReceived(any(), eq(receiverUser.getId()),
+                eq(currentUser.getId()), eq("привет"));
         verify(entityMapper).map(message, MessageResponse.class);
     }
 
@@ -168,6 +175,8 @@ public class MessageServiceTest {
         verify(entityUtils).getMessage(1L);
         verify(messageRepository).delete(message);
         verify(messageValidator).validateMessageOwnership(owner, message);
+        verify(eventPublisherService).publishMessageDeleted(any(), eq(receiver.getId()),
+                eq(owner.getId()));
     }
 
     @Test

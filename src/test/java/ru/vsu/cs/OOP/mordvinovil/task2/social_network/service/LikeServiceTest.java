@@ -13,8 +13,11 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Like;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.LikeNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.CommentRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.LikeRepository;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.LikeFactory;
@@ -25,6 +28,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory.*;
@@ -35,6 +39,12 @@ public class LikeServiceTest {
     private LikeRepository likeRepository;
 
     @Mock
+    private CommentRepository commentRepository;
+
+    @Mock
+    private PostRepository postRepository;
+
+    @Mock
     private EntityMapper entityMapper;
 
     @Mock
@@ -42,6 +52,9 @@ public class LikeServiceTest {
 
     @Mock
     private LikeValidator likeValidator;
+
+    @Mock
+    private EventPublisherService eventPublisherService;
 
     @InjectMocks
     private LikeService likeService;
@@ -57,6 +70,7 @@ public class LikeServiceTest {
         when(likeFactory.createCommentLike(currentUser, request.getCommentId())).thenReturn(like);
         when(likeRepository.save(any(Like.class))).thenReturn(like);
         when(entityMapper.map(like, LikeCommentResponse.class)).thenReturn(expectedResponse);
+        when(commentRepository.findById(any())).thenReturn(Optional.of(comment));
 
         LikeCommentResponse result = likeService.likeComment(currentUser, request);
 
@@ -65,6 +79,9 @@ public class LikeServiceTest {
         verify(likeValidator).validate(request, currentUser);
         verify(likeFactory).createCommentLike(currentUser, request.getCommentId());
         verify(likeRepository).save(any(Like.class));
+        verify(eventPublisherService).publishCommentLiked(any(), eq(comment.getCreator().getId()),
+                eq(comment.getId()), eq(currentUser.getId()));
+
         verify(entityMapper).map(like, LikeCommentResponse.class);
     }
 
@@ -79,6 +96,7 @@ public class LikeServiceTest {
         when(likeFactory.createPostLike(currentUser, request.getPostId())).thenReturn(like);
         when(likeRepository.save(any(Like.class))).thenReturn(like);
         when(entityMapper.map(like, LikePostResponse.class)).thenReturn(expectedResponse);
+        when(postRepository.findById(any())).thenReturn(Optional.ofNullable(post));
 
         LikePostResponse result = likeService.likePost(currentUser, request);
 
@@ -87,6 +105,8 @@ public class LikeServiceTest {
         verify(likeValidator).validate(request, currentUser);
         verify(likeFactory).createPostLike(currentUser, request.getPostId());
         verify(likeRepository).save(any(Like.class));
+        verify(eventPublisherService).publishPostLiked(any(), eq(post.getUser().getId()),
+                eq(post.getId()), eq(currentUser.getId()));
         verify(entityMapper).map(like, LikePostResponse.class);
     }
 

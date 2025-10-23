@@ -10,6 +10,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.CommentRespon
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.CommentNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.PostNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.CommentRepository;
@@ -42,6 +43,9 @@ public class CommentServiceTest {
     private CommentValidator commentValidator;
 
     @Mock
+    private EventPublisherService eventPublisherService;
+
+    @Mock
     private EntityUtils entityUtils;
 
     @InjectMocks
@@ -55,6 +59,8 @@ public class CommentServiceTest {
         Comment comment = createTestComment(1L, currentUser, post, "Comment content", null);
         Comment savedComment = createTestComment(1L, currentUser, post, "Comment content", null);
         CommentResponse expectedResponse = createTestCommentResponse(savedComment);
+
+        Long postOwnerId = post.getUser().getId();
 
         when(entityUtils.getPost(post.getId())).thenReturn(post);
         when(contentFactory.createComment(currentUser, post, request.getContent(), request.getImageUrl())).thenReturn(comment);
@@ -70,6 +76,8 @@ public class CommentServiceTest {
         verify(entityUtils).getPost(post.getId());
         verify(contentFactory).createComment(currentUser, post, request.getContent(), request.getImageUrl());
         verify(commentRepository).save(any(Comment.class));
+        verify(eventPublisherService).publishCommentAdded(any(), eq(postOwnerId),
+                eq(post.getId()), eq(currentUser.getId()));
         verify(entityMapper).map(savedComment, CommentResponse.class);
     }
 

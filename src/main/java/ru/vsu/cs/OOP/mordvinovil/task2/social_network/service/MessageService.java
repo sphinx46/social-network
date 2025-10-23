@@ -8,6 +8,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.MessageRespon
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Message;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.MessageStatus;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.MessageRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
@@ -28,6 +29,7 @@ public class MessageService {
     private final MessageFactory messageFactory;
     private final MessageValidator messageValidator;
     private final EntityUtils entityUtils;
+    private final EventPublisherService eventPublisherService;
 
     @Transactional
     public MessageResponse create(MessageRequest request, User currentUser) {
@@ -36,6 +38,9 @@ public class MessageService {
         User receiver = entityUtils.getUser(request.getReceiverUserId());
         Message message = messageFactory.createMessage(currentUser, receiver, request);
         Message savedMessage = messageRepository.save(message);
+
+        eventPublisherService.publishMessageReceived(this, request.getReceiverUserId(),
+                currentUser.getId(), message.getContent());
 
         return entityMapper.map(savedMessage, MessageResponse.class);
     }
@@ -97,6 +102,8 @@ public class MessageService {
         Message message = entityUtils.getMessage(messageId);
         messageValidator.validateMessageOwnership(currentUser, message);
         messageRepository.delete(message);
+
+        eventPublisherService.publishMessageDeleted(this, message.getReceiver().getId(), currentUser.getId());
     }
 
     private List<MessageResponse> getMessagesByStatus(User currentUser, MessageStatus status) {

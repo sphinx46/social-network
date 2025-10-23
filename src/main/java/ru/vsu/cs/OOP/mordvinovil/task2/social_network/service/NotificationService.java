@@ -119,6 +119,7 @@ public class NotificationService {
                 .userAction(targetUser)
                 .type(event.getNotifitcationType())
                 .status(NotificationStatus.UNREAD)
+                .additionalData(event.getAdditionalData())
                 .createdAt(event.getTimeCreated())
                 .updatedAt(event.getTimeCreated())
                 .build();

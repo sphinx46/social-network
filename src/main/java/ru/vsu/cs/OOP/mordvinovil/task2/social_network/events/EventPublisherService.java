@@ -32,7 +32,7 @@ public class EventPublisherService {
         publishEvent(eventFactory.createPostLikedEvent(source, targetUserId, postId, likerId));
     }
 
-    public void publisCommentLiked(Object source, Long targetUserId, Long postId, Long likerId) {
+    public void publishCommentLiked(Object source, Long targetUserId, Long postId, Long likerId) {
         publishEvent(eventFactory.createCommentLikedEvent(source, targetUserId, postId, likerId));
     }
 
@@ -40,9 +40,9 @@ public class EventPublisherService {
         publishEvent(eventFactory.createCommentAddedEvent(source, targetUserId, postId, commenterId));
     }
 
-    public void publishNewPost(Object source, Long targetUserId, Long creatorUserId, Long postId) {
-        publishEvent(eventFactory.createNewPostEvent(source, targetUserId, creatorUserId, postId));
-    }
+//    public void publishNewPost(Object source, Long targetUserId, Long creatorUserId, Long postId) {
+//        publishEvent(eventFactory.createNewPostEvent(source, targetUserId, creatorUserId, postId));
+//    }
 
     public void publishFriendRequestAccepted(Object source, Long targetUserId, Long acceptorId) {
         publishEvent(eventFactory.createFriendRequestAcceptedEvent(source, targetUserId, acceptorId));

@@ -7,6 +7,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.RelationshipR
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Relationship;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.FriendshipStatus;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.RelationshipNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.UserNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.RelationshipRepository;
@@ -27,6 +28,7 @@ public class RelationshipService {
     private final EntityMapper entityMapper;
     private final RelationshipFactory relationshipFactory;
     private final RelationshipValidator relationshipValidator;
+    private final EventPublisherService eventPublisherService;
 
     public RelationshipResponse sendFriendRequest(RelationshipRequest request, User currentUser) {
         relationshipValidator.validate(request, currentUser);
@@ -36,6 +38,8 @@ public class RelationshipService {
 
         Relationship relationship = relationshipFactory.createPendingRelationship(currentUser, receiver);
         Relationship savedRelationship = relationshipRepository.save(relationship);
+
+        eventPublisherService.publishFriendRequest(this, request.getTargetUserId(), currentUser.getId());
 
         return entityMapper.map(savedRelationship, RelationshipResponse.class);
     }
@@ -69,6 +73,8 @@ public class RelationshipService {
 
     public RelationshipResponse acceptFriendRequest(RelationshipRequest request, User currentUser) {
         relationshipValidator.validateStatusChange(request, currentUser);
+
+        eventPublisherService.publishFriendRequestAccepted(this, request.getTargetUserId(), currentUser.getId());
 
         return changeRelationshipStatus(request, FriendshipStatus.ACCEPTED, currentUser);
     }

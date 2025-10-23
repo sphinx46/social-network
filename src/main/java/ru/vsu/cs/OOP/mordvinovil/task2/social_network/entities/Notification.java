@@ -29,7 +29,7 @@ public class Notification extends BaseEntity {
     @Column(name = "status", nullable = false)
     private NotificationStatus status;
 
-    @Column(name = "additional_data")
+    @Column(name = "additional_data", length = 2000)
     @Convert(converter = MapToJsonConverter.class)
     private Map<String, Object> additionalData;
 
@@ -39,3 +39,13 @@ public class Notification extends BaseEntity {
     @Column(name = "time_update", nullable = false)
     private LocalDateTime updatedAt;
 }
+
+
+
+
+
+
+
+
+
+

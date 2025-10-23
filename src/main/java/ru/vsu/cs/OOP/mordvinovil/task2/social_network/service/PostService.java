@@ -32,6 +32,7 @@ public class PostService {
 
         Post post = contentFactory.createPost(user, request.getContent(), request.getImageUrl());
         Post savedPost = postRepository.save(post);
+
         return entityMapper.map(savedPost, PostResponse.class);
     }
 

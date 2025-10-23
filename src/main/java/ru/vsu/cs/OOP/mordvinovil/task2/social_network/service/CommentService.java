@@ -8,6 +8,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.CommentRespon
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.CommentRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
@@ -24,14 +25,18 @@ public class CommentService {
     private final ContentFactory contentFactory;
     private final CommentValidator commentValidator;
     private final EntityUtils entityUtils;
+    private final EventPublisherService eventPublisherService;
 
     @Transactional
     public CommentResponse create(CommentRequest request, User currentUser) {
         commentValidator.validate(request, currentUser);
 
         Post post = entityUtils.getPost(request.getPostId());
+        Long postOwnerId = post.getUser().getId();
         Comment comment = contentFactory.createComment(currentUser, post, request.getContent(), request.getImageUrl());
         Comment savedComment = commentRepository.save(comment);
+
+        eventPublisherService.publishCommentAdded(this, postOwnerId, post.getId(), comment.getId());
 
         return entityMapper.map(savedComment, CommentResponse.class);
     }

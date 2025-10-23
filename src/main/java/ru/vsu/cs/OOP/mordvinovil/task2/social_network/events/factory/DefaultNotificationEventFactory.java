@@ -62,6 +62,6 @@ public class DefaultNotificationEventFactory extends AbstractNotificationEventFa
 
     @Override
     public GenericNotificationEvent createCustomEvent(Object source, Long targetUserId, NotifitcationType type, Map<String, Object> data) {
-        return createCustomEvent(source, targetUserId, type, data);
+        return createEvent(source, targetUserId, type, data);
     }
 }

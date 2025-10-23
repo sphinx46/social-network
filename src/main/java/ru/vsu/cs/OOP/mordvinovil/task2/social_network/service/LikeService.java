@@ -7,10 +7,17 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.LikeCommentReq
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.LikePostRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.LikeCommentResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.LikePostResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Like;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.CommentNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.LikeNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.PostNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.CommentRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.LikeRepository;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.LikeFactory;
@@ -22,23 +29,38 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LikeService {
     private final LikeRepository likeRepository;
+    private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
     private final EntityMapper entityMapper;
     private final LikeFactory likeFactory;
     private final LikeValidator likeValidator;
+    private final EventPublisherService eventPublisherService;
 
     public LikeCommentResponse likeComment(User currentUser, LikeCommentRequest request) {
         likeValidator.validate(request, currentUser);
 
+        Comment comment = commentRepository.findById(request.getCommentId())
+                .orElseThrow(() -> new CommentNotFoundException(ResponseMessageConstants.NOT_FOUND));
+        Long commentOwnerId = comment.getCreator().getId();
+
         Like like = likeFactory.createCommentLike(currentUser, request.getCommentId());
         Like savedLike = likeRepository.save(like);
+
+        eventPublisherService.publishCommentLiked(this, commentOwnerId, like.getComment().getId(), currentUser.getId());
         return entityMapper.map(savedLike, LikeCommentResponse.class);
     }
 
     public LikePostResponse likePost(User currentUser, LikePostRequest request) {
         likeValidator.validate(request, currentUser);
 
+        Post post = postRepository.findById(request.getPostId())
+                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
+        Long postOwnerId = post.getUser().getId();
+
         Like like = likeFactory.createPostLike(currentUser, request.getPostId());
         Like savedLike = likeRepository.save(like);
+
+        eventPublisherService.publishPostLiked(this, postOwnerId, like.getPost().getId(), currentUser.getId());
         return entityMapper.map(savedLike, LikePostResponse.class);
     }
 
