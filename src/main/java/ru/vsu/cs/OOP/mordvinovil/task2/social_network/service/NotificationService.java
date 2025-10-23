@@ -12,7 +12,6 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationStatus;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.GenericNotificationEvent;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.NotificationNotFoundException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.UserNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.NotificationRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
@@ -53,11 +52,9 @@ public class NotificationService {
         }
     }
 
-    public List<NotificationResponse> getUserNotifications(User user, User currentUser) {
-        notificationValidator.validateUserNotificationsAccess(user, currentUser);
-
+    public List<NotificationResponse> getUserNotifications(User currentUser) {
         List<Notification> notifications = notificationRepository
-                .findByUserActionOrderByCreatedAtDesc(user);
+                .findByUserActionOrderByCreatedAtDesc(currentUser);
         return entityMapper.mapList(notifications, NotificationResponse.class);
     }
 
@@ -69,18 +66,14 @@ public class NotificationService {
         return entityMapper.map(notification, NotificationResponse.class);
     }
 
-    public List<NotificationResponse> getUnreadNotifications(User user, User currentUser) {
-        notificationValidator.validateUserNotificationsAccess(user, currentUser);
-
+    public List<NotificationResponse> getUnreadNotifications(User currentUser) {
         List<Notification> notifications = notificationRepository
-                .findByUserActionAndStatusOrderByCreatedAtDesc(user, NotificationStatus.UNREAD);
+                .findByUserActionAndStatusOrderByCreatedAtDesc(currentUser, NotificationStatus.UNREAD);
         return entityMapper.mapList(notifications, NotificationResponse.class);
     }
 
-    public Long getUnreadNotificationsCount(User user, User currentUser) {
-        notificationValidator.validateUserNotificationsAccess(user, currentUser);
-
-        return notificationRepository.countByUserActionAndStatus(user, NotificationStatus.UNREAD);
+    public Long getUnreadNotificationsCount(User currentUser) {
+        return notificationRepository.countByUserActionAndStatus(currentUser, NotificationStatus.UNREAD);
     }
 
     @Transactional
@@ -99,19 +92,16 @@ public class NotificationService {
     }
 
     @Transactional
-    public void markAllAsRead(User user, User currentUser) {
-        notificationValidator.validateUserNotificationsAccess(user, currentUser);
-
-        notificationRepository.markAllAsRead(user.getId(), NotificationStatus.READ);
-        log.debug("All notifications marked as read for user: {}", user.getUsername());
+    public void markAllAsRead(User currentUser) {
+        notificationRepository.markAllAsRead(currentUser.getId(), NotificationStatus.READ);
+        log.debug("All notifications marked as read for user: {}", currentUser.getUsername());
     }
 
     @Transactional
-    public void deleteNotification(Long notificationId, Long actionUserId, User currentUser) {
-        User user = userRepository.findById(actionUserId)
-                .orElseThrow(() -> new UserNotFoundException(ResponseMessageConstants.NOT_FOUND));
-        Notification notification = notificationRepository.findByIdAndUserActionId(notificationId, actionUserId)
+    public void deleteNotification(Long notificationId, User currentUser) {
+        Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new NotificationNotFoundException(ResponseMessageConstants.NOT_FOUND));
+        User user = notification.getUserAction();
 
         notificationValidator.validateUserNotificationsAccess(user, currentUser);
 
@@ -123,11 +113,9 @@ public class NotificationService {
     }
 
     @Transactional
-    public void clearDeletedNotifications(User user, User currentUser) {
-        notificationValidator.validateUserNotificationsAccess(user, currentUser);
-
-        notificationRepository.deleteAllDeletedByUser(user);
-        log.debug("Deleted notifications cleared for user: {}", user.getUsername());
+    public void clearDeletedNotifications(User currentUser) {
+        notificationRepository.deleteAllDeletedByUser(currentUser);
+        log.debug("Deleted notifications cleared for user: {}", currentUser.getUsername());
     }
 
     private Notification createNotificationFromEvent(GenericNotificationEvent event, User targetUser) {
