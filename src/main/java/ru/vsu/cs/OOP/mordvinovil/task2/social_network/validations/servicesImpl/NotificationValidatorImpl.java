@@ -31,14 +31,4 @@ public class NotificationValidatorImpl implements NotificationValidator {
             throw new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED);
         }
     }
-
-    @Override
-    public void validateNotificationOwnership(Long notificationId, User currentUser) {
-        Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new NotificationNotFoundException(ResponseMessageConstants.NOT_FOUND));
-
-        if (!notification.getUserAction().getId().equals(currentUser.getId())) {
-            throw new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED);
-        }
-    }
 }

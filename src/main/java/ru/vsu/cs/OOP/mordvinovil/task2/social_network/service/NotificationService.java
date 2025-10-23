@@ -16,7 +16,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.NotificationR
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.servicesImpl.NotificationValidatorImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.NotificationValidator;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,7 +30,7 @@ public class NotificationService {
     private final UserRepository userRepository;
     private final EntityMapper entityMapper;
     private final WebSocketNotificationService webSocketNotificationService;
-    private final NotificationValidatorImpl notificationValidator;
+    private final NotificationValidator notificationValidator;
 
     @EventListener
     @Async("notificationTaskExecutor")
@@ -44,11 +44,11 @@ public class NotificationService {
 
             webSocketNotificationService.sendNotification(targetUser.getId(), notification);
 
-            log.debug("Notification created: {} for user: {}", event.getNotifitcationType(), targetUser.getUsername());
+            log.debug("Notification created: {} for user: {}", event.getNotificationType(), targetUser.getUsername());
 
         } catch (Exception e) {
             log.error("Error processing notification event: {} for user: {}",
-                    event.getNotifitcationType(), event.getTargetUserId(), e);
+                    event.getNotificationType(), event.getTargetUserId(), e);
         }
     }
 
@@ -78,7 +78,7 @@ public class NotificationService {
 
     @Transactional
     public NotificationResponse markAsRead(Long id, User currentUser) {
-        notificationValidator.validateNotificationOwnership(id, currentUser);
+        notificationValidator.validateNotificationAccess(id, currentUser);
 
         Notification notification = notificationRepository.findById(id)
                 .orElseThrow(() -> new NotificationNotFoundException(ResponseMessageConstants.NOT_FOUND));
@@ -121,7 +121,7 @@ public class NotificationService {
     private Notification createNotificationFromEvent(GenericNotificationEvent event, User targetUser) {
         return Notification.builder()
                 .userAction(targetUser)
-                .type(event.getNotifitcationType())
+                .type(event.getNotificationType())
                 .status(NotificationStatus.UNREAD)
                 .additionalData(event.getAdditionalData())
                 .createdAt(event.getTimeCreated())

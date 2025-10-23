@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotifitcationType;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationType;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.factory.DefaultNotificationEventFactory;
 
 import java.util.Map;
@@ -48,7 +48,7 @@ public class EventPublisherService {
         publishEvent(eventFactory.createFriendRequestAcceptedEvent(source, targetUserId, acceptorId));
     }
 
-    public void publishCustomEvent(Object source, Long targetUserId, NotifitcationType type, Map<String, Object> data) {
+    public void publishCustomEvent(Object source, Long targetUserId, NotificationType type, Map<String, Object> data) {
         publishEvent(eventFactory.createCustomEvent(source, targetUserId, type, data));
     }
 
@@ -56,7 +56,7 @@ public class EventPublisherService {
         try {
             eventPublisher.publishEvent(event);
         } catch (Exception e) {
-            log.error("Failed to publish event: {}", event.getNotifitcationType(), e);
+            log.error("Failed to publish event: {}", event.getNotificationType(), e);
         }
     }
 }

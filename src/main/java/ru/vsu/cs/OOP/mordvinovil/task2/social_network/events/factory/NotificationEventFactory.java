@@ -1,6 +1,6 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.factory;
 
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotifitcationType;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationType;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.GenericNotificationEvent;
 
 import java.util.Map;
@@ -14,5 +14,5 @@ public interface NotificationEventFactory {
     GenericNotificationEvent createMessageDeletedEvent(Object source, Long targetUserId, Long deleterUserId);
     GenericNotificationEvent createCommentLikedEvent(Object source, Long targetUserId, Long commentId, Long likerId);
     GenericNotificationEvent createNewPostEvent(Object source, Long targetUserId, Long creatorUserId, Long postId);
-    GenericNotificationEvent createCustomEvent(Object source, Long targetUserId, NotifitcationType type, Map<String, Object> data);
+    GenericNotificationEvent createCustomEvent(Object source, Long targetUserId, NotificationType type, Map<String, Object> data);
 }
