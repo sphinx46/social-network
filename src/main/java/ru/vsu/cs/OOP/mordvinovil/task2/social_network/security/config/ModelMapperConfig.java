@@ -26,6 +26,7 @@ public class ModelMapperConfig {
         configureMessagesMappings(modelMapper);
         configurePostWithDetailsMappings(modelMapper);
         configureNewsFeedMappings(modelMapper);
+        configureNotificationMappings(modelMapper);
 
         modelMapper.getConfiguration()
                 .setFieldMatchingEnabled(true)
@@ -140,6 +141,20 @@ public class ModelMapperConfig {
                 map().setContent(source.getContent());
                 map().setImageUrl(source.getImageUrl());
                 map().setStatus(source.getStatus());
+                map().setCreatedAt(source.getCreatedAt());
+                map().setUpdatedAt(source.getUpdatedAt());
+            }
+        });
+    }
+
+    private void configureNotificationMappings(ModelMapper modelMapper) {
+        modelMapper.addMappings(new PropertyMap<Notification, NotificationResponse>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getId());
+                map().setType(source.getType());
+                map().setStatus(source.getStatus());
+                map().setAdditionalData(source.getAdditionalData());
                 map().setCreatedAt(source.getCreatedAt());
                 map().setUpdatedAt(source.getUpdatedAt());
             }
