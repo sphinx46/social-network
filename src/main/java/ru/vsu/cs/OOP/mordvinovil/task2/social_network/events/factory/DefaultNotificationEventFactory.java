@@ -17,7 +17,6 @@ public class DefaultNotificationEventFactory extends AbstractNotificationEventFa
         this.messageUtils = messageUtils;
     }
 
-
     @Override
     public GenericNotificationEvent createFriendRequestEvent(Object source, Long targetUserId, Long requesterId) {
         return createEventWithUserData(source, targetUserId, NotificationType.NEW_FRIEND_REQUEST,

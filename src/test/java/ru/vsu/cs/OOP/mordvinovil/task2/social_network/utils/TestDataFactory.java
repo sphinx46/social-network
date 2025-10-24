@@ -5,10 +5,14 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.*;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.*;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.FriendshipStatus;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.MessageStatus;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationStatus;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationType;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.GenericNotificationEvent;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class TestDataFactory {
 
@@ -533,5 +537,57 @@ public class TestDataFactory {
             newsFeedResponseList.add(newsFeedResponse);
         }
         return newsFeedResponseList;
+    }
+
+    public static Notification createTestNotification(User user, NotificationType type, NotificationStatus status) {
+        return Notification.builder()
+                .userAction(user)
+                .type(type)
+                .status(status)
+                .additionalData(Map.of("test", "data"))
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+    }
+
+    public static NotificationResponse createTestNotificationResponse(Notification notification) {
+        return NotificationResponse.builder()
+                .id(notification.getId())
+                .type(notification.getType())
+                .status(notification.getStatus())
+                .additionalData(notification.getAdditionalData())
+                .createdAt(notification.getCreatedAt())
+                .updatedAt(notification.getUpdatedAt())
+                .build();
+    }
+
+    public static GenericNotificationEvent createTestNotificationEvent(Long targetUserId, NotificationType type, Map<String, Object> additionalData) {
+        return new GenericNotificationEvent(
+                new Object(),
+                targetUserId,
+                type,
+                additionalData
+        );
+    }
+
+    public static NotificationResponse createTestNotificationResponse() {
+        return NotificationResponse.builder()
+                .id(1L)
+                .type(NotificationType.POST_LIKED)
+                .status(NotificationStatus.UNREAD)
+                .additionalData(Map.of("postId", "123", "likerId", "456"))
+                .build();
+    }
+
+    public static List<NotificationResponse> createTestNotificationResponseList() {
+        return List.of(
+                createTestNotificationResponse(),
+                NotificationResponse.builder()
+                        .id(2L)
+                        .type(NotificationType.NEW_MESSAGE)
+                        .status(NotificationStatus.UNREAD)
+                        .additionalData(Map.of("senderId", "789", "messagePreview", "Hello!"))
+                        .build()
+        );
     }
 }
