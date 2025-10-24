@@ -10,9 +10,9 @@
     <br />
     <br />
     <br />
-    <a href="https://github.com/sphinx666/social-network/issues/new?labels=bug">Сообщить об ошибке</a>
+    <a href="https://github.com/sphinx46/social-network/issues/new?labels=bug">Сообщить об ошибке</a>
     &nbsp;&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;&nbsp;
-    <a href="https://github.com/sphinx666/social-network/issues/new?labels=enhancement">Запросить функцию</a>
+    <a href="https://github.com/sphinx46/social-network/issues/new?labels=enhancement">Запросить функцию</a>
   </p>
 </div>
 
