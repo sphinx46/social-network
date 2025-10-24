@@ -15,9 +15,14 @@ public class EntityUtils {
     private final MessageEntityProviderImpl messageProvider;
     private final RelationshipEntityProviderImpl relationshipProvider;
     private final LikeEntityProviderImpl likeProvider;
+    private final NotificationEntityProviderImpl notificationProvider;
 
     public User getUser(Long id) {
         return userProvider.getById(id);
+    }
+
+    public Notification getNotification(Long id) {
+        return notificationProvider.getById(id);
     }
 
     public Profile getProfile(Long id) {

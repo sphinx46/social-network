@@ -11,11 +11,11 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Notification;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationStatus;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.GenericNotificationEvent;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.NotificationNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.NotificationRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.NotificationValidator;
 
 import java.time.LocalDateTime;
@@ -31,6 +31,7 @@ public class NotificationService {
     private final EntityMapper entityMapper;
     private final WebSocketNotificationService webSocketNotificationService;
     private final NotificationValidator notificationValidator;
+    private final EntityUtils entityUtils;
 
     @EventListener
     @Async("notificationTaskExecutor")
@@ -61,8 +62,7 @@ public class NotificationService {
     public NotificationResponse getUserNotificationById(Long id, User currentUser) {
         notificationValidator.validateNotificationAccess(id, currentUser);
 
-        Notification notification = notificationRepository.findById(id)
-                .orElseThrow(() -> new NotificationNotFoundException(ResponseMessageConstants.NOT_FOUND));
+        Notification notification = entityUtils.getNotification(id);
         return entityMapper.map(notification, NotificationResponse.class);
     }
 
@@ -80,8 +80,7 @@ public class NotificationService {
     public NotificationResponse markAsRead(Long id, User currentUser) {
         notificationValidator.validateNotificationAccess(id, currentUser);
 
-        Notification notification = notificationRepository.findById(id)
-                .orElseThrow(() -> new NotificationNotFoundException(ResponseMessageConstants.NOT_FOUND));
+        Notification notification = entityUtils.getNotification(id);
 
         notification.setStatus(NotificationStatus.READ);
         notification.setUpdatedAt(LocalDateTime.now());
@@ -99,8 +98,7 @@ public class NotificationService {
 
     @Transactional
     public void deleteNotification(Long notificationId, User currentUser) {
-        Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new NotificationNotFoundException(ResponseMessageConstants.NOT_FOUND));
+        Notification notification = entityUtils.getNotification(notificationId);
         User user = notification.getUserAction();
 
         notificationValidator.validateUserNotificationsAccess(user, currentUser);

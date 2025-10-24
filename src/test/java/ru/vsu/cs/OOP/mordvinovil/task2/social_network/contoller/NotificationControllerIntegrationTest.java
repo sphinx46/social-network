@@ -270,4 +270,3 @@ class NotificationControllerIntegrationTest extends BaseControllerTest {
 }
 
 
-
