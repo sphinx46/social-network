@@ -9,13 +9,12 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.FriendshipStatus;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.RelationshipNotFoundException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.UserNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.RelationshipRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.RelationshipFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.RelationshipValidator;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,7 +23,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RelationshipService {
     private final RelationshipRepository relationshipRepository;
-    private final UserRepository userRepository;
+    private final EntityUtils entityUtils;
     private final EntityMapper entityMapper;
     private final RelationshipFactory relationshipFactory;
     private final RelationshipValidator relationshipValidator;
@@ -33,8 +32,7 @@ public class RelationshipService {
     public RelationshipResponse sendFriendRequest(RelationshipRequest request, User currentUser) {
         relationshipValidator.validate(request, currentUser);
 
-        User receiver = userRepository.findById(request.getTargetUserId())
-                .orElseThrow(() -> new UserNotFoundException(ResponseMessageConstants.NOT_FOUND));
+        User receiver = entityUtils.getUser(request.getTargetUserId());
 
         Relationship relationship = relationshipFactory.createPendingRelationship(currentUser, receiver);
         Relationship savedRelationship = relationshipRepository.save(relationship);
@@ -59,8 +57,7 @@ public class RelationshipService {
     public RelationshipResponse blockUser(RelationshipRequest request, User currentUser) {
         relationshipValidator.validateBlockUser(request, currentUser);
 
-        User targetUser = userRepository.findById(request.getTargetUserId())
-                .orElseThrow(() -> new UserNotFoundException(ResponseMessageConstants.NOT_FOUND));
+        User targetUser = entityUtils.getUser(request.getTargetUserId());
 
         Relationship relationship = relationshipRepository
                 .findRelationshipBetweenUsers(currentUser.getId(), targetUser.getId())

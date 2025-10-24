@@ -15,11 +15,10 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.LikeNotFoundException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.CommentRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.LikeRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.LikeFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.LikeValidator;
 
@@ -39,13 +38,10 @@ public class LikeServiceTest {
     private LikeRepository likeRepository;
 
     @Mock
-    private CommentRepository commentRepository;
-
-    @Mock
-    private PostRepository postRepository;
-
-    @Mock
     private EntityMapper entityMapper;
+
+    @Mock
+    private EntityUtils entityUtils;
 
     @Mock
     private LikeFactory likeFactory;
@@ -62,50 +58,54 @@ public class LikeServiceTest {
     @Test
     void likeComment_whenRequestIsValid() {
         User currentUser = createTestUser(1L, "user", "example@example.com");
+        User commentOwner = createTestUser(2L, "commentOwner", "owner@example.com");
         LikeCommentRequest request = createTestLikeCommentRequest(1L);
         Comment comment = createTestComment(1L, "Test comment");
+        comment.setCreator(commentOwner);
         Like like = createTestLike(currentUser, null, comment);
         LikeCommentResponse expectedResponse = createTestLikeCommentResponse(like);
 
+        when(entityUtils.getComment(request.getCommentId())).thenReturn(comment);
         when(likeFactory.createCommentLike(currentUser, request.getCommentId())).thenReturn(like);
         when(likeRepository.save(any(Like.class))).thenReturn(like);
         when(entityMapper.map(like, LikeCommentResponse.class)).thenReturn(expectedResponse);
-        when(commentRepository.findById(any())).thenReturn(Optional.of(comment));
 
         LikeCommentResponse result = likeService.likeComment(currentUser, request);
 
         assertNotNull(result);
 
         verify(likeValidator).validate(request, currentUser);
+        verify(entityUtils).getComment(request.getCommentId());
         verify(likeFactory).createCommentLike(currentUser, request.getCommentId());
         verify(likeRepository).save(any(Like.class));
-        verify(eventPublisherService).publishCommentLiked(any(), eq(comment.getCreator().getId()),
+        verify(eventPublisherService).publishCommentLiked(any(), eq(commentOwner.getId()),
                 eq(comment.getId()), eq(currentUser.getId()));
-
         verify(entityMapper).map(like, LikeCommentResponse.class);
     }
 
     @Test
     void likePost_whenRequestIsValid() {
         User currentUser = createTestUser(1L, "user", "example@example.com");
+        User postOwner = createTestUser(2L, "postOwner", "owner@example.com");
         LikePostRequest request = createTestLikePostRequest(1L);
-        Post post = createTestPost(currentUser, "Test post", null);
+        Post post = createTestPost(postOwner, "Test post", null);
         Like like = createTestLike(currentUser, post, null);
         LikePostResponse expectedResponse = createTestLikePostResponse(like);
 
+        when(entityUtils.getPost(request.getPostId())).thenReturn(post);
         when(likeFactory.createPostLike(currentUser, request.getPostId())).thenReturn(like);
         when(likeRepository.save(any(Like.class))).thenReturn(like);
         when(entityMapper.map(like, LikePostResponse.class)).thenReturn(expectedResponse);
-        when(postRepository.findById(any())).thenReturn(Optional.ofNullable(post));
 
         LikePostResponse result = likeService.likePost(currentUser, request);
 
         assertNotNull(result);
 
         verify(likeValidator).validate(request, currentUser);
+        verify(entityUtils).getPost(request.getPostId());
         verify(likeFactory).createPostLike(currentUser, request.getPostId());
         verify(likeRepository).save(any(Like.class));
-        verify(eventPublisherService).publishPostLiked(any(), eq(post.getUser().getId()),
+        verify(eventPublisherService).publishPostLiked(any(), eq(postOwner.getId()),
                 eq(post.getId()), eq(currentUser.getId()));
         verify(entityMapper).map(like, LikePostResponse.class);
     }
@@ -190,6 +190,9 @@ public class LikeServiceTest {
                 () -> likeService.deleteLikeByComment(currentUser, 1L));
 
         assertEquals(ResponseMessageConstants.NOT_FOUND, likeNotFoundException.getMessage());
+
+        verify(likeValidator).validateLikeDeletion(1L, "comment", currentUser);
+        verify(likeRepository).findByUserIdAndCommentId(currentUser.getId(), 1L);
     }
 
     @Test
@@ -211,4 +214,21 @@ public class LikeServiceTest {
         verify(likeRepository).delete(like);
         verify(entityMapper).map(like, LikePostResponse.class);
     }
+
+    @Test
+    void deleteLikeByPost_whenLikeNotExists() {
+        User currentUser = createTestUser(1L, "user", "example@example.com");
+
+        when(likeRepository.findByUserIdAndPostId(currentUser.getId(), 1L)).thenReturn(Optional.empty());
+
+        LikeNotFoundException likeNotFoundException = assertThrows(LikeNotFoundException.class,
+                () -> likeService.deleteLikeByPost(currentUser, 1L));
+
+        assertEquals(ResponseMessageConstants.NOT_FOUND, likeNotFoundException.getMessage());
+
+        verify(likeValidator).validateLikeDeletion(1L, "post", currentUser);
+        verify(likeRepository).findByUserIdAndPostId(currentUser.getId(), 1L);
+    }
 }
+
+
