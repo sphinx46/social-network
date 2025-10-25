@@ -6,6 +6,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.ProfileRequest
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Profile;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.ProfileAlreadyExistsException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.ProfileContentTooLongException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.ProfileNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.ProfileRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
@@ -28,11 +29,11 @@ public class ProfileValidatorImpl implements ProfileValidator {
         }
 
         if (request.getBio() != null && request.getBio().length() > 500) {
-            throw new IllegalArgumentException("Bio too long");
+            throw new ProfileContentTooLongException(ResponseMessageConstants.FAILURE_PROFILE_BIO_TOO_LONG);
         }
 
         if (request.getCity() != null && request.getCity().length() > 100) {
-            throw new IllegalArgumentException("City name too long");
+            throw new ProfileContentTooLongException(ResponseMessageConstants.FAILURE_PROFILE_CITY_TOO_LONG);
         }
     }
 
@@ -41,11 +42,11 @@ public class ProfileValidatorImpl implements ProfileValidator {
         getProfileEntity(currentUser);
 
         if (request.getBio() != null && request.getBio().length() > 500) {
-            throw new IllegalArgumentException("Bio too long");
+            throw new IllegalArgumentException(ResponseMessageConstants.FAILURE_PROFILE_BIO_TOO_LONG);
         }
 
         if (request.getCity() != null && request.getCity().length() > 100) {
-            throw new IllegalArgumentException("City name too long");
+            throw new IllegalArgumentException(ResponseMessageConstants.FAILURE_PROFILE_CITY_TOO_LONG);
         }
     }
 
@@ -56,6 +57,6 @@ public class ProfileValidatorImpl implements ProfileValidator {
 
     private Profile getProfileEntity(User user) {
         return profileRepository.findByUser(user)
-                .orElseThrow(() -> new ProfileNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new ProfileNotFoundException(ResponseMessageConstants.FAILURE_PROFILE_NOT_FOUND));
     }
 }

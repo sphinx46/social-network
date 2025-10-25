@@ -19,7 +19,7 @@ public class CommentEntityProviderImpl implements CommentEntityProvider {
     @Override
     public Comment getById(Long id) {
         return commentRepository.findById(id)
-                .orElseThrow(() -> new CommentNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new CommentNotFoundException(ResponseMessageConstants.FAILURE_COMMENT_NOT_FOUND));
     }
 
     @Override

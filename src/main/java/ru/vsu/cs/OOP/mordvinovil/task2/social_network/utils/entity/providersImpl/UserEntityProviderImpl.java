@@ -20,7 +20,7 @@ public class UserEntityProviderImpl implements UserEntityProvider {
     @Override
     public User getById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new UserNotFoundException(ResponseMessageConstants.FAILURE_USER_NOT_FOUND));
     }
 
     @Override

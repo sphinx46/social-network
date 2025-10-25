@@ -19,7 +19,7 @@ public class NotificationEntityProviderImpl implements NotificationEntityProvide
     @Override
     public Notification getById(Long id) throws EntityNotFoundException {
         return notificationRepository.findById(id)
-                .orElseThrow(() -> new NotificationNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new NotificationNotFoundException(ResponseMessageConstants.FAILURE_NOTIFICATION_NOT_FOUND));
     }
 
     @Override

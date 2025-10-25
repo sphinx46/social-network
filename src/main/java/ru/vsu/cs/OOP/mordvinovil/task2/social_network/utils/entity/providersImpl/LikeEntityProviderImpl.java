@@ -19,7 +19,7 @@ public class LikeEntityProviderImpl implements LikeEntityProvider {
     @Override
     public Like getById(Long id) {
         return likeRepository.findById(id)
-                .orElseThrow(() -> new LikeNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new LikeNotFoundException(ResponseMessageConstants.FAILURE_LIKE_NOT_FOUND));
     }
 
     @Override

@@ -22,7 +22,7 @@ public class LikeFactory {
 
     public Like createCommentLike(User user, Long commentId) {
         Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new CommentNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new CommentNotFoundException(ResponseMessageConstants.FAILURE_COMMENT_NOT_FOUND));
 
         return Like.builder()
                 .user(user)
@@ -34,7 +34,7 @@ public class LikeFactory {
 
     public Like createPostLike(User user, Long postId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.FAILURE_POST_NOT_FOUND));
 
         return Like.builder()
                 .user(user)

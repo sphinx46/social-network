@@ -21,7 +21,7 @@ public class ProfileEntityProviderImpl implements ProfileEntityProvider {
     @Override
     public Profile getById(Long id) {
         return profileRepository.findById(id)
-                .orElseThrow(() -> new ProfileNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new ProfileNotFoundException(ResponseMessageConstants.FAILURE_PROFILE_NOT_FOUND));
     }
 
     @Override
@@ -32,6 +32,6 @@ public class ProfileEntityProviderImpl implements ProfileEntityProvider {
     @Override
     public Profile getByUser(User user) {
         return profileRepository.findByUser(user)
-                .orElseThrow(() -> new ProfileNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new ProfileNotFoundException(ResponseMessageConstants.FAILURE_USER_NOT_FOUND));
     }
 }

@@ -19,7 +19,7 @@ public class PostEntityProviderImpl implements PostEntityProvider {
     @Override
     public Post getById(Long id) {
         return postRepository.findById(id)
-                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.FAILURE_POST_NOT_FOUND));
     }
 
     @Override

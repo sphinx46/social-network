@@ -91,12 +91,12 @@ public class RelationshipServiceImplTest {
 
         doNothing().when(relationshipValidator).validate(request, currentUser);
         when(entityUtils.getUser(receiverUser.getId()))
-                .thenThrow(new UserNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .thenThrow(new UserNotFoundException(ResponseMessageConstants.FAILURE_USER_NOT_FOUND));
 
         UserNotFoundException exception = assertThrows(UserNotFoundException.class,
                 () -> relationshipServiceImpl.sendFriendRequest(request, currentUser));
 
-        assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_USER_NOT_FOUND, exception.getMessage());
 
         verify(relationshipValidator).validate(request, currentUser);
         verify(entityUtils).getUser(receiverUser.getId());
@@ -109,13 +109,13 @@ public class RelationshipServiceImplTest {
         User currentUser = createTestUser(1L, "user", "example@example.com");
         RelationshipRequest request = createTestRelationshipRequest(currentUser.getId());
 
-        doThrow(new SelfRelationshipException("Нельзя отправить запрос самому себе"))
+        doThrow(new SelfRelationshipException(ResponseMessageConstants.FAILURE_RELATIONSHIP_TO_SELF_OPERATION))
                 .when(relationshipValidator).validate(request, currentUser);
 
         SelfRelationshipException exception = assertThrows(SelfRelationshipException.class,
                 () -> relationshipServiceImpl.sendFriendRequest(request, currentUser));
 
-        assertEquals("Нельзя отправить запрос самому себе", exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_RELATIONSHIP_TO_SELF_OPERATION, exception.getMessage());
 
         verify(relationshipValidator).validate(request, currentUser);
         verify(entityUtils, never()).getUser(any());
@@ -129,13 +129,13 @@ public class RelationshipServiceImplTest {
         User receiverUser = createTestUser(2L, "receiver", "123@example.com");
         RelationshipRequest request = createTestRelationshipRequest(receiverUser.getId());
 
-        doThrow(new DuplicateRelationshipException("Связь между пользователями уже существует"))
+        doThrow(new DuplicateRelationshipException(ResponseMessageConstants.FAILURE_RELATIONSHIP_ALREADY_EXISTS))
                 .when(relationshipValidator).validate(request, currentUser);
 
         DuplicateRelationshipException exception = assertThrows(DuplicateRelationshipException.class,
                 () -> relationshipServiceImpl.sendFriendRequest(request, currentUser));
 
-        assertEquals("Связь между пользователями уже существует", exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_RELATIONSHIP_ALREADY_EXISTS, exception.getMessage());
 
         verify(relationshipValidator).validate(request, currentUser);
         verify(entityUtils, never()).getUser(any());
@@ -175,13 +175,13 @@ public class RelationshipServiceImplTest {
         User currentUser = createTestUser(1L, "user", "example@example.com");
         RelationshipRequest request = createTestRelationshipRequest(2L);
 
-        doThrow(new RelationshipNotFoundException(ResponseMessageConstants.NOT_FOUND))
+        doThrow(new RelationshipNotFoundException(ResponseMessageConstants.FAILURE_RELATIONSHIP_NOT_FOUND))
                 .when(relationshipValidator).validateStatusChange(request, currentUser);
 
         RelationshipNotFoundException exception = assertThrows(RelationshipNotFoundException.class,
                 () -> relationshipServiceImpl.acceptFriendRequest(request, currentUser));
 
-        assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_RELATIONSHIP_NOT_FOUND, exception.getMessage());
 
         verify(relationshipValidator).validateStatusChange(request, currentUser);
         verify(relationshipRepository, never()).findBySenderIdAndReceiverIdAndStatus(any(), any(), any());
@@ -194,13 +194,13 @@ public class RelationshipServiceImplTest {
         User senderUser = createTestUser(2L, "sender", "sender@example.com");
         RelationshipRequest request = createTestRelationshipRequest(senderUser.getId());
 
-        doThrow(new AccessDeniedException("Вы не можете изменить этот запрос"))
+        doThrow(new AccessDeniedException(ResponseMessageConstants.FAILURE_RELATIONSHIP_CANNOT_CHANGE_QUERY))
                 .when(relationshipValidator).validateStatusChange(request, currentUser);
 
         AccessDeniedException exception = assertThrows(AccessDeniedException.class,
                 () -> relationshipServiceImpl.acceptFriendRequest(request, currentUser));
 
-        assertEquals("Вы не можете изменить этот запрос", exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_RELATIONSHIP_CANNOT_CHANGE_QUERY, exception.getMessage());
 
         verify(relationshipValidator).validateStatusChange(request, currentUser);
         verify(relationshipRepository, never()).findBySenderIdAndReceiverIdAndStatus(any(), any(), any());

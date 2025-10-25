@@ -40,7 +40,7 @@ public class NotificationServiceImpl implements NotificationService {
     public void handleNotificationEvent(GenericNotificationEvent event) {
         try {
             User targetUser = userRepository.findById(event.getTargetUserId())
-                    .orElseThrow(() -> new RuntimeException(ResponseMessageConstants.NOT_FOUND));
+                    .orElseThrow(() -> new RuntimeException(ResponseMessageConstants.FAILURE_USER_NOT_FOUND));
 
             Notification notification = createNotificationFromEvent(event, targetUser);
             notificationRepository.save(notification);

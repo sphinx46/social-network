@@ -9,6 +9,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Like;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.CommentNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.LikeAlreadyExistsException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.LikeNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.PostNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.CommentRepository;
@@ -38,22 +39,22 @@ public class LikeValidatorImpl implements LikeValidator {
     @Override
     public void validateLikeCreation(LikePostRequest request, User currentUser) {
         Post post = postRepository.findById(request.getPostId())
-                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.FAILURE_POST_NOT_FOUND));
 
         Optional<Like> existingLike = likeRepository.findByUserIdAndPostId(currentUser.getId(), request.getPostId());
         if (existingLike.isPresent()) {
-            throw new IllegalArgumentException("Like already exists for this post");
+            throw new LikeAlreadyExistsException(ResponseMessageConstants.FAILURE_LIKE_ALREADY_EXISTS_ON_POST);
         }
     }
 
     @Override
     public void validateLikeCreation(LikeCommentRequest request, User currentUser) {
         Comment comment = commentRepository.findById(request.getCommentId())
-                .orElseThrow(() -> new CommentNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new CommentNotFoundException(ResponseMessageConstants.FAILURE_COMMENT_NOT_FOUND));
 
         Optional<Like> existingLike = likeRepository.findByUserIdAndCommentId(currentUser.getId(), request.getCommentId());
         if (existingLike.isPresent()) {
-            throw new IllegalArgumentException("Like already exists for this comment");
+            throw new LikeAlreadyExistsException(ResponseMessageConstants.FAILURE_LIKE_ALREADY_EXISTS_ON_POST);
         }
     }
 
@@ -62,16 +63,16 @@ public class LikeValidatorImpl implements LikeValidator {
         Like like;
         if ("post".equals(targetType)) {
             like = likeRepository.findByUserIdAndPostId(currentUser.getId(), targetId)
-                    .orElseThrow(() -> new LikeNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                    .orElseThrow(() -> new LikeNotFoundException(ResponseMessageConstants.FAILURE_LIKE_NOT_FOUND));
         } else if ("comment".equals(targetType)) {
             like = likeRepository.findByUserIdAndCommentId(currentUser.getId(), targetId)
-                    .orElseThrow(() -> new LikeNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                    .orElseThrow(() -> new LikeNotFoundException(ResponseMessageConstants.FAILURE_LIKE_NOT_FOUND));
         } else {
             throw new IllegalArgumentException("Invalid target type: " + targetType);
         }
 
         if (!like.getUser().getId().equals(currentUser.getId())) {
-            throw new LikeNotFoundException(ResponseMessageConstants.NOT_FOUND);
+            throw new LikeNotFoundException(ResponseMessageConstants.FAILURE_LIKE_NOT_FOUND);
         }
     }
 }

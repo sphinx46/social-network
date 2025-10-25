@@ -12,6 +12,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.UserAlre
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.security.filters.UserDetailsImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.UserService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
 @Service
 @RequiredArgsConstructor
@@ -35,11 +36,11 @@ public class UserServiceImpl implements UserService {
      */
     public User create(User user) {
         if (repository.existsByUsername(user.getUsername())) {
-            throw new UserAlreadyExistsException("Пользователь с таким именем уже существует");
+            throw new UserAlreadyExistsException(ResponseMessageConstants.FAILURE_USER_WITH_NAME_ALREADY_EXISTS);
         }
 
         if (repository.existsByEmail(user.getEmail())) {
-            throw new UserAlreadyExistsException("Пользователь с таким email уже существует");
+            throw new UserAlreadyExistsException(ResponseMessageConstants.FAILURE_USER_WITH_EMAIL_ALREADY_EXISTS);
         }
 
         return save(user);
@@ -52,7 +53,7 @@ public class UserServiceImpl implements UserService {
      */
     public User getByUsername(String username) {
         return repository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
+                .orElseThrow(() -> new UsernameNotFoundException(ResponseMessageConstants.FAILURE_USER_NOT_FOUND));
 
     }
 

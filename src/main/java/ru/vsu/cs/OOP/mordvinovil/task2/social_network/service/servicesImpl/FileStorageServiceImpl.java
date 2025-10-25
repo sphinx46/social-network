@@ -5,7 +5,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.FileProcessingException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.FileEmptyException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.FileOversizeException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.FileUnsupportedFormat;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.FileStorageService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -38,7 +42,7 @@ public class FileStorageServiceImpl implements FileStorageService {
             log.info("Файл сохранен: {}", filePath);
             return "/uploads/" + subDirectory + "/" + uniqueFilename;
         } catch (IOException e) {
-            throw new FileProcessingException("Ошибка при сохранении файла", e);
+            throw new FileProcessingException(ResponseMessageConstants.FAILURE_FILE_SAVE, e);
         }
     }
 
@@ -53,7 +57,7 @@ public class FileStorageServiceImpl implements FileStorageService {
 
             Path filePath = Paths.get(uploadDir).resolve(relativePath).normalize();
             if (!filePath.startsWith(Paths.get(uploadDir).normalize())) {
-                throw new SecurityException("Некорректный путь к файлу.");
+                throw new SecurityException(ResponseMessageConstants.FAILURE_INCORRECT_PATH_TO_FILE);
             }
 
             if (Files.exists(filePath)) {
@@ -78,23 +82,23 @@ public class FileStorageServiceImpl implements FileStorageService {
     @Override
     public void validateImageFile(MultipartFile file) {
         if (file.isEmpty()) {
-            throw new IllegalArgumentException("Файл не может быть пустым");
+            throw new FileEmptyException(ResponseMessageConstants.FAILURE_FILE_EMPTY);
         }
 
         if (file.getSize() > 5 * 1024 * 1024) {
-            throw new IllegalArgumentException("Размер файла не должен превышать 5MB");
+            throw new FileOversizeException(ResponseMessageConstants.FAILURE_FILE_OVERSIZE);
         }
 
         String contentType = file.getContentType();
         if (contentType == null || !contentType.startsWith("image/")) {
-            throw new IllegalArgumentException("Файл должен быть изображением");
+            throw new FileUnsupportedFormat(ResponseMessageConstants.FAILURE_FILE_MUST_BE_IMAGE);
         }
 
         String originalFilename = file.getOriginalFilename();
         if (originalFilename != null) {
             String extension = getFileExtension(originalFilename).toLowerCase();
             if (!extension.matches("\\.(jpg|jpeg|png|gif|bmp)$")) {
-                throw new IllegalArgumentException("Поддерживаются только JPG, JPEG, PNG, GIF, BMP файлы");
+                throw new FileUnsupportedFormat(ResponseMessageConstants.FAULURE_FILE_UNSUPPORTED_FORMAT);
             }
         }
     }

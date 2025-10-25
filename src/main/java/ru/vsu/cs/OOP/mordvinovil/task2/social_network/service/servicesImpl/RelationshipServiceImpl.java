@@ -91,7 +91,7 @@ public class RelationshipServiceImpl  implements RelationshipService {
     private RelationshipResponse changeRelationshipStatus(RelationshipRequest request, FriendshipStatus status, User currentUser) {
         Relationship relationship = relationshipRepository
                 .findBySenderIdAndReceiverIdAndStatus(request.getTargetUserId(), currentUser.getId(), FriendshipStatus.PENDING)
-                .orElseThrow(() -> new RelationshipNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new RelationshipNotFoundException(ResponseMessageConstants.FAILURE_RELATIONSHIP_NOT_FOUND));
 
         relationship.setStatus(status);
         relationship.setUpdatedAt(LocalDateTime.now());

@@ -19,7 +19,7 @@ public class RelationshipEntityProviderImpl implements RelationshipEntityProvide
     @Override
     public Relationship getById(Long id) {
         return relationshipRepository.findById(id)
-                .orElseThrow(() -> new RelationshipNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new RelationshipNotFoundException(ResponseMessageConstants.FAILURE_RELATIONSHIP_NOT_FOUND));
     }
 
     @Override

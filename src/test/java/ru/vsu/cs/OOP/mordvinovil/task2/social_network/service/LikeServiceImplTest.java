@@ -190,7 +190,7 @@ public class LikeServiceImplTest {
         LikeNotFoundException likeNotFoundException = assertThrows(LikeNotFoundException.class,
                 () -> likeServiceImpl.deleteLikeByComment(currentUser, 1L));
 
-        assertEquals(ResponseMessageConstants.NOT_FOUND, likeNotFoundException.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_LIKE_NOT_FOUND, likeNotFoundException.getMessage());
 
         verify(likeValidator).validateLikeDeletion(1L, "comment", currentUser);
         verify(likeRepository).findByUserIdAndCommentId(currentUser.getId(), 1L);
@@ -225,7 +225,7 @@ public class LikeServiceImplTest {
         LikeNotFoundException likeNotFoundException = assertThrows(LikeNotFoundException.class,
                 () -> likeServiceImpl.deleteLikeByPost(currentUser, 1L));
 
-        assertEquals(ResponseMessageConstants.NOT_FOUND, likeNotFoundException.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_LIKE_NOT_FOUND, likeNotFoundException.getMessage());
 
         verify(likeValidator).validateLikeDeletion(1L, "post", currentUser);
         verify(likeRepository).findByUserIdAndPostId(currentUser.getId(), 1L);

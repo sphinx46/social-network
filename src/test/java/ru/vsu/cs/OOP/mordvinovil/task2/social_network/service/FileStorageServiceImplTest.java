@@ -8,7 +8,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.FileProcessingException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.FileEmptyException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.FileOversizeException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.FileUnsupportedFormat;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.FileStorageServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -26,7 +30,7 @@ public class FileStorageServiceImplTest {
     Path tempDir;
 
     @Test
-    void saveFile_whenFileIsValid() throws IOException {
+    void saveFile_whenFileIsValid() {
         ReflectionTestUtils.setField(fileStorageServiceImpl, "uploadDir", tempDir.toString());
 
         MockMultipartFile file = new MockMultipartFile(
@@ -64,7 +68,7 @@ public class FileStorageServiceImplTest {
     }
 
     @Test
-    void saveFile_whenFileWithoutExtension() throws IOException {
+    void saveFile_whenFileWithoutExtension() {
         ReflectionTestUtils.setField(fileStorageServiceImpl, "uploadDir", tempDir.toString());
 
         MockMultipartFile file = new MockMultipartFile(
@@ -95,7 +99,7 @@ public class FileStorageServiceImplTest {
         FileProcessingException exception = assertThrows(FileProcessingException.class,
                 () -> fileStorageServiceImpl.saveFile(file, "test-dir"));
 
-        assertEquals("Ошибка при сохранении файла", exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_FILE_SAVE, exception.getMessage());
     }
 
     @Test
@@ -149,7 +153,7 @@ public class FileStorageServiceImplTest {
         SecurityException securityException = assertThrows(SecurityException.class,
                 () -> fileStorageServiceImpl.deleteFile(fileUrl));
 
-        assertEquals("Некорректный путь к файлу.", securityException.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_INCORRECT_PATH_TO_FILE, securityException.getMessage());
     }
 
     @Test
@@ -191,10 +195,10 @@ public class FileStorageServiceImplTest {
                 new byte[0]
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        FileEmptyException exception = assertThrows(FileEmptyException.class,
                 () -> fileStorageServiceImpl.validateImageFile(file));
 
-        assertEquals("Файл не может быть пустым", exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_FILE_EMPTY, exception.getMessage());
     }
 
     @Test
@@ -206,10 +210,10 @@ public class FileStorageServiceImplTest {
                 new byte[6 * 1024 * 1024]
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        FileOversizeException exception = assertThrows(FileOversizeException.class,
                 () -> fileStorageServiceImpl.validateImageFile(file));
 
-        assertEquals("Размер файла не должен превышать 5MB", exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_FILE_OVERSIZE, exception.getMessage());
     }
 
     @Test
@@ -221,10 +225,10 @@ public class FileStorageServiceImplTest {
                 new byte[1024]
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        FileUnsupportedFormat exception = assertThrows(FileUnsupportedFormat.class,
                 () -> fileStorageServiceImpl.validateImageFile(file));
 
-        assertEquals("Файл должен быть изображением", exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_FILE_MUST_BE_IMAGE, exception.getMessage());
     }
 
     @Test
@@ -236,10 +240,10 @@ public class FileStorageServiceImplTest {
                 new byte[1024]
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        FileUnsupportedFormat exception = assertThrows(FileUnsupportedFormat.class,
                 () -> fileStorageServiceImpl.validateImageFile(file));
 
-        assertEquals("Файл должен быть изображением", exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_FILE_MUST_BE_IMAGE, exception.getMessage());
     }
 
     @Test
@@ -251,10 +255,10 @@ public class FileStorageServiceImplTest {
                 new byte[1024]
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        FileUnsupportedFormat exception = assertThrows(FileUnsupportedFormat.class,
                 () -> fileStorageServiceImpl.validateImageFile(file));
 
-        assertEquals("Поддерживаются только JPG, JPEG, PNG, GIF, BMP файлы", exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAULURE_FILE_UNSUPPORTED_FORMAT, exception.getMessage());
     }
 
 
@@ -267,10 +271,10 @@ public class FileStorageServiceImplTest {
                 new byte[1024]
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+        FileUnsupportedFormat exception = assertThrows(FileUnsupportedFormat.class,
                 () -> fileStorageServiceImpl.validateImageFile(file));
 
-        assertEquals("Поддерживаются только JPG, JPEG, PNG, GIF, BMP файлы", exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAULURE_FILE_UNSUPPORTED_FORMAT, exception.getMessage());
     }
 
 
@@ -363,4 +367,8 @@ public class FileStorageServiceImplTest {
         assertTrue(Files.exists(savedFile));
     }
 }
+
+
+
+
 

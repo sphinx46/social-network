@@ -143,12 +143,12 @@ class NotificationServiceImplTest {
     void getUserNotificationById_whenNotificationNotFound() {
         doNothing().when(notificationValidator).validateNotificationAccess(999L, currentUser);
         when(entityUtils.getNotification(999L))
-                .thenThrow(new NotificationNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .thenThrow(new NotificationNotFoundException(ResponseMessageConstants.FAILURE_NOTIFICATION_NOT_FOUND));
 
         NotificationNotFoundException exception = assertThrows(NotificationNotFoundException.class,
                 () -> notificationServiceImpl.getUserNotificationById(999L, currentUser));
 
-        assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_NOTIFICATION_NOT_FOUND, exception.getMessage());
 
         verify(notificationValidator).validateNotificationAccess(999L, currentUser);
         verify(entityUtils).getNotification(999L);

@@ -81,7 +81,7 @@ public class LikeServiceImpl implements LikeService {
         likeValidator.validateLikeDeletion(commentId, "comment", currentUser);
 
         Like like = likeRepository.findByUserIdAndCommentId(currentUser.getId(), commentId)
-                .orElseThrow(() -> new LikeNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new LikeNotFoundException(ResponseMessageConstants.FAILURE_LIKE_NOT_FOUND));
 
         LikeCommentResponse response = entityMapper.map(like, LikeCommentResponse.class);
         likeRepository.delete(like);
@@ -94,7 +94,7 @@ public class LikeServiceImpl implements LikeService {
         likeValidator.validateLikeDeletion(postId, "post", currentUser);
 
         Like like = likeRepository.findByUserIdAndPostId(currentUser.getId(), postId)
-                .orElseThrow(() -> new LikeNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new LikeNotFoundException(ResponseMessageConstants.FAILURE_LIKE_NOT_FOUND));
 
         LikePostResponse response = entityMapper.map(like, LikePostResponse.class);
         likeRepository.delete(like);

@@ -15,6 +15,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.UserServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -60,7 +61,7 @@ class UserServiceImplTest {
         when(userRepository.existsByUsername("existinguser")).thenReturn(true);
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> userServiceImpl.create(user));
-        assertEquals("Пользователь с таким именем уже существует", exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_USER_WITH_NAME_ALREADY_EXISTS, exception.getMessage());
         verify(userRepository).existsByUsername("existinguser");
         verify(userRepository, never()).existsByEmail(anyString());
         verify(userRepository, never()).save(any(User.class));
@@ -74,7 +75,7 @@ class UserServiceImplTest {
         when(userRepository.existsByEmail("existing@example.com")).thenReturn(true);
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> userServiceImpl.create(user));
-        assertEquals("Пользователь с таким email уже существует", exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_USER_WITH_EMAIL_ALREADY_EXISTS, exception.getMessage());
         verify(userRepository).existsByUsername("newuser");
         verify(userRepository).existsByEmail("existing@example.com");
         verify(userRepository, never()).save(any(User.class));
@@ -100,7 +101,7 @@ class UserServiceImplTest {
 
         UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class,
                 () -> userServiceImpl.getByUsername("nonexistent"));
-        assertEquals("Пользователь не найден", exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_USER_NOT_FOUND, exception.getMessage());
         verify(userRepository).findByUsername("nonexistent");
     }
 

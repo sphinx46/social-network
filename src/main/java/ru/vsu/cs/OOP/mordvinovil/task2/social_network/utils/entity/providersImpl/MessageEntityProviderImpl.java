@@ -19,7 +19,7 @@ public class MessageEntityProviderImpl implements MessageEntityProvider {
     @Override
     public Message getById(Long id) {
         return messageRepository.findById(id)
-                .orElseThrow(() -> new MessageNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new MessageNotFoundException(ResponseMessageConstants.FAILURE_MESSAGE_NOT_FOUND));
     }
 
     @Override

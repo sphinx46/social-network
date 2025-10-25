@@ -87,12 +87,12 @@ public class CommentServiceImplTest {
         User currentUser = createTestUser(1L, "user", "example@example.com");
         CommentRequest request = createTestCommentRequest(999L, "Test comment", null);
 
-        when(entityUtils.getPost(999L)).thenThrow(new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
+        when(entityUtils.getPost(999L)).thenThrow(new PostNotFoundException(ResponseMessageConstants.FAILURE_POST_NOT_FOUND));
 
         PostNotFoundException exception = assertThrows(PostNotFoundException.class,
                 () -> commentServiceImpl.create(request, currentUser));
 
-        assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_POST_NOT_FOUND, exception.getMessage());
         verify(entityUtils).getPost(999L);
         verifyNoInteractions(contentFactory, commentRepository, entityMapper);
     }
@@ -169,12 +169,12 @@ public class CommentServiceImplTest {
 
     @Test
     void getCommentById_whenCommentNotExists() {
-        when(entityUtils.getComment(1L)).thenThrow(new CommentNotFoundException(ResponseMessageConstants.NOT_FOUND));
+        when(entityUtils.getComment(1L)).thenThrow(new CommentNotFoundException(ResponseMessageConstants.FAILURE_COMMENT_NOT_FOUND));
 
         CommentNotFoundException exception = assertThrows(CommentNotFoundException.class,
                 () -> commentServiceImpl.getCommentById(1L));
 
-        assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_COMMENT_NOT_FOUND, exception.getMessage());
         verify(entityUtils).getComment(1L);
         verifyNoInteractions(entityMapper);
     }
@@ -184,12 +184,12 @@ public class CommentServiceImplTest {
         User currentUser = createTestUser(1L, "user", "example@example.com");
         CommentRequest request = createTestCommentRequest(1L, "New content", null);
 
-        when(entityUtils.getComment(1L)).thenThrow(new CommentNotFoundException(ResponseMessageConstants.NOT_FOUND));
+        when(entityUtils.getComment(1L)).thenThrow(new CommentNotFoundException(ResponseMessageConstants.FAILURE_COMMENT_NOT_FOUND));
 
         CommentNotFoundException exception = assertThrows(CommentNotFoundException.class,
                 () -> commentServiceImpl.editComment(1L, request, currentUser));
 
-        assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_COMMENT_NOT_FOUND, exception.getMessage());
         verify(entityUtils).getComment(1L);
     }
 
@@ -197,12 +197,12 @@ public class CommentServiceImplTest {
     void deleteComment_whenCommentNotExists() {
         User currentUser = createTestUser(1L, "user", "example@example.com");
 
-        when(entityUtils.getComment(1L)).thenThrow(new CommentNotFoundException(ResponseMessageConstants.NOT_FOUND));
+        when(entityUtils.getComment(1L)).thenThrow(new CommentNotFoundException(ResponseMessageConstants.FAILURE_COMMENT_NOT_FOUND));
 
         CommentNotFoundException exception = assertThrows(CommentNotFoundException.class,
                 () -> commentServiceImpl.deleteComment(1L, currentUser));
 
-        assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_COMMENT_NOT_FOUND, exception.getMessage());
         verify(entityUtils).getComment(1L);
     }
 }

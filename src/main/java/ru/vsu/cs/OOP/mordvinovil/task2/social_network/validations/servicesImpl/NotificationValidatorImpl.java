@@ -18,7 +18,7 @@ public class NotificationValidatorImpl implements NotificationValidator {
     @Override
     public void validateNotificationAccess(Long notificationId, User currentUser) {
         Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new NotificationNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new NotificationNotFoundException(ResponseMessageConstants.FAILURE_NOTIFICATION_NOT_FOUND));
 
         if (!notification.getUserAction().getId().equals(currentUser.getId())) {
             throw new AccessDeniedException(ResponseMessageConstants.ACCESS_DENIED);
