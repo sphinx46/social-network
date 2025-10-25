@@ -17,6 +17,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.Relation
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.SelfRelationshipException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.UserNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.RelationshipRepository;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.RelationshipServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
@@ -33,7 +34,7 @@ import static org.mockito.Mockito.*;
 import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory.*;
 
 @ExtendWith(MockitoExtension.class)
-public class RelationshipServiceTest {
+public class RelationshipServiceImplTest {
 
     @Mock
     private RelationshipRepository relationshipRepository;
@@ -54,7 +55,7 @@ public class RelationshipServiceTest {
     private EventPublisherService eventPublisherService;
 
     @InjectMocks
-    private RelationshipService relationshipService;
+    private RelationshipServiceImpl relationshipServiceImpl;
 
     @Test
     void sendFriendRequest_whenRequestIsValid() {
@@ -70,7 +71,7 @@ public class RelationshipServiceTest {
         when(relationshipRepository.save(any(Relationship.class))).thenReturn(relationship);
         when(entityMapper.map(relationship, RelationshipResponse.class)).thenReturn(expectedResponse);
 
-        RelationshipResponse result = relationshipService.sendFriendRequest(request, currentUser);
+        RelationshipResponse result = relationshipServiceImpl.sendFriendRequest(request, currentUser);
 
         assertNotNull(result);
 
@@ -93,7 +94,7 @@ public class RelationshipServiceTest {
                 .thenThrow(new UserNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         UserNotFoundException exception = assertThrows(UserNotFoundException.class,
-                () -> relationshipService.sendFriendRequest(request, currentUser));
+                () -> relationshipServiceImpl.sendFriendRequest(request, currentUser));
 
         assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
 
@@ -112,7 +113,7 @@ public class RelationshipServiceTest {
                 .when(relationshipValidator).validate(request, currentUser);
 
         SelfRelationshipException exception = assertThrows(SelfRelationshipException.class,
-                () -> relationshipService.sendFriendRequest(request, currentUser));
+                () -> relationshipServiceImpl.sendFriendRequest(request, currentUser));
 
         assertEquals("Нельзя отправить запрос самому себе", exception.getMessage());
 
@@ -132,7 +133,7 @@ public class RelationshipServiceTest {
                 .when(relationshipValidator).validate(request, currentUser);
 
         DuplicateRelationshipException exception = assertThrows(DuplicateRelationshipException.class,
-                () -> relationshipService.sendFriendRequest(request, currentUser));
+                () -> relationshipServiceImpl.sendFriendRequest(request, currentUser));
 
         assertEquals("Связь между пользователями уже существует", exception.getMessage());
 
@@ -157,7 +158,7 @@ public class RelationshipServiceTest {
         when(relationshipRepository.save(any(Relationship.class))).thenReturn(updatedRelationship);
         when(entityMapper.map(updatedRelationship, RelationshipResponse.class)).thenReturn(expectedResponse);
 
-        RelationshipResponse result = relationshipService.acceptFriendRequest(request, currentUser);
+        RelationshipResponse result = relationshipServiceImpl.acceptFriendRequest(request, currentUser);
 
         assertNotNull(result);
         assertEquals(FriendshipStatus.ACCEPTED, result.getStatus());
@@ -178,7 +179,7 @@ public class RelationshipServiceTest {
                 .when(relationshipValidator).validateStatusChange(request, currentUser);
 
         RelationshipNotFoundException exception = assertThrows(RelationshipNotFoundException.class,
-                () -> relationshipService.acceptFriendRequest(request, currentUser));
+                () -> relationshipServiceImpl.acceptFriendRequest(request, currentUser));
 
         assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
 
@@ -197,7 +198,7 @@ public class RelationshipServiceTest {
                 .when(relationshipValidator).validateStatusChange(request, currentUser);
 
         AccessDeniedException exception = assertThrows(AccessDeniedException.class,
-                () -> relationshipService.acceptFriendRequest(request, currentUser));
+                () -> relationshipServiceImpl.acceptFriendRequest(request, currentUser));
 
         assertEquals("Вы не можете изменить этот запрос", exception.getMessage());
 
@@ -222,7 +223,7 @@ public class RelationshipServiceTest {
         when(relationshipRepository.save(any(Relationship.class))).thenReturn(updatedRelationship);
         when(entityMapper.map(updatedRelationship, RelationshipResponse.class)).thenReturn(expectedResponse);
 
-        RelationshipResponse result = relationshipService.blockUser(request, currentUser);
+        RelationshipResponse result = relationshipServiceImpl.blockUser(request, currentUser);
 
         assertNotNull(result);
         assertEquals(FriendshipStatus.BLOCKED, result.getStatus());
@@ -250,7 +251,7 @@ public class RelationshipServiceTest {
         when(relationshipRepository.save(any(Relationship.class))).thenReturn(newRelationship);
         when(entityMapper.map(newRelationship, RelationshipResponse.class)).thenReturn(expectedResponse);
 
-        RelationshipResponse result = relationshipService.blockUser(request, currentUser);
+        RelationshipResponse result = relationshipServiceImpl.blockUser(request, currentUser);
 
         assertNotNull(result);
 
@@ -278,7 +279,7 @@ public class RelationshipServiceTest {
         when(entityMapper.mapList(relationships, RelationshipResponse.class))
                 .thenReturn(expectedResponses);
 
-        List<RelationshipResponse> result = relationshipService.getFriendList(currentUser);
+        List<RelationshipResponse> result = relationshipServiceImpl.getFriendList(currentUser);
 
         assertNotNull(result);
         assertEquals(2, result.size());

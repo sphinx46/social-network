@@ -23,7 +23,7 @@ import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFacto
 
 
 @WebMvcTest(NotificationContoller.class)
-class NotificationControllerIntegrationTest extends BaseControllerTest {
+class NotificationControllerTest extends BaseControllerTest {
 
     @MockitoBean
     private NotificationService notificationService;

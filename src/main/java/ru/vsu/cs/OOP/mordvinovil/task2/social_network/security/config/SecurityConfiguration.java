@@ -21,7 +21,7 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.security.filters.JwtAuthenticationFilter;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.UserService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.UserServiceImpl;
 
 import java.util.List;
 
@@ -33,7 +33,7 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 @RequiredArgsConstructor
 public class SecurityConfiguration {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final UserService userService;
+    private final UserServiceImpl userServiceImpl;
 
 
     @Bean
@@ -85,7 +85,7 @@ public class SecurityConfiguration {
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userService.userDetailsService());
+        authProvider.setUserDetailsService(userServiceImpl.userDetailsService());
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }
@@ -93,7 +93,7 @@ public class SecurityConfiguration {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return userService.userDetailsService();
+        return userServiceImpl.userDetailsService();
     }
 
 

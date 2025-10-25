@@ -81,7 +81,7 @@ public class PostController {
             @Valid @RequestBody PostRequest request) {
 
         User user = userService.getCurrentUser();
-        PostResponse response = service.create(user, request);
+        PostResponse response = service.create(request, user);
         return ResponseEntity.ok(response);
     }
 }

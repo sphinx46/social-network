@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CommentController.class)
-class CommentControllerIntegrationTest extends BaseControllerTest {
+class CommentControllerTest extends BaseControllerTest {
 
     @MockitoBean
     private CommentService commentService;

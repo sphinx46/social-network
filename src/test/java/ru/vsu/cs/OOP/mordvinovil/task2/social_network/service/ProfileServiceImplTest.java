@@ -12,6 +12,9 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Profile;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.ProfileAlreadyExistsException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.ProfileRepository;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.FileStorageServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.ProfileServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.UserServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.ProfileAgeCalculator;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
@@ -28,16 +31,16 @@ import static org.mockito.Mockito.*;
 import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory.*;
 
 @ExtendWith(MockitoExtension.class)
-public class ProfileServiceTest {
+public class ProfileServiceImplTest {
 
     @Mock
-    private FileStorageService fileStorageService;
+    private FileStorageServiceImpl fileStorageServiceImpl;
 
     @Mock
     private ProfileRepository profileRepository;
 
     @Mock
-    private UserService userService;
+    private UserServiceImpl userServiceImpl;
 
     @Mock
     private EntityMapper entityMapper;
@@ -55,7 +58,7 @@ public class ProfileServiceTest {
     private EntityUtils entityUtils;
 
     @InjectMocks
-    private ProfileService profileService;
+    private ProfileServiceImpl profileServiceImpl;
 
     @Test
     void createProfile_whenProfileDoesNotExist() {
@@ -72,7 +75,7 @@ public class ProfileServiceTest {
         when(profileFactory.createProfile(user, request)).thenReturn(profile);
         when(profileRepository.save(any(Profile.class))).thenReturn(profile);
 
-        Profile result = profileService.create(user, request);
+        Profile result = profileServiceImpl.create(request, user);
 
         assertNotNull(result);
         verify(profileValidator).validate(request, user);
@@ -89,7 +92,7 @@ public class ProfileServiceTest {
                 .when(profileValidator).validate(request, user);
 
         ProfileAlreadyExistsException exception = assertThrows(ProfileAlreadyExistsException.class,
-                () -> profileService.create(user, request));
+                () -> profileServiceImpl.create(request, user));
 
         assertEquals(ResponseMessageConstants.FAILURE_CREATE_PROFILE, exception.getMessage());
     }
@@ -107,7 +110,7 @@ public class ProfileServiceTest {
         when(entityMapper.map(profile, ProfileResponse.class)).thenReturn(response);
         when(ageCalculator.calculateAge(profile.getDateOfBirth())).thenReturn(25);
 
-        ProfileResponse result = profileService.getProfileByUser(user);
+        ProfileResponse result = profileServiceImpl.getProfileByUser(user);
 
         assertNotNull(result);
         assertEquals(25, result.getAge());
@@ -126,17 +129,17 @@ public class ProfileServiceTest {
         ProfileResponse response = createProfileResponse();
         response.setAge(30);
 
-        when(userService.getById(1L)).thenReturn(user);
+        when(userServiceImpl.getById(1L)).thenReturn(user);
         when(entityUtils.getProfileByUser(user)).thenReturn(profile);
         when(entityMapper.map(profile, ProfileResponse.class)).thenReturn(response);
         when(ageCalculator.calculateAge(profile.getDateOfBirth())).thenReturn(30);
 
-        ProfileResponse result = profileService.getProfileByUserId(1L);
+        ProfileResponse result = profileServiceImpl.getProfileByUserId(1L);
 
         assertNotNull(result);
         assertEquals(30, result.getAge());
 
-        verify(userService).getById(1L);
+        verify(userServiceImpl).getById(1L);
         verify(entityUtils).getProfileByUser(user);
         verify(entityMapper).map(profile, ProfileResponse.class);
         verify(ageCalculator).calculateAge(profile.getDateOfBirth());
@@ -157,20 +160,20 @@ public class ProfileServiceTest {
 
         when(entityUtils.getProfileByUser(user)).thenReturn(profile);
         doNothing().when(profileValidator).validateAvatarUpload(user);
-        when(fileStorageService.saveAvatar(imageFile, 1L)).thenReturn("new-avatar.jpg");
+        when(fileStorageServiceImpl.saveAvatar(imageFile, 1L)).thenReturn("new-avatar.jpg");
         when(profileRepository.save(any(Profile.class))).thenReturn(updatedProfile);
         when(entityMapper.map(updatedProfile, ProfileResponse.class)).thenReturn(expectedResponse);
 
-        ProfileResponse result = profileService.uploadAvatar(user, imageFile);
+        ProfileResponse result = profileServiceImpl.uploadAvatar(user, imageFile);
 
         assertNotNull(result);
         assertEquals("new-avatar.jpg", result.getImageUrl());
 
-        verify(fileStorageService).validateImageFile(imageFile);
+        verify(fileStorageServiceImpl).validateImageFile(imageFile);
         verify(profileValidator).validateAvatarUpload(user);
         verify(entityUtils).getProfileByUser(user);
-        verify(fileStorageService).deleteFile("old-avatar.jpg");
-        verify(fileStorageService).saveAvatar(imageFile, 1L);
+        verify(fileStorageServiceImpl).deleteFile("old-avatar.jpg");
+        verify(fileStorageServiceImpl).saveAvatar(imageFile, 1L);
         verify(profileRepository).save(any(Profile.class));
         verify(entityMapper).map(updatedProfile, ProfileResponse.class);
     }
@@ -192,14 +195,14 @@ public class ProfileServiceTest {
         when(profileRepository.save(any(Profile.class))).thenReturn(updatedProfile);
         when(entityMapper.map(updatedProfile, ProfileResponse.class)).thenReturn(expectedResponse);
 
-        ProfileResponse result = profileService.removeAvatar(user);
+        ProfileResponse result = profileServiceImpl.removeAvatar(user);
 
         assertNotNull(result);
         assertNull(result.getImageUrl());
 
         verify(profileValidator).validateAvatarUpload(user);
         verify(entityUtils).getProfileByUser(user);
-        verify(fileStorageService).deleteFile("avatar.jpg");
+        verify(fileStorageServiceImpl).deleteFile("avatar.jpg");
         verify(profileRepository).save(any(Profile.class));
         verify(entityMapper).map(updatedProfile, ProfileResponse.class);
     }
@@ -228,13 +231,13 @@ public class ProfileServiceTest {
         when(profileRepository.save(any(Profile.class))).thenReturn(updatedProfile);
         when(entityMapper.map(updatedProfile, ProfileResponse.class)).thenReturn(expectedResponse);
 
-        ProfileResponse result = profileService.updateProfile(user, request);
+        ProfileResponse result = profileServiceImpl.updateProfile(user, request);
 
         assertNotNull(result);
 
         verify(profileValidator).validateProfileUpdate(request, user);
         verify(entityUtils).getProfileByUser(user);
-        verify(fileStorageService).deleteFile("old.jpg");
+        verify(fileStorageServiceImpl).deleteFile("old.jpg");
         verify(profileRepository).save(any(Profile.class));
         verify(entityMapper).map(updatedProfile, ProfileResponse.class);
     }
@@ -249,7 +252,7 @@ public class ProfileServiceTest {
         when(profileFactory.createDefaultProfile(user)).thenReturn(defaultProfile);
         when(profileRepository.save(any(Profile.class))).thenReturn(defaultProfile);
 
-        Profile result = profileService.createDefaultProfile(user);
+        Profile result = profileServiceImpl.createDefaultProfile(user);
 
         assertNotNull(result);
         verify(profileRepository).findByUser(user);
@@ -265,7 +268,7 @@ public class ProfileServiceTest {
 
         when(profileRepository.findByUser(user)).thenReturn(Optional.of(existingProfile));
 
-        Profile result = profileService.createDefaultProfile(user);
+        Profile result = profileServiceImpl.createDefaultProfile(user);
 
         assertNotNull(result);
         assertEquals(existingProfile, result);

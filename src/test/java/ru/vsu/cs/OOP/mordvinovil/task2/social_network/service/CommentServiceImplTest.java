@@ -14,6 +14,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherServi
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.CommentNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.PostNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.CommentRepository;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.CommentServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
@@ -28,7 +29,7 @@ import static org.mockito.Mockito.*;
 import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory.*;
 
 @ExtendWith(MockitoExtension.class)
-public class CommentServiceTest {
+public class CommentServiceImplTest {
 
     @Mock
     private CommentRepository commentRepository;
@@ -49,7 +50,7 @@ public class CommentServiceTest {
     private EntityUtils entityUtils;
 
     @InjectMocks
-    private CommentService commentService;
+    private CommentServiceImpl commentServiceImpl;
 
     @Test
     void createComment_whenRequestIsValid() {
@@ -67,7 +68,7 @@ public class CommentServiceTest {
         when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);
         when(entityMapper.map(savedComment, CommentResponse.class)).thenReturn(expectedResponse);
 
-        CommentResponse result = commentService.create(request, currentUser);
+        CommentResponse result = commentServiceImpl.create(request, currentUser);
 
         assertNotNull(result);
         assertEquals(expectedResponse.getContent(), result.getContent());
@@ -89,7 +90,7 @@ public class CommentServiceTest {
         when(entityUtils.getPost(999L)).thenThrow(new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         PostNotFoundException exception = assertThrows(PostNotFoundException.class,
-                () -> commentService.create(request, currentUser));
+                () -> commentServiceImpl.create(request, currentUser));
 
         assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
         verify(entityUtils).getPost(999L);
@@ -110,7 +111,7 @@ public class CommentServiceTest {
         when(commentRepository.save(any(Comment.class))).thenReturn(updatedComment);
         when(entityMapper.map(updatedComment, CommentResponse.class)).thenReturn(expectedResponse);
 
-        CommentResponse result = commentService.editComment(1L, request, currentUser);
+        CommentResponse result = commentServiceImpl.editComment(1L, request, currentUser);
 
         assertNotNull(result);
         assertEquals("Updated content", result.getContent());
@@ -135,7 +136,7 @@ public class CommentServiceTest {
         when(entityUtils.getComment(1L)).thenReturn(comment);
         doNothing().when(commentValidator).validateCommentOwnership(1L, currentUser);
 
-        CompletableFuture<Boolean> result = commentService.deleteComment(1L, currentUser);
+        CompletableFuture<Boolean> result = commentServiceImpl.deleteComment(1L, currentUser);
 
         assertNotNull(result);
         assertTrue(result.join());
@@ -157,7 +158,7 @@ public class CommentServiceTest {
         when(entityUtils.getComment(1L)).thenReturn(comment);
         when(entityMapper.map(comment, CommentResponse.class)).thenReturn(expectedResponse);
 
-        CommentResponse result = commentService.getCommentById(1L);
+        CommentResponse result = commentServiceImpl.getCommentById(1L);
 
         assertNotNull(result);
         assertEquals(expectedResponse.getId(), result.getId());
@@ -171,7 +172,7 @@ public class CommentServiceTest {
         when(entityUtils.getComment(1L)).thenThrow(new CommentNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         CommentNotFoundException exception = assertThrows(CommentNotFoundException.class,
-                () -> commentService.getCommentById(1L));
+                () -> commentServiceImpl.getCommentById(1L));
 
         assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
         verify(entityUtils).getComment(1L);
@@ -186,7 +187,7 @@ public class CommentServiceTest {
         when(entityUtils.getComment(1L)).thenThrow(new CommentNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         CommentNotFoundException exception = assertThrows(CommentNotFoundException.class,
-                () -> commentService.editComment(1L, request, currentUser));
+                () -> commentServiceImpl.editComment(1L, request, currentUser));
 
         assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
         verify(entityUtils).getComment(1L);
@@ -199,7 +200,7 @@ public class CommentServiceTest {
         when(entityUtils.getComment(1L)).thenThrow(new CommentNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         CommentNotFoundException exception = assertThrows(CommentNotFoundException.class,
-                () -> commentService.deleteComment(1L, currentUser));
+                () -> commentServiceImpl.deleteComment(1L, currentUser));
 
         assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
         verify(entityUtils).getComment(1L);

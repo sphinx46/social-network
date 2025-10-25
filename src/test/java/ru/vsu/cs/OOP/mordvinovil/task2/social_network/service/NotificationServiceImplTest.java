@@ -16,6 +16,8 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDe
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.NotificationNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.NotificationRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.NotificationServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.WebSocketNotificationServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
@@ -32,7 +34,7 @@ import static org.mockito.Mockito.*;
 import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory.*;
 
 @ExtendWith(MockitoExtension.class)
-class NotificationServiceTest {
+class NotificationServiceImplTest {
 
     @Mock
     private NotificationRepository notificationRepository;
@@ -44,7 +46,7 @@ class NotificationServiceTest {
     private EntityMapper entityMapper;
 
     @Mock
-    private WebSocketNotificationService webSocketNotificationService;
+    private WebSocketNotificationServiceImpl webSocketNotificationServiceImpl;
 
     @Mock
     private NotificationValidator notificationValidator;
@@ -53,7 +55,7 @@ class NotificationServiceTest {
     private EntityUtils entityUtils;
 
     @InjectMocks
-    private NotificationService notificationService;
+    private NotificationServiceImpl notificationServiceImpl;
 
     private User currentUser;
     private User otherUser;
@@ -80,11 +82,11 @@ class NotificationServiceTest {
         when(userRepository.findById(currentUser.getId())).thenReturn(Optional.of(currentUser));
         when(notificationRepository.save(any(Notification.class))).thenReturn(notification);
 
-        notificationService.handleNotificationEvent(event);
+        notificationServiceImpl.handleNotificationEvent(event);
 
         verify(userRepository).findById(currentUser.getId());
         verify(notificationRepository).save(any(Notification.class));
-        verify(webSocketNotificationService).sendNotification(eq(currentUser.getId()), any(Notification.class));
+        verify(webSocketNotificationServiceImpl).sendNotification(eq(currentUser.getId()), any(Notification.class));
     }
 
     @Test
@@ -97,11 +99,11 @@ class NotificationServiceTest {
 
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
-        notificationService.handleNotificationEvent(event);
+        notificationServiceImpl.handleNotificationEvent(event);
 
         verify(userRepository).findById(999L);
         verify(notificationRepository, never()).save(any(Notification.class));
-        verify(webSocketNotificationService, never()).sendNotification(anyLong(), any(Notification.class));
+        verify(webSocketNotificationServiceImpl, never()).sendNotification(anyLong(), any(Notification.class));
     }
 
     @Test
@@ -112,7 +114,7 @@ class NotificationServiceTest {
         when(notificationRepository.findByUserActionOrderByCreatedAtDesc(currentUser)).thenReturn(notifications);
         when(entityMapper.mapList(notifications, NotificationResponse.class)).thenReturn(expectedResponses);
 
-        List<NotificationResponse> result = notificationService.getUserNotifications(currentUser);
+        List<NotificationResponse> result = notificationServiceImpl.getUserNotifications(currentUser);
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -127,7 +129,7 @@ class NotificationServiceTest {
         when(entityUtils.getNotification(1L)).thenReturn(notification);
         when(entityMapper.map(notification, NotificationResponse.class)).thenReturn(notificationResponse);
 
-        NotificationResponse result = notificationService.getUserNotificationById(1L, currentUser);
+        NotificationResponse result = notificationServiceImpl.getUserNotificationById(1L, currentUser);
 
         assertNotNull(result);
         assertEquals(notificationResponse.getId(), result.getId());
@@ -144,7 +146,7 @@ class NotificationServiceTest {
                 .thenThrow(new NotificationNotFoundException(ResponseMessageConstants.NOT_FOUND));
 
         NotificationNotFoundException exception = assertThrows(NotificationNotFoundException.class,
-                () -> notificationService.getUserNotificationById(999L, currentUser));
+                () -> notificationServiceImpl.getUserNotificationById(999L, currentUser));
 
         assertEquals(ResponseMessageConstants.NOT_FOUND, exception.getMessage());
 
@@ -159,7 +161,7 @@ class NotificationServiceTest {
                 .when(notificationValidator).validateNotificationAccess(1L, otherUser);
 
         AccessDeniedException exception = assertThrows(AccessDeniedException.class,
-                () -> notificationService.getUserNotificationById(1L, otherUser));
+                () -> notificationServiceImpl.getUserNotificationById(1L, otherUser));
 
         assertEquals(ResponseMessageConstants.ACCESS_DENIED, exception.getMessage());
 
@@ -177,7 +179,7 @@ class NotificationServiceTest {
                 .thenReturn(unreadNotifications);
         when(entityMapper.mapList(unreadNotifications, NotificationResponse.class)).thenReturn(expectedResponses);
 
-        List<NotificationResponse> result = notificationService.getUnreadNotifications(currentUser);
+        List<NotificationResponse> result = notificationServiceImpl.getUnreadNotifications(currentUser);
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -193,7 +195,7 @@ class NotificationServiceTest {
         when(notificationRepository.countByUserActionAndStatus(currentUser, NotificationStatus.UNREAD))
                 .thenReturn(expectedCount);
 
-        Long result = notificationService.getUnreadNotificationsCount(currentUser);
+        Long result = notificationServiceImpl.getUnreadNotificationsCount(currentUser);
 
         assertEquals(expectedCount, result);
 
@@ -211,7 +213,7 @@ class NotificationServiceTest {
         when(notificationRepository.save(any(Notification.class))).thenReturn(updatedNotification);
         when(entityMapper.map(updatedNotification, NotificationResponse.class)).thenReturn(expectedResponse);
 
-        NotificationResponse result = notificationService.markAsRead(1L, currentUser);
+        NotificationResponse result = notificationServiceImpl.markAsRead(1L, currentUser);
 
         assertNotNull(result);
         assertEquals(NotificationStatus.READ, updatedNotification.getStatus());
@@ -225,7 +227,7 @@ class NotificationServiceTest {
 
     @Test
     void markAllAsRead_whenUserHasNotifications() {
-        notificationService.markAllAsRead(currentUser);
+        notificationServiceImpl.markAllAsRead(currentUser);
 
         verify(notificationRepository).markAllAsRead(currentUser.getId(), NotificationStatus.READ);
     }
@@ -238,7 +240,7 @@ class NotificationServiceTest {
         when(entityUtils.getNotification(1L)).thenReturn(mockNotification);
         doNothing().when(notificationValidator).validateUserNotificationsAccess(currentUser, currentUser);
 
-        notificationService.deleteNotification(1L, currentUser);
+        notificationServiceImpl.deleteNotification(1L, currentUser);
 
         verify(mockNotification).setStatus(NotificationStatus.DELETED);
         verify(mockNotification).setUpdatedAt(any(LocalDateTime.class));
@@ -255,7 +257,7 @@ class NotificationServiceTest {
                 .when(notificationValidator).validateUserNotificationsAccess(currentUser, otherUser);
 
         AccessDeniedException exception = assertThrows(AccessDeniedException.class,
-                () -> notificationService.deleteNotification(1L, otherUser));
+                () -> notificationServiceImpl.deleteNotification(1L, otherUser));
 
         assertEquals(ResponseMessageConstants.ACCESS_DENIED, exception.getMessage());
 
@@ -266,7 +268,7 @@ class NotificationServiceTest {
 
     @Test
     void clearDeletedNotifications_whenUserHasDeletedNotifications() {
-        notificationService.clearDeletedNotifications(currentUser);
+        notificationServiceImpl.clearDeletedNotifications(currentUser);
 
         verify(notificationRepository).deleteAllDeletedByUser(currentUser);
     }
@@ -281,11 +283,11 @@ class NotificationServiceTest {
 
         when(userRepository.findById(currentUser.getId())).thenThrow(new RuntimeException("Database error"));
 
-        assertDoesNotThrow(() -> notificationService.handleNotificationEvent(event));
+        assertDoesNotThrow(() -> notificationServiceImpl.handleNotificationEvent(event));
 
         verify(userRepository).findById(currentUser.getId());
         verify(notificationRepository, never()).save(any(Notification.class));
-        verify(webSocketNotificationService, never()).sendNotification(anyLong(), any(Notification.class));
+        verify(webSocketNotificationServiceImpl, never()).sendNotification(anyLong(), any(Notification.class));
     }
 }
 

@@ -7,6 +7,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.NewsFeedResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.NewsFeedRepository;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.NewsFeedServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
 
@@ -18,7 +19,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class NewsFeedServiceTest {
+public class NewsFeedServiceImplTest {
     @Mock
     private NewsFeedRepository newsFeedRepository;
 
@@ -26,7 +27,7 @@ public class NewsFeedServiceTest {
     private EntityMapper entityMapper;
 
     @InjectMocks
-    private NewsFeedService newsFeedService;
+    private NewsFeedServiceImpl newsFeedServiceImpl;
 
     void getPostsByFriends_whenRequestIsValid() {
         var user = TestDataFactory.createTestUser();
@@ -37,7 +38,7 @@ public class NewsFeedServiceTest {
         when(newsFeedRepository.findPostsByFriends(anyLong())).thenReturn(postList);
         when(entityMapper.mapListWithName(postList, NewsFeedResponse.class, "fullNewsFeed")).thenReturn(newsFeedResponseList);
 
-        List<NewsFeedResponse> result = newsFeedService.getPostsByFriends(user);
+        List<NewsFeedResponse> result = newsFeedServiceImpl.getPostsByFriends(user);
         assertNotNull(result);
         assertEquals(newsFeedResponseList, result);
     }

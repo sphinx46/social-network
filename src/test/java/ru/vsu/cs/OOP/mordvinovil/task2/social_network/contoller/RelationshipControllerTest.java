@@ -6,7 +6,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.RelationshipController;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.RelationshipService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.*;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.BaseControllerTest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
 
@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(RelationshipController.class)
-class RelationshipControllerIntegrationTest extends BaseControllerTest {
+class RelationshipControllerTest extends BaseControllerTest {
 
     @MockitoBean
     private RelationshipService relationshipService;
@@ -243,3 +243,6 @@ class RelationshipControllerIntegrationTest extends BaseControllerTest {
         verify(userService, times(1)).getCurrentUser();
     }
 }
+
+
+

@@ -16,6 +16,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.LikeNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.LikeRepository;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.LikeServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
@@ -33,7 +34,7 @@ import static org.mockito.Mockito.when;
 import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory.*;
 
 @ExtendWith(MockitoExtension.class)
-public class LikeServiceTest {
+public class LikeServiceImplTest {
     @Mock
     private LikeRepository likeRepository;
 
@@ -53,7 +54,7 @@ public class LikeServiceTest {
     private EventPublisherService eventPublisherService;
 
     @InjectMocks
-    private LikeService likeService;
+    private LikeServiceImpl likeServiceImpl;
 
     @Test
     void likeComment_whenRequestIsValid() {
@@ -70,7 +71,7 @@ public class LikeServiceTest {
         when(likeRepository.save(any(Like.class))).thenReturn(like);
         when(entityMapper.map(like, LikeCommentResponse.class)).thenReturn(expectedResponse);
 
-        LikeCommentResponse result = likeService.likeComment(currentUser, request);
+        LikeCommentResponse result = likeServiceImpl.likeComment(currentUser, request);
 
         assertNotNull(result);
 
@@ -97,7 +98,7 @@ public class LikeServiceTest {
         when(likeRepository.save(any(Like.class))).thenReturn(like);
         when(entityMapper.map(like, LikePostResponse.class)).thenReturn(expectedResponse);
 
-        LikePostResponse result = likeService.likePost(currentUser, request);
+        LikePostResponse result = likeServiceImpl.likePost(currentUser, request);
 
         assertNotNull(result);
 
@@ -126,7 +127,7 @@ public class LikeServiceTest {
         when(likeRepository.findByPostId(1L)).thenReturn(likes);
         when(entityMapper.mapList(likes, LikePostResponse.class)).thenReturn(expectedResponses);
 
-        List<LikePostResponse> result = likeService.getLikesByPost(1L);
+        List<LikePostResponse> result = likeServiceImpl.getLikesByPost(1L);
 
         assertNotNull(result);
         assertEquals(2, result.size());
@@ -151,7 +152,7 @@ public class LikeServiceTest {
         when(likeRepository.findByCommentId(1L)).thenReturn(likes);
         when(entityMapper.mapList(likes, LikeCommentResponse.class)).thenReturn(expectedResponses);
 
-        List<LikeCommentResponse> result = likeService.getLikesByComment(1L);
+        List<LikeCommentResponse> result = likeServiceImpl.getLikesByComment(1L);
 
         assertNotNull(result);
         assertEquals(2, result.size());
@@ -170,7 +171,7 @@ public class LikeServiceTest {
         when(likeRepository.findByUserIdAndCommentId(currentUser.getId(), 1L)).thenReturn(Optional.of(like));
         when(entityMapper.map(like, LikeCommentResponse.class)).thenReturn(expectedResponse);
 
-        LikeCommentResponse result = likeService.deleteLikeByComment(currentUser, 1L);
+        LikeCommentResponse result = likeServiceImpl.deleteLikeByComment(currentUser, 1L);
 
         assertNotNull(result);
 
@@ -187,7 +188,7 @@ public class LikeServiceTest {
         when(likeRepository.findByUserIdAndCommentId(currentUser.getId(), 1L)).thenReturn(Optional.empty());
 
         LikeNotFoundException likeNotFoundException = assertThrows(LikeNotFoundException.class,
-                () -> likeService.deleteLikeByComment(currentUser, 1L));
+                () -> likeServiceImpl.deleteLikeByComment(currentUser, 1L));
 
         assertEquals(ResponseMessageConstants.NOT_FOUND, likeNotFoundException.getMessage());
 
@@ -205,7 +206,7 @@ public class LikeServiceTest {
         when(likeRepository.findByUserIdAndPostId(currentUser.getId(), 1L)).thenReturn(Optional.of(like));
         when(entityMapper.map(like, LikePostResponse.class)).thenReturn(expectedResponse);
 
-        LikePostResponse result = likeService.deleteLikeByPost(currentUser, 1L);
+        LikePostResponse result = likeServiceImpl.deleteLikeByPost(currentUser, 1L);
 
         assertNotNull(result);
 
@@ -222,7 +223,7 @@ public class LikeServiceTest {
         when(likeRepository.findByUserIdAndPostId(currentUser.getId(), 1L)).thenReturn(Optional.empty());
 
         LikeNotFoundException likeNotFoundException = assertThrows(LikeNotFoundException.class,
-                () -> likeService.deleteLikeByPost(currentUser, 1L));
+                () -> likeServiceImpl.deleteLikeByPost(currentUser, 1L));
 
         assertEquals(ResponseMessageConstants.NOT_FOUND, likeNotFoundException.getMessage());
 

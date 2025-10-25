@@ -8,6 +8,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.FileProcessingException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.FileStorageServiceImpl;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,17 +17,17 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-public class FileStorageServiceTest {
+public class FileStorageServiceImplTest {
 
     @InjectMocks
-    private FileStorageService fileStorageService;
+    private FileStorageServiceImpl fileStorageServiceImpl;
 
     @TempDir
     Path tempDir;
 
     @Test
     void saveFile_whenFileIsValid() throws IOException {
-        ReflectionTestUtils.setField(fileStorageService, "uploadDir", tempDir.toString());
+        ReflectionTestUtils.setField(fileStorageServiceImpl, "uploadDir", tempDir.toString());
 
         MockMultipartFile file = new MockMultipartFile(
                 "file",
@@ -35,7 +36,7 @@ public class FileStorageServiceTest {
                 "test image content".getBytes()
         );
 
-        String result = fileStorageService.saveFile(file, "test-dir");
+        String result = fileStorageServiceImpl.saveFile(file, "test-dir");
 
         assertNotNull(result);
         assertTrue(result.startsWith("/uploads/test-dir/"));
@@ -47,7 +48,7 @@ public class FileStorageServiceTest {
 
     @Test
     void saveFile_whenDirectoryNotExists() throws IOException {
-        ReflectionTestUtils.setField(fileStorageService, "uploadDir", tempDir.toString());
+        ReflectionTestUtils.setField(fileStorageServiceImpl, "uploadDir", tempDir.toString());
 
         MockMultipartFile file = new MockMultipartFile(
                 "file",
@@ -56,7 +57,7 @@ public class FileStorageServiceTest {
                 "test image content".getBytes()
         );
 
-        String result = fileStorageService.saveFile(file, "new-directory");
+        String result = fileStorageServiceImpl.saveFile(file, "new-directory");
 
         assertNotNull(result);
         assertTrue(Files.exists(tempDir.resolve("new-directory")));
@@ -64,7 +65,7 @@ public class FileStorageServiceTest {
 
     @Test
     void saveFile_whenFileWithoutExtension() throws IOException {
-        ReflectionTestUtils.setField(fileStorageService, "uploadDir", tempDir.toString());
+        ReflectionTestUtils.setField(fileStorageServiceImpl, "uploadDir", tempDir.toString());
 
         MockMultipartFile file = new MockMultipartFile(
                 "file",
@@ -73,7 +74,7 @@ public class FileStorageServiceTest {
                 "test image content".getBytes()
         );
 
-        String result = fileStorageService.saveFile(file, "test-dir");
+        String result = fileStorageServiceImpl.saveFile(file, "test-dir");
 
         assertNotNull(result);
         assertTrue(result.startsWith("/uploads/test-dir/"));
@@ -82,7 +83,7 @@ public class FileStorageServiceTest {
 
     @Test
     void saveFile_whenIOExceptionOccurs() {
-        ReflectionTestUtils.setField(fileStorageService, "uploadDir", "/invalid/path");
+        ReflectionTestUtils.setField(fileStorageServiceImpl, "uploadDir", "/invalid/path");
 
         MockMultipartFile file = new MockMultipartFile(
                 "file",
@@ -92,14 +93,14 @@ public class FileStorageServiceTest {
         );
 
         FileProcessingException exception = assertThrows(FileProcessingException.class,
-                () -> fileStorageService.saveFile(file, "test-dir"));
+                () -> fileStorageServiceImpl.saveFile(file, "test-dir"));
 
         assertEquals("Ошибка при сохранении файла", exception.getMessage());
     }
 
     @Test
     void deleteFile_whenFileExists() throws IOException {
-        ReflectionTestUtils.setField(fileStorageService, "uploadDir", tempDir.toString());
+        ReflectionTestUtils.setField(fileStorageServiceImpl, "uploadDir", tempDir.toString());
 
         Path testDir = tempDir.resolve("test-dir");
         Files.createDirectories(testDir);
@@ -108,7 +109,7 @@ public class FileStorageServiceTest {
 
         String fileUrl = "/uploads/test-dir/test-file.jpg";
 
-        boolean result = fileStorageService.deleteFile(fileUrl);
+        boolean result = fileStorageServiceImpl.deleteFile(fileUrl);
 
         assertTrue(result);
         assertFalse(Files.exists(testFile));
@@ -116,44 +117,44 @@ public class FileStorageServiceTest {
 
     @Test
     void deleteFile_whenFileNotExists() {
-        ReflectionTestUtils.setField(fileStorageService, "uploadDir", tempDir.toString());
+        ReflectionTestUtils.setField(fileStorageServiceImpl, "uploadDir", tempDir.toString());
 
         String fileUrl = "/uploads/nonexistent/test-file.jpg";
 
-        boolean result = fileStorageService.deleteFile(fileUrl);
+        boolean result = fileStorageServiceImpl.deleteFile(fileUrl);
 
         assertFalse(result);
     }
 
     @Test
     void deleteFile_whenFileUrlIsNull() {
-        boolean result = fileStorageService.deleteFile(null);
+        boolean result = fileStorageServiceImpl.deleteFile(null);
 
         assertFalse(result);
     }
 
     @Test
     void deleteFile_whenFileUrlIsEmpty() {
-        boolean result = fileStorageService.deleteFile("");
+        boolean result = fileStorageServiceImpl.deleteFile("");
 
         assertFalse(result);
     }
 
     @Test
     void deleteFile_whenInvalidPath() {
-        ReflectionTestUtils.setField(fileStorageService, "uploadDir", tempDir.toString());
+        ReflectionTestUtils.setField(fileStorageServiceImpl, "uploadDir", tempDir.toString());
 
         String fileUrl = "/uploads/../sensitive-file.jpg";
 
         SecurityException securityException = assertThrows(SecurityException.class,
-                () -> fileStorageService.deleteFile(fileUrl));
+                () -> fileStorageServiceImpl.deleteFile(fileUrl));
 
         assertEquals("Некорректный путь к файлу.", securityException.getMessage());
     }
 
     @Test
     void deleteFile_whenIOExceptionOccurs() throws IOException {
-        ReflectionTestUtils.setField(fileStorageService, "uploadDir", tempDir.toString());
+        ReflectionTestUtils.setField(fileStorageServiceImpl, "uploadDir", tempDir.toString());
 
         Path testDir = tempDir.resolve("test-dir");
         Files.createDirectories(testDir);
@@ -164,7 +165,7 @@ public class FileStorageServiceTest {
 
         Files.delete(testFile);
 
-        boolean result = fileStorageService.deleteFile(fileUrl);
+        boolean result = fileStorageServiceImpl.deleteFile(fileUrl);
 
         assertFalse(result);
     }
@@ -178,7 +179,7 @@ public class FileStorageServiceTest {
                 new byte[1024]
         );
 
-        assertDoesNotThrow(() -> fileStorageService.validateImageFile(file));
+        assertDoesNotThrow(() -> fileStorageServiceImpl.validateImageFile(file));
     }
 
     @Test
@@ -191,7 +192,7 @@ public class FileStorageServiceTest {
         );
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> fileStorageService.validateImageFile(file));
+                () -> fileStorageServiceImpl.validateImageFile(file));
 
         assertEquals("Файл не может быть пустым", exception.getMessage());
     }
@@ -206,7 +207,7 @@ public class FileStorageServiceTest {
         );
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> fileStorageService.validateImageFile(file));
+                () -> fileStorageServiceImpl.validateImageFile(file));
 
         assertEquals("Размер файла не должен превышать 5MB", exception.getMessage());
     }
@@ -221,7 +222,7 @@ public class FileStorageServiceTest {
         );
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> fileStorageService.validateImageFile(file));
+                () -> fileStorageServiceImpl.validateImageFile(file));
 
         assertEquals("Файл должен быть изображением", exception.getMessage());
     }
@@ -236,7 +237,7 @@ public class FileStorageServiceTest {
         );
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> fileStorageService.validateImageFile(file));
+                () -> fileStorageServiceImpl.validateImageFile(file));
 
         assertEquals("Файл должен быть изображением", exception.getMessage());
     }
@@ -251,7 +252,7 @@ public class FileStorageServiceTest {
         );
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> fileStorageService.validateImageFile(file));
+                () -> fileStorageServiceImpl.validateImageFile(file));
 
         assertEquals("Поддерживаются только JPG, JPEG, PNG, GIF, BMP файлы", exception.getMessage());
     }
@@ -267,7 +268,7 @@ public class FileStorageServiceTest {
         );
 
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> fileStorageService.validateImageFile(file));
+                () -> fileStorageServiceImpl.validateImageFile(file));
 
         assertEquals("Поддерживаются только JPG, JPEG, PNG, GIF, BMP файлы", exception.getMessage());
     }
@@ -285,42 +286,42 @@ public class FileStorageServiceTest {
                     new byte[1024]
             );
 
-            assertDoesNotThrow(() -> fileStorageService.validateImageFile(file),
+            assertDoesNotThrow(() -> fileStorageServiceImpl.validateImageFile(file),
                     "Should not throw exception for extension: " + extension);
         }
     }
 
     @Test
     void getFileExtension_whenFilenameWithExtension() {
-        String result = ReflectionTestUtils.invokeMethod(fileStorageService, "getFileExtension", "test.jpg");
+        String result = ReflectionTestUtils.invokeMethod(fileStorageServiceImpl, "getFileExtension", "test.jpg");
 
         assertEquals(".jpg", result);
     }
 
     @Test
     void getFileExtension_whenFilenameWithoutExtension() {
-        String result = ReflectionTestUtils.invokeMethod(fileStorageService, "getFileExtension", "testfile");
+        String result = ReflectionTestUtils.invokeMethod(fileStorageServiceImpl, "getFileExtension", "testfile");
 
         assertEquals("", result);
     }
 
     @Test
     void getFileExtension_whenFilenameIsNull() {
-        String result = ReflectionTestUtils.invokeMethod(fileStorageService, "getFileExtension", (String) null);
+        String result = ReflectionTestUtils.invokeMethod(fileStorageServiceImpl, "getFileExtension", (String) null);
 
         assertEquals("", result);
     }
 
     @Test
     void getFileExtension_whenMultipleDots() {
-        String result = ReflectionTestUtils.invokeMethod(fileStorageService, "getFileExtension", "test.file.jpg");
+        String result = ReflectionTestUtils.invokeMethod(fileStorageServiceImpl, "getFileExtension", "test.file.jpg");
 
         assertEquals(".jpg", result);
     }
 
     @Test
     void savePostImage() throws IOException {
-        ReflectionTestUtils.setField(fileStorageService, "uploadDir", tempDir.toString());
+        ReflectionTestUtils.setField(fileStorageServiceImpl, "uploadDir", tempDir.toString());
 
         MockMultipartFile file = new MockMultipartFile(
                 "file",
@@ -330,7 +331,7 @@ public class FileStorageServiceTest {
         );
 
         Long postId = 123L;
-        String result = fileStorageService.savePostImage(file, postId);
+        String result = fileStorageServiceImpl.savePostImage(file, postId);
 
         assertNotNull(result);
         assertTrue(result.startsWith("/uploads/post-images/123/"));
@@ -342,7 +343,7 @@ public class FileStorageServiceTest {
 
     @Test
     void saveAvatar() throws IOException {
-        ReflectionTestUtils.setField(fileStorageService, "uploadDir", tempDir.toString());
+        ReflectionTestUtils.setField(fileStorageServiceImpl, "uploadDir", tempDir.toString());
 
         MockMultipartFile file = new MockMultipartFile(
                 "file",
@@ -352,7 +353,7 @@ public class FileStorageServiceTest {
         );
 
         Long userId = 456L;
-        String result = fileStorageService.saveAvatar(file, userId);
+        String result = fileStorageServiceImpl.saveAvatar(file, userId);
 
         assertNotNull(result);
         assertTrue(result.startsWith("/uploads/avatars/456/"));

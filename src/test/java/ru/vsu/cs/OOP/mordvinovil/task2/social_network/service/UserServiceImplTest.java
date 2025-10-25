@@ -14,6 +14,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Role;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.UserServiceImpl;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -24,13 +25,13 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserServiceTest {
+class UserServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
 
     @InjectMocks
-    private UserService userService;
+    private UserServiceImpl userServiceImpl;
 
     @Test
     void create_ShouldSaveUserWhenUsernameAndEmailAreUnique() {
@@ -42,7 +43,7 @@ class UserServiceTest {
         when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
-        User result = userService.create(user);
+        User result = userServiceImpl.create(user);
 
         assertNotNull(result);
         assertEquals(1L, result.getId());
@@ -58,7 +59,7 @@ class UserServiceTest {
 
         when(userRepository.existsByUsername("existinguser")).thenReturn(true);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.create(user));
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> userServiceImpl.create(user));
         assertEquals("Пользователь с таким именем уже существует", exception.getMessage());
         verify(userRepository).existsByUsername("existinguser");
         verify(userRepository, never()).existsByEmail(anyString());
@@ -72,7 +73,7 @@ class UserServiceTest {
         when(userRepository.existsByUsername("newuser")).thenReturn(false);
         when(userRepository.existsByEmail("existing@example.com")).thenReturn(true);
 
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.create(user));
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> userServiceImpl.create(user));
         assertEquals("Пользователь с таким email уже существует", exception.getMessage());
         verify(userRepository).existsByUsername("newuser");
         verify(userRepository).existsByEmail("existing@example.com");
@@ -85,7 +86,7 @@ class UserServiceTest {
 
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
 
-        User result = userService.getByUsername("testuser");
+        User result = userServiceImpl.getByUsername("testuser");
 
         assertNotNull(result);
         assertEquals("testuser", result.getUsername());
@@ -98,7 +99,7 @@ class UserServiceTest {
         when(userRepository.findByUsername("nonexistent")).thenReturn(Optional.empty());
 
         UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class,
-                () -> userService.getByUsername("nonexistent"));
+                () -> userServiceImpl.getByUsername("nonexistent"));
         assertEquals("Пользователь не найден", exception.getMessage());
         verify(userRepository).findByUsername("nonexistent");
     }
@@ -109,7 +110,7 @@ class UserServiceTest {
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        User result = userService.getById(1L);
+        User result = userServiceImpl.getById(1L);
 
         assertNotNull(result);
         assertEquals(1L, result.getId());
@@ -122,7 +123,7 @@ class UserServiceTest {
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
         UsernameNotFoundException exception = assertThrows(UsernameNotFoundException.class,
-                () -> userService.getById(999L));
+                () -> userServiceImpl.getById(999L));
         assertEquals("Пользователь с id 999 не найден", exception.getMessage());
         verify(userRepository).findById(999L);
     }
@@ -140,7 +141,7 @@ class UserServiceTest {
         when(authentication.getName()).thenReturn("currentuser");
         when(userRepository.findByUsername("currentuser")).thenReturn(Optional.of(user));
 
-        User result = userService.getCurrentUser();
+        User result = userServiceImpl.getCurrentUser();
 
         assertNotNull(result);
         assertEquals("currentuser", result.getUsername());
@@ -155,13 +156,13 @@ class UserServiceTest {
         when(securityContext.getAuthentication()).thenReturn(null);
 
         AccessDeniedException exception = assertThrows(AccessDeniedException.class,
-                () -> userService.getCurrentUser());
+                () -> userServiceImpl.getCurrentUser());
         assertEquals("Пользователь не аутентифицирован", exception.getMessage());
     }
 
     @Test
     void userDetailsService_ShouldReturnUserDetailsService() {
-        UserDetailsService result = userService.userDetailsService();
+        UserDetailsService result = userServiceImpl.userDetailsService();
         assertNotNull(result);
     }
 
@@ -171,7 +172,7 @@ class UserServiceTest {
 
         when(userRepository.save(user)).thenReturn(user);
 
-        User result = userService.save(user);
+        User result = userServiceImpl.save(user);
 
         assertNotNull(result);
         verify(userRepository).save(user);
@@ -190,7 +191,7 @@ class UserServiceTest {
         when(authentication.getName()).thenReturn("testuser");
         when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(user));
 
-        userService.getAdmin();
+        userServiceImpl.getAdmin();
 
         assertEquals(Role.ROLE_ADMIN, user.getRole());
         verify(userRepository).save(user);

@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(NewsFeedController.class)
-public class NewsFeedControllerIntegrationTest extends BaseControllerTest {
+public class NewsFeedControllerTest extends BaseControllerTest {
     @MockitoBean
     private NewsFeedService newsFeedService;
 

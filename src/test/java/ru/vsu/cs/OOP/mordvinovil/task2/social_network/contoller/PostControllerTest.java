@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PostController.class)
-public class PostControllerIntegrationTest extends BaseControllerTest {
+public class PostControllerTest extends BaseControllerTest {
 
     @MockitoBean
     private PostService postService;

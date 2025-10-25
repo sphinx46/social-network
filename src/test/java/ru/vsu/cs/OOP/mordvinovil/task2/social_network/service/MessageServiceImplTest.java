@@ -12,6 +12,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.MessageStatus;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.MessageRepository;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.MessageServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
@@ -30,7 +31,7 @@ import static org.mockito.Mockito.when;
 import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory.*;
 
 @ExtendWith(MockitoExtension.class)
-public class MessageServiceTest {
+public class MessageServiceImplTest {
 
     @Mock
     private MessageRepository messageRepository;
@@ -51,7 +52,7 @@ public class MessageServiceTest {
     private EntityUtils entityUtils;
 
     @InjectMocks
-    private MessageService messageService;
+    private MessageServiceImpl messageServiceImpl;
 
     @Test
     void createMessage_whenRequestIsValid() {
@@ -67,7 +68,7 @@ public class MessageServiceTest {
         when(messageRepository.save(any(Message.class))).thenReturn(message);
         when(entityMapper.map(message, MessageResponse.class)).thenReturn(expectedResponse);
 
-        MessageResponse result = messageService.create(request, currentUser);
+        MessageResponse result = messageServiceImpl.create(request, currentUser);
 
         assertNotNull(result);
 
@@ -94,7 +95,7 @@ public class MessageServiceTest {
         when(messageRepository.save(any(Message.class))).thenReturn(message);
         when(entityMapper.map(message, MessageResponse.class)).thenReturn(expectedResponse);
 
-        MessageResponse result = messageService.markAsReceived(1L, receiver);
+        MessageResponse result = messageServiceImpl.markAsReceived(1L, receiver);
 
         assertNotNull(result);
         assertEquals(MessageStatus.RECEIVED, result.getStatus());
@@ -119,7 +120,7 @@ public class MessageServiceTest {
         when(messageRepository.save(any(Message.class))).thenReturn(message);
         when(entityMapper.map(message, MessageResponse.class)).thenReturn(expectedResponse);
 
-        MessageResponse result = messageService.markAsRead(1L, receiver);
+        MessageResponse result = messageServiceImpl.markAsRead(1L, receiver);
 
         assertNotNull(result);
         assertEquals(MessageStatus.READ, result.getStatus());
@@ -147,7 +148,7 @@ public class MessageServiceTest {
         when(messageRepository.save(any(Message.class))).thenReturn(updatedMessage);
         when(entityMapper.map(updatedMessage, MessageResponse.class)).thenReturn(expectedResponse);
 
-        MessageResponse result = messageService.editMessage(1L, updateRequest, owner);
+        MessageResponse result = messageServiceImpl.editMessage(1L, updateRequest, owner);
 
         assertNotNull(result);
         assertEquals("пока", result.getContent());
@@ -170,7 +171,7 @@ public class MessageServiceTest {
 
         when(entityUtils.getMessage(1L)).thenReturn(message);
 
-        assertDoesNotThrow(() -> messageService.deleteMessage(1L, owner));
+        assertDoesNotThrow(() -> messageServiceImpl.deleteMessage(1L, owner));
 
         verify(entityUtils).getMessage(1L);
         verify(messageRepository).delete(message);
@@ -194,7 +195,7 @@ public class MessageServiceTest {
         when(messageRepository.findMessagesBetweenUsers(1L, 2L)).thenReturn(Optional.of(messages));
         when(entityMapper.mapList(messages, MessageResponse.class)).thenReturn(responses);
 
-        List<MessageResponse> result = messageService.getConversation(2L, currentUser);
+        List<MessageResponse> result = messageServiceImpl.getConversation(2L, currentUser);
 
         assertNotNull(result);
         assertEquals(2, result.size());
@@ -215,7 +216,7 @@ public class MessageServiceTest {
         when(messageRepository.findBySenderId(1L)).thenReturn(Optional.of(messages));
         when(entityMapper.mapList(messages, MessageResponse.class)).thenReturn(responses);
 
-        List<MessageResponse> result = messageService.getSentMessages(currentUser);
+        List<MessageResponse> result = messageServiceImpl.getSentMessages(currentUser);
 
         assertNotNull(result);
         assertEquals(1, result.size());

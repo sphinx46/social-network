@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(LikeController.class)
-class LikeControllerIntegrationTest extends BaseControllerTest {
+class LikeControllerTest extends BaseControllerTest {
 
     @MockitoBean
     private LikeService likeService;

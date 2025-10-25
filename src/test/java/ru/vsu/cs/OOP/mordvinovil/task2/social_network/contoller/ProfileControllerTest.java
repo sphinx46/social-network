@@ -17,7 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ProfileController.class)
-class ProfileControllerIntegrationTest extends BaseControllerTest {
+class ProfileControllerTest extends BaseControllerTest {
 
     @MockitoBean
     private ProfileService profileService;

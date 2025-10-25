@@ -16,22 +16,28 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.JwtAuthentica
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Role;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.security.filters.UserDetailsImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.AuthenticationServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.JwtServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.ProfileServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.UserServiceImpl;
 
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class AuthenticationServiceTest {
+class AuthenticationServiceImplTest {
 
     @Mock
-    private UserService userService;
+    private UserServiceImpl userServiceImpl;
 
     @Mock
-    private JwtService jwtService;
+    private JwtServiceImpl jwtServiceImpl;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -40,13 +46,13 @@ class AuthenticationServiceTest {
     private AuthenticationManager authenticationManager;
 
     @Mock
-    private ProfileService profileService;
+    private ProfileServiceImpl profileServiceImpl;
 
     @Mock
     private UserDetailsService userDetailsService;
 
     @InjectMocks
-    private AuthenticationService authenticationService;
+    private AuthenticationServiceImpl authenticationServiceImpl;
 
     @Test
     void signUp_ShouldReturnJwtToken() {
@@ -61,17 +67,17 @@ class AuthenticationServiceTest {
         UserDetails userDetails = UserDetailsImpl.build(savedUser);
 
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
-        when(userService.create(any(User.class))).thenReturn(savedUser);
-        when(jwtService.generateToken(any(UserDetails.class))).thenReturn("jwt-token");
+        when(userServiceImpl.create(any(User.class))).thenReturn(savedUser);
+        when(jwtServiceImpl.generateToken(any(UserDetails.class))).thenReturn("jwt-token");
 
-        JwtAuthenticationResponse response = authenticationService.signUp(signUpRequest);
+        JwtAuthenticationResponse response = authenticationServiceImpl.signUp(signUpRequest);
 
         assertNotNull(response);
         assertEquals("jwt-token", response.getToken());
         verify(passwordEncoder).encode("password123");
-        verify(userService).create(any(User.class));
-        verify(profileService).createDefaultProfile(savedUser);
-        verify(jwtService).generateToken(any(UserDetails.class));
+        verify(userServiceImpl).create(any(User.class));
+        verify(profileServiceImpl).createDefaultProfile(savedUser);
+        verify(jwtServiceImpl).generateToken(any(UserDetails.class));
     }
 
     @Test
@@ -84,17 +90,17 @@ class AuthenticationServiceTest {
 
         UserDetails userDetails = UserDetailsImpl.build(user);
 
-        when(userService.userDetailsService()).thenReturn(userDetailsService);
+        when(userServiceImpl.userDetailsService()).thenReturn(userDetailsService);
         when(userDetailsService.loadUserByUsername("testuser")).thenReturn(userDetails);
-        when(jwtService.generateToken(userDetails)).thenReturn("jwt-token");
+        when(jwtServiceImpl.generateToken(userDetails)).thenReturn("jwt-token");
 
-        JwtAuthenticationResponse response = authenticationService.signIn(signInRequest);
+        JwtAuthenticationResponse response = authenticationServiceImpl.signIn(signInRequest);
 
         assertNotNull(response);
         assertEquals("jwt-token", response.getToken());
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(userDetailsService).loadUserByUsername("testuser");
-        verify(jwtService).generateToken(userDetails);
+        verify(jwtServiceImpl).generateToken(userDetails);
     }
 
     @Test
@@ -107,11 +113,11 @@ class AuthenticationServiceTest {
 
         UserDetails userDetails = UserDetailsImpl.build(user);
 
-        when(userService.userDetailsService()).thenReturn(userDetailsService);
+        when(userServiceImpl.userDetailsService()).thenReturn(userDetailsService);
         when(userDetailsService.loadUserByUsername("testuser")).thenReturn(userDetails);
-        when(jwtService.generateToken(userDetails)).thenReturn("jwt-token");
+        when(jwtServiceImpl.generateToken(userDetails)).thenReturn("jwt-token");
 
-        authenticationService.signIn(signInRequest);
+        authenticationServiceImpl.signIn(signInRequest);
 
         verify(authenticationManager).authenticate(
                 new UsernamePasswordAuthenticationToken("testuser", "password123")

@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(MessageController.class)
-class MessageControllerIntegrationTest extends BaseControllerTest {
+class MessageControllerTest extends BaseControllerTest {
 
     @MockitoBean
     private MessageService messageService;
