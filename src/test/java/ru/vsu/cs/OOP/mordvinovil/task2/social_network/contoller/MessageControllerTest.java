@@ -6,6 +6,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.MessageController;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.MessageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.MessageService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.BaseControllerTest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
@@ -105,16 +108,28 @@ class MessageControllerTest extends BaseControllerTest {
     void getConversation_whenRequestIsValid() throws Exception {
         Long userId = 2L;
         var responses = List.of(TestDataFactory.createMessageResponse());
+        var pageResponse = PageResponse.<MessageResponse>builder()
+                .content(responses)
+                .currentPage(0)
+                .totalPages(1)
+                .totalElements(1L)
+                .pageSize(10)
+                .first(true)
+                .last(true)
+                .build();
 
-        when(messageService.getConversation(eq(userId), any())).thenReturn(responses);
+        when(messageService.getConversation(eq(userId), any(), any(PageRequest.class))).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/messages/conversation/" + userId)
+        mockMvcUtils.performGet("/messages/conversation/" + userId + "?size=10&pageNumber=0")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].senderUsername").value("testUser"))
-                .andExpect(jsonPath("$[0].receiverUsername").value("receiverUser"));
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].senderUsername").value("testUser"))
+                .andExpect(jsonPath("$.content[0].receiverUsername").value("receiverUser"))
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1));
 
-        verify(messageService, times(1)).getConversation(eq(userId), any());
+        verify(messageService, times(1)).getConversation(eq(userId), any(), any(PageRequest.class));
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -123,16 +138,28 @@ class MessageControllerTest extends BaseControllerTest {
     @DisplayName("Получение отправленных сообщений - успешно")
     void getSentMessages_whenRequestIsValid() throws Exception {
         var responses = List.of(TestDataFactory.createMessageResponse());
+        var pageResponse = PageResponse.<MessageResponse>builder()
+                .content(responses)
+                .currentPage(0)
+                .totalPages(1)
+                .totalElements(1L)
+                .pageSize(10)
+                .first(true)
+                .last(true)
+                .build();
 
-        when(messageService.getSentMessages(any())).thenReturn(responses);
+        when(messageService.getSentMessages(any(), any(PageRequest.class))).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/messages/sent")
+        mockMvcUtils.performGet("/messages/sent?size=10&pageNumber=0")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].senderUsername").value("testUser"))
-                .andExpect(jsonPath("$[0].receiverUsername").value("receiverUser"));
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].senderUsername").value("testUser"))
+                .andExpect(jsonPath("$.content[0].receiverUsername").value("receiverUser"))
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1));
 
-        verify(messageService, times(1)).getSentMessages(any());
+        verify(messageService, times(1)).getSentMessages(any(), any(PageRequest.class));
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -141,16 +168,28 @@ class MessageControllerTest extends BaseControllerTest {
     @DisplayName("Получение полученных сообщений - успешно")
     void getReceivedMessages_whenRequestIsValid() throws Exception {
         var responses = List.of(TestDataFactory.createMessageResponse());
+        var pageResponse = PageResponse.<MessageResponse>builder()
+                .content(responses)
+                .currentPage(0)
+                .totalPages(1)
+                .totalElements(1L)
+                .pageSize(10)
+                .first(true)
+                .last(true)
+                .build();
 
-        when(messageService.getReceivedMessages(any())).thenReturn(responses);
+        when(messageService.getReceivedMessages(any(), any(PageRequest.class))).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/messages/received")
+        mockMvcUtils.performGet("/messages/received?size=10&pageNumber=0")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].senderUsername").value("testUser"))
-                .andExpect(jsonPath("$[0].receiverUsername").value("receiverUser"));
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].senderUsername").value("testUser"))
+                .andExpect(jsonPath("$.content[0].receiverUsername").value("receiverUser"))
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1));
 
-        verify(messageService, times(1)).getReceivedMessages(any());
+        verify(messageService, times(1)).getReceivedMessages(any(), any(PageRequest.class));
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -159,16 +198,28 @@ class MessageControllerTest extends BaseControllerTest {
     @DisplayName("Получение прочитанных сообщений - успешно")
     void getReadMessages_whenRequestIsValid() throws Exception {
         var responses = List.of(TestDataFactory.createMessageResponse());
+        var pageResponse = PageResponse.<MessageResponse>builder()
+                .content(responses)
+                .currentPage(0)
+                .totalPages(1)
+                .totalElements(1L)
+                .pageSize(10)
+                .first(true)
+                .last(true)
+                .build();
 
-        when(messageService.getReadMessages(any())).thenReturn(responses);
+        when(messageService.getReadMessages(any(), any(PageRequest.class))).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/messages/read")
+        mockMvcUtils.performGet("/messages/read?size=10&pageNumber=0")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].senderUsername").value("testUser"))
-                .andExpect(jsonPath("$[0].receiverUsername").value("receiverUser"));
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].senderUsername").value("testUser"))
+                .andExpect(jsonPath("$.content[0].receiverUsername").value("receiverUser"))
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1));
 
-        verify(messageService, times(1)).getReadMessages(any());
+        verify(messageService, times(1)).getReadMessages(any(), any(PageRequest.class));
         verify(userService, times(1)).getCurrentUser();
     }
 

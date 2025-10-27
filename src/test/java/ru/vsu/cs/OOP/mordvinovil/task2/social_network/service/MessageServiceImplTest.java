@@ -5,8 +5,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.MessageRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.MessageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Message;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.MessageStatus;
@@ -14,7 +18,6 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherServi
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.MessageRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.MessageServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.MessageFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.MessageValidator;
@@ -189,20 +192,24 @@ public class MessageServiceImplTest {
         Message message2 = createTestMessage(otherUser, currentUser, "привет", null,
                 MessageStatus.RECEIVED, LocalDateTime.now(), LocalDateTime.now());
         List<Message> messages = List.of(message1, message2);
-        List<MessageResponse> responses = messages.stream().map(TestDataFactory::createTestResponse).toList();
+        Page<Message> messagePage = new PageImpl<>(messages);
+        PageRequest pageRequest = PageRequest.builder()
+                .pageNumber(0)
+                .size(10)
+                .sortBy("createdAt")
+                .direction(org.springframework.data.domain.Sort.Direction.DESC)
+                .build();
 
         when(entityUtils.getUser(2L)).thenReturn(otherUser);
-        when(messageRepository.findMessagesBetweenUsers(1L, 2L)).thenReturn(Optional.of(messages));
-        when(entityMapper.mapList(messages, MessageResponse.class)).thenReturn(responses);
+        when(messageRepository.findMessagesBetweenUsers(eq(1L), eq(2L), any())).thenReturn(Optional.of(messagePage));
 
-        List<MessageResponse> result = messageServiceImpl.getConversation(2L, currentUser);
+        PageResponse<MessageResponse> result = messageServiceImpl.getConversation(2L, currentUser, pageRequest);
 
         assertNotNull(result);
-        assertEquals(2, result.size());
+        assertEquals(2, result.getContent().size());
 
         verify(entityUtils).getUser(2L);
-        verify(messageRepository).findMessagesBetweenUsers(1L, 2L);
-        verify(entityMapper).mapList(messages, MessageResponse.class);
+        verify(messageRepository).findMessagesBetweenUsers(eq(1L), eq(2L), any());
     }
 
     @Test
@@ -211,17 +218,70 @@ public class MessageServiceImplTest {
         Message message = createTestMessage(currentUser, createTestUser(2L, "receiver", "receiver@example.com"),
                 "привет", null, MessageStatus.SENT, LocalDateTime.now(), LocalDateTime.now());
         List<Message> messages = List.of(message);
-        List<MessageResponse> responses = messages.stream().map(TestDataFactory::createTestResponse).toList();
+        Page<Message> messagePage = new PageImpl<>(messages);
+        PageRequest pageRequest = PageRequest.builder()
+                .pageNumber(0)
+                .size(10)
+                .sortBy("createdAt")
+                .direction(org.springframework.data.domain.Sort.Direction.DESC)
+                .build();
 
-        when(messageRepository.findBySenderId(1L)).thenReturn(Optional.of(messages));
-        when(entityMapper.mapList(messages, MessageResponse.class)).thenReturn(responses);
+        when(messageRepository.findBySenderId(eq(1L), any())).thenReturn(Optional.of(messagePage));
 
-        List<MessageResponse> result = messageServiceImpl.getSentMessages(currentUser);
+        PageResponse<MessageResponse> result = messageServiceImpl.getSentMessages(currentUser, pageRequest);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getContent().size());
 
-        verify(messageRepository).findBySenderId(1L);
-        verify(entityMapper).mapList(messages, MessageResponse.class);
+        verify(messageRepository).findBySenderId(eq(1L), any());
+    }
+
+    @Test
+    void getReceivedMessages() {
+        User currentUser = createTestUser(1L, "user", "user@example.com");
+        Message message = createTestMessage(createTestUser(2L, "sender", "sender@example.com"), currentUser,
+                "привет", null, MessageStatus.RECEIVED, LocalDateTime.now(), LocalDateTime.now());
+        List<Message> messages = List.of(message);
+        Page<Message> messagePage = new PageImpl<>(messages);
+        PageRequest pageRequest = PageRequest.builder()
+                .pageNumber(0)
+                .size(10)
+                .sortBy("createdAt")
+                .direction(org.springframework.data.domain.Sort.Direction.DESC)
+                .build();
+
+        when(messageRepository.findByReceiverIdAndStatus(eq(1L), eq(MessageStatus.RECEIVED), any())).thenReturn(Optional.of(messagePage));
+
+        PageResponse<MessageResponse> result = messageServiceImpl.getReceivedMessages(currentUser, pageRequest);
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+
+        verify(messageRepository).findByReceiverIdAndStatus(eq(1L), eq(MessageStatus.RECEIVED), any());
+    }
+
+    @Test
+    void getReadMessages() {
+        User currentUser = createTestUser(1L, "user", "user@example.com");
+        Message message = createTestMessage(createTestUser(2L, "sender", "sender@example.com"), currentUser,
+                "привет", null, MessageStatus.READ, LocalDateTime.now(), LocalDateTime.now());
+        List<Message> messages = List.of(message);
+        Page<Message> messagePage = new PageImpl<>(messages);
+        PageRequest pageRequest = PageRequest.builder()
+                .pageNumber(0)
+                .size(10)
+                .sortBy("createdAt")
+                .direction(org.springframework.data.domain.Sort.Direction.DESC)
+                .build();
+
+        when(messageRepository.findByReceiverIdAndStatus(eq(1L), eq(MessageStatus.READ), any())).thenReturn(Optional.of(messagePage));
+
+        PageResponse<MessageResponse> result = messageServiceImpl.getReadMessages(currentUser, pageRequest);
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+
+        verify(messageRepository).findByReceiverIdAndStatus(eq(1L), eq(MessageStatus.READ), any());
     }
 }
+

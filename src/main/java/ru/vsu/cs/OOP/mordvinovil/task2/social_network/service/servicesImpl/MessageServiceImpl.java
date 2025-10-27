@@ -2,9 +2,12 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.MessageRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.MessageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Message;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.MessageStatus;
@@ -17,7 +20,6 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.MessageFacto
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.MessageValidator;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.MessageStatusValidator.isStatusAllowed;
 
@@ -55,28 +57,35 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public List<MessageResponse> getConversation(Long otherUserId, User currentUser) {
-        entityUtils.getUser(otherUserId);
-        List<Message> messages = messageRepository.findMessagesBetweenUsers(currentUser.getId(), otherUserId)
-                .orElse(List.of());
-        return entityMapper.mapList(messages, MessageResponse.class);
+    public PageResponse<MessageResponse> getConversation(Long otherUserId, User currentUser, PageRequest pageRequest) {
+        Long id = entityUtils.getUser(otherUserId).getId();
+        Page<Message> messages = messageRepository.findMessagesBetweenUsers(currentUser.getId(),
+                        id, pageRequest.toPageable())
+                .orElse(Page.empty());
+
+        return PageResponse.of(messages.map(
+                message -> entityMapper.map(message, MessageResponse.class))
+        );
     }
 
     @Override
-    public List<MessageResponse> getSentMessages(User currentUser) {
-        List<Message> messages = messageRepository.findBySenderId(currentUser.getId())
-                .orElse(List.of());
-        return entityMapper.mapList(messages, MessageResponse.class);
+    public PageResponse<MessageResponse> getSentMessages(User currentUser, PageRequest pageRequest) {
+        Page<Message> messages = messageRepository.findBySenderId(currentUser.getId(),
+                pageRequest.toPageable())
+                .orElse(Page.empty());
+        return PageResponse.of(messages.map(
+                message -> entityMapper.map(message, MessageResponse.class))
+        );
     }
 
     @Override
-    public List<MessageResponse> getReceivedMessages(User currentUser) {
-        return getMessagesByStatus(currentUser, MessageStatus.RECEIVED);
+    public PageResponse<MessageResponse> getReceivedMessages(User currentUser, PageRequest pageRequest) {
+        return getMessagesByStatus(currentUser, MessageStatus.RECEIVED, pageRequest);
     }
 
     @Override
-    public List<MessageResponse> getReadMessages(User currentUser) {
-        return getMessagesByStatus(currentUser, MessageStatus.READ);
+    public PageResponse<MessageResponse> getReadMessages(User currentUser, PageRequest pageRequest) {
+        return getMessagesByStatus(currentUser, MessageStatus.READ, pageRequest);
     }
 
     @Transactional
@@ -117,10 +126,13 @@ public class MessageServiceImpl implements MessageService {
         eventPublisherService.publishMessageDeleted(this, message.getReceiver().getId(), currentUser.getId());
     }
 
-    private List<MessageResponse> getMessagesByStatus(User currentUser, MessageStatus status) {
-        List<Message> messages = messageRepository.findByReceiverIdAndStatus(currentUser.getId(), status)
-                .orElse(List.of());
-        return entityMapper.mapList(messages, MessageResponse.class);
+    private PageResponse<MessageResponse> getMessagesByStatus(User currentUser, MessageStatus status, PageRequest pageRequest) {
+        Page<Message> messages = messageRepository.findByReceiverIdAndStatus(currentUser.getId(), status,
+                pageRequest.toPageable())
+                .orElse(Page.empty());
+        return PageResponse.of(messages.map(
+                message -> entityMapper.map(message, MessageResponse.class))
+        );
     }
 
     private MessageResponse updateMessageStatus(Long messageId, User currentUser, MessageStatus newStatus, MessageStatus... allowedCurrentStatuses) {
