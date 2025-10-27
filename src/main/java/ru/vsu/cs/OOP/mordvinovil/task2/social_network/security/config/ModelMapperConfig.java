@@ -188,6 +188,19 @@ public class ModelMapperConfig {
                 using(createLikesSetConverter(modelMapper)).map(source.getLikes(), destination.getLikePostResponseList());
             }
         });
+
+        modelMapper.createTypeMap(Post.class, PostResponse.class, "withDetails")
+                .addMappings(mapper -> {
+                    mapper.map(Post::getId, PostResponse::setId);
+                    mapper.map(src -> src.getUser().getUsername(), PostResponse::setUsername);
+                    mapper.map(Post::getContent, PostResponse::setContent);
+                    mapper.map(Post::getImageUrl, PostResponse::setImageUrl);
+                    mapper.map(Post::getCreatedAt, PostResponse::setTime);
+                    mapper.using(createCommentsSetConverter(modelMapper))
+                            .map(Post::getComments, PostResponse::setCommentResponseList);
+                    mapper.using(createLikesSetConverter(modelMapper))
+                            .map(Post::getLikes, PostResponse::setLikePostResponseList);
+                });
     }
 
     private void configurePostWithCollectionsMappings(ModelMapper modelMapper) {

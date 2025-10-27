@@ -1,8 +1,8 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service;
 
-import org.springframework.data.domain.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.NotificationResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 
 public interface NotificationService {

@@ -46,7 +46,7 @@ public class NotificationController {
                 .size(size)
                 .sortBy(sortedBy)
                 .direction(Sort.Direction.fromString(direction))
-                .build().toPageable();
+                .build();
 
         PageResponse<NotificationResponse> responsePage =
                 notificationService.getUserNotifications(currentUser, pageRequest);
@@ -69,7 +69,7 @@ public class NotificationController {
                 .size(size)
                 .sortBy(sortedBy)
                 .direction(Sort.Direction.fromString(direction))
-                .build().toPageable();
+                .build();
 
         PageResponse<NotificationResponse> responsePage =
                 notificationService.getUnreadNotifications(currentUser, pageRequest);

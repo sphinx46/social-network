@@ -3,7 +3,7 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.NotificationResponse;
@@ -32,7 +32,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public PageResponse<NotificationResponse> getUserNotifications(User currentUser, PageRequest pageRequest) {
         Page<Notification> notificationPage =
-                notificationRepository.findByUserActionOrderByCreatedAtDesc(currentUser, pageRequest);
+                notificationRepository.findByUserAction(currentUser, pageRequest.toPageable());
         return PageResponse.of(notificationPage.map
                 (notification -> entityMapper.map(notification, NotificationResponse.class)));
     }
@@ -48,7 +48,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public PageResponse<NotificationResponse> getUnreadNotifications(User currentUser, PageRequest pageRequest) {
         Page<Notification> notificationPage = notificationRepository
-                .findByUserActionAndStatusOrderByCreatedAtDesc(currentUser, NotificationStatus.UNREAD, pageRequest);
+                .findByUserActionAndStatus(currentUser, NotificationStatus.UNREAD, pageRequest.toPageable());
         return PageResponse.of(notificationPage.map
                 (notification -> entityMapper.map(notification, NotificationResponse.class)));
     }

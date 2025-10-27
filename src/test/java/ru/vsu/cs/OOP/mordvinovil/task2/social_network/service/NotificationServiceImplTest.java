@@ -8,7 +8,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.NotificationResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Notification;
@@ -63,16 +64,21 @@ class NotificationServiceImplTest {
         notification = createTestNotification(currentUser, NotificationType.POST_LIKED, NotificationStatus.UNREAD);
         notification.setId(1L);
         notificationResponse = createTestNotificationResponse(notification);
-        pageRequest = org.springframework.data.domain.PageRequest.of(0, 10);
+        pageRequest = PageRequest.builder()
+                .pageNumber(0)
+                .size(10)
+                .direction(Sort.Direction.DESC)
+                .sortBy("createdAt")
+                .build();
     }
 
     @Test
     void getUserNotifications_whenUserHasNotifications() {
         List<Notification> notifications = List.of(notification);
         Page<Notification> notificationPage = new PageImpl<>(notifications);
-        Page<NotificationResponse> expectedResponses = new PageImpl<>(List.of(notificationResponse));
+        List<NotificationResponse> expectedResponses = List.of(notificationResponse);
 
-        when(notificationRepository.findByUserActionOrderByCreatedAtDesc(eq(currentUser), any(PageRequest.class))).thenReturn(notificationPage);
+        when(notificationRepository.findByUserAction(eq(currentUser), any())).thenReturn(notificationPage);
         when(entityMapper.map(notification, NotificationResponse.class)).thenReturn(notificationResponse);
 
         PageResponse<NotificationResponse> result = notificationServiceImpl.getUserNotifications(currentUser, pageRequest);
@@ -80,7 +86,7 @@ class NotificationServiceImplTest {
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
 
-        verify(notificationRepository).findByUserActionOrderByCreatedAtDesc(eq(currentUser), any(PageRequest.class));
+        verify(notificationRepository).findByUserAction(eq(currentUser), any());
     }
 
     @Test
@@ -134,9 +140,9 @@ class NotificationServiceImplTest {
     void getUnreadNotifications_whenUserHasUnreadNotifications() {
         List<Notification> unreadNotifications = List.of(notification);
         Page<Notification> notificationPage = new PageImpl<>(unreadNotifications);
-        Page<NotificationResponse> expectedResponses = new PageImpl<>(List.of(notificationResponse));
+        List<NotificationResponse> expectedResponses = List.of(notificationResponse);
 
-        when(notificationRepository.findByUserActionAndStatusOrderByCreatedAtDesc(eq(currentUser), eq(NotificationStatus.UNREAD), any(PageRequest.class)))
+        when(notificationRepository.findByUserActionAndStatus(eq(currentUser), eq(NotificationStatus.UNREAD), any()))
                 .thenReturn(notificationPage);
         when(entityMapper.map(notification, NotificationResponse.class)).thenReturn(notificationResponse);
 
@@ -145,7 +151,7 @@ class NotificationServiceImplTest {
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
 
-        verify(notificationRepository).findByUserActionAndStatusOrderByCreatedAtDesc(eq(currentUser), eq(NotificationStatus.UNREAD), any(PageRequest.class));
+        verify(notificationRepository).findByUserActionAndStatus(eq(currentUser), eq(NotificationStatus.UNREAD), any());
     }
 
     @Test

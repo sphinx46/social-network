@@ -35,7 +35,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Query("DELETE FROM Notification n WHERE n.userAction = :user AND n.status = NotificationStatus.DELETED")
     void deleteAllDeletedByUser(@Param("user") User user);
 
-    Page<Notification> findByUserActionOrderByCreatedAtDesc(User user, Pageable pageable);
+    Page<Notification> findByUserAction(User user, Pageable pageable);
 
-    Page<Notification> findByUserActionAndStatusOrderByCreatedAtDesc(User user, NotificationStatus status, Pageable pageable);
+    Page<Notification> findByUserActionAndStatus(User user, NotificationStatus status, Pageable pageable);
 }

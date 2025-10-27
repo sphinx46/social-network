@@ -6,8 +6,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.multipart.MultipartFile;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PostRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PostResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
@@ -184,21 +189,43 @@ class PostServiceImplTest {
 
     @Test
     void getAllPostsByUser() {
+        PageRequest pageRequest = PageRequest.builder()
+                .pageNumber(0)
+                .size(10)
+                .sortBy("createdAt")
+                .direction(Sort.Direction.DESC)
+                .build();
+
         Post post1 = createTestPost(owner, "Post 1", null);
         Post post2 = createTestPost(owner, "Post 2", "img.jpg");
-        var posts = List.of(post1, post2);
-        var responses = posts.stream().map(TestDataFactory::createTestPostResponse).toList();
+        List<Post> posts = List.of(post1, post2);
+        Page<Post> postPage = new PageImpl<>(posts, pageRequest.toPageable(), posts.size());
 
-        when(postRepository.getAllPostsByUserWithCommentsAndLikes(owner)).thenReturn(posts);
-        when(entityMapper.mapListWithName(posts, PostResponse.class, "withDetails")).thenReturn(responses);
+        List<PostResponse> responses = posts.stream().map(TestDataFactory::createTestPostResponse).toList();
+        PageResponse<PostResponse> expectedResponse = PageResponse.<PostResponse>builder()
+                .content(responses)
+                .totalPages(1)
+                .totalElements(2L)
+                .pageSize(10)
+                .currentPage(0)
+                .build();
 
-        var result = postServiceImpl.getAllPostsByUser(owner);
+        when(postRepository.getAllPostsByUserWithCommentsAndLikes(eq(owner), any()))
+                .thenReturn(postPage);
+        when(entityMapper.mapWithName(any(Post.class), eq(PostResponse.class), eq("withDetails")))
+                .thenReturn(responses.get(0), responses.get(1));
+
+        PageResponse<PostResponse> result = postServiceImpl.getAllPostsByUser(owner, pageRequest);
 
         assertNotNull(result);
-        assertEquals(2, result.size());
+        assertEquals(2, result.getContent().size());
+        assertEquals(1, result.getTotalPages());
+        assertEquals(2L, result.getTotalElements());
+        assertEquals(10, result.getPageSize());
+        assertEquals(0, result.getCurrentPage());
 
-        verify(postRepository).getAllPostsByUserWithCommentsAndLikes(owner);
-        verify(entityMapper).mapListWithName(posts, PostResponse.class, "withDetails");
+        verify(postRepository).getAllPostsByUserWithCommentsAndLikes(eq(owner), any());
+        verify(entityMapper, times(2)).mapWithName(any(Post.class), eq(PostResponse.class), eq("withDetails"));
     }
 
     @Test
@@ -249,4 +276,3 @@ class PostServiceImplTest {
         verify(postRepository, never()).save(any());
     }
 }
-

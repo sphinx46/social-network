@@ -6,7 +6,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.PostController;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.FileStorageService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PostResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.PostService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.BaseControllerTest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
@@ -24,9 +25,6 @@ public class PostControllerTest extends BaseControllerTest {
 
     @MockitoBean
     private PostService postService;
-
-    @MockitoBean
-    private FileStorageService fileStorageService;
 
     @Test
     @DisplayName("Создание поста без авторизации - должно вернуть 401")
@@ -139,17 +137,28 @@ public class PostControllerTest extends BaseControllerTest {
     @WithMockUser(username = "testUser", authorities = "USER")
     @DisplayName("Получение постов текущего пользователя - успешно")
     void getPostsByCurrentUser_whenRequestIsValid() throws Exception {
-        var responses = List.of(TestDataFactory.createPostResponse());
+        var postResponse = TestDataFactory.createPostResponse();
+        var pageResponse = PageResponse.<PostResponse>builder()
+                .content(List.of(postResponse))
+                .totalPages(1)
+                .totalElements(1L)
+                .pageSize(10)
+                .currentPage(0)
+                .build();
 
-        when(postService.getAllPostsByUser(any())).thenReturn(responses);
+        when(postService.getAllPostsByUser(any(), any())).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/posts/me")
+        mockMvcUtils.performGet("/posts/me?size=10&pageNumber=0&sortedBy=createdAt&direction=DESC")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].username").value("testUser"))
-                .andExpect(jsonPath("$[0].content").value("test"));
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].username").value("testUser"))
+                .andExpect(jsonPath("$.content[0].content").value("test"))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.currentPage").value(0));
 
-        verify(postService, times(1)).getAllPostsByUser(any());
+        verify(postService, times(1)).getAllPostsByUser(any(), any());
         verify(userService, times(1)).getCurrentUser();
     }
 

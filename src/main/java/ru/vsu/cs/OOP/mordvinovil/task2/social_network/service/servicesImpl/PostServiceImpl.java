@@ -2,9 +2,12 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PostRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PostResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
@@ -14,8 +17,6 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.ContentFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.PostValidator;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -39,9 +40,12 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostResponse> getAllPostsByUser(User user) {
-        List<Post> posts = postRepository.getAllPostsByUserWithCommentsAndLikes(user);
-        return entityMapper.mapListWithName(posts, PostResponse.class, "withDetails");
+    public PageResponse<PostResponse> getAllPostsByUser(User user, PageRequest pageRequest) {
+        Page<Post> posts =
+                postRepository.getAllPostsByUserWithCommentsAndLikes(user, pageRequest.toPageable());
+        return PageResponse.of(posts.map(
+                post -> entityMapper.mapWithName(post, PostResponse.class, "withDetails")
+        ));
     }
 
     @Transactional
