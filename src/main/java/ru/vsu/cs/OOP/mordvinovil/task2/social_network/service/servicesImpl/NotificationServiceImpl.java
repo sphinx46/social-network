@@ -2,25 +2,22 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.NotificationResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Notification;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationStatus;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.GenericNotificationEvent;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.NotificationRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.NotificationService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.NotificationValidator;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -28,38 +25,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
-    private final UserRepository userRepository;
     private final EntityMapper entityMapper;
-    private final WebSocketNotificationServiceImpl webSocketNotificationServiceImpl;
     private final NotificationValidator notificationValidator;
     private final EntityUtils entityUtils;
 
-    @EventListener
-    @Async("notificationTaskExecutor")
     @Override
-    public void handleNotificationEvent(GenericNotificationEvent event) {
-        try {
-            User targetUser = userRepository.findById(event.getTargetUserId())
-                    .orElseThrow(() -> new RuntimeException(ResponseMessageConstants.FAILURE_USER_NOT_FOUND));
-
-            Notification notification = createNotificationFromEvent(event, targetUser);
-            notificationRepository.save(notification);
-
-            webSocketNotificationServiceImpl.sendNotification(targetUser.getId(), notification);
-
-            log.debug("Notification created: {} for user: {}", event.getNotificationType(), targetUser.getUsername());
-
-        } catch (Exception e) {
-            log.error("Error processing notification event: {} for user: {}",
-                    event.getNotificationType(), event.getTargetUserId(), e);
-        }
-    }
-
-    @Override
-    public List<NotificationResponse> getUserNotifications(User currentUser) {
-        List<Notification> notifications = notificationRepository
-                .findByUserActionOrderByCreatedAtDesc(currentUser);
-        return entityMapper.mapList(notifications, NotificationResponse.class);
+    public PageResponse<NotificationResponse> getUserNotifications(User currentUser, PageRequest pageRequest) {
+        Page<Notification> notificationPage =
+                notificationRepository.findByUserActionOrderByCreatedAtDesc(currentUser, pageRequest);
+        return PageResponse.of(notificationPage.map
+                (notification -> entityMapper.map(notification, NotificationResponse.class)));
     }
 
     @Override
@@ -71,10 +46,11 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<NotificationResponse> getUnreadNotifications(User currentUser) {
-        List<Notification> notifications = notificationRepository
-                .findByUserActionAndStatusOrderByCreatedAtDesc(currentUser, NotificationStatus.UNREAD);
-        return entityMapper.mapList(notifications, NotificationResponse.class);
+    public PageResponse<NotificationResponse> getUnreadNotifications(User currentUser, PageRequest pageRequest) {
+        Page<Notification> notificationPage = notificationRepository
+                .findByUserActionAndStatusOrderByCreatedAtDesc(currentUser, NotificationStatus.UNREAD, pageRequest);
+        return PageResponse.of(notificationPage.map
+                (notification -> entityMapper.map(notification, NotificationResponse.class)));
     }
 
     @Override
@@ -124,16 +100,5 @@ public class NotificationServiceImpl implements NotificationService {
     public void clearDeletedNotifications(User currentUser) {
         notificationRepository.deleteAllDeletedByUser(currentUser);
         log.debug("Deleted notifications cleared for user: {}", currentUser.getUsername());
-    }
-
-    private Notification createNotificationFromEvent(GenericNotificationEvent event, User targetUser) {
-        return Notification.builder()
-                .userAction(targetUser)
-                .type(event.getNotificationType())
-                .status(NotificationStatus.UNREAD)
-                .additionalData(event.getAdditionalData())
-                .createdAt(event.getTimeCreated())
-                .updatedAt(event.getTimeCreated())
-                .build();
     }
 }

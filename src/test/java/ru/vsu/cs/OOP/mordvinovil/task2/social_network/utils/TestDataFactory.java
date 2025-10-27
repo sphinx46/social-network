@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.Map;
 
 public class TestDataFactory {
-
-    // User creation
     public static User createTestUser() {
         return createTestUser(1L, "testUser");
     }
@@ -41,7 +39,6 @@ public class TestDataFactory {
         return user;
     }
 
-    // Post creation
     public static Post createTestPost(User user, String content, String imageUrl) {
         return Post.builder()
                 .user(user)
@@ -51,7 +48,6 @@ public class TestDataFactory {
                 .build();
     }
 
-    // Comment creation
     public static Comment createTestComment(Long id, User creator, Post post, String content, String imageUrl) {
         Comment comment = new Comment();
         comment.setId(id);
@@ -72,7 +68,6 @@ public class TestDataFactory {
         return comment;
     }
 
-    // Like creation
     public static Like createTestLike(User user, Post post, Comment comment) {
         return Like.builder()
                 .user(user)
@@ -82,7 +77,6 @@ public class TestDataFactory {
                 .build();
     }
 
-    // Message creation
     public static Message createTestMessage(User sender, User receiver, String content, String imageUrl,
                                             MessageStatus status, LocalDateTime createdAt, LocalDateTime updatedAt) {
         return Message.builder()
@@ -96,7 +90,6 @@ public class TestDataFactory {
                 .build();
     }
 
-    // Relationship creation
     public static Relationship createTestRelationship(User sender, User receiver, FriendshipStatus status) {
         return Relationship.builder()
                 .sender(sender)
@@ -107,7 +100,6 @@ public class TestDataFactory {
                 .build();
     }
 
-    // Comment DTOs
     public static CommentRequest createCommentRequest() {
         return createCommentRequest(1L);
     }
@@ -152,7 +144,6 @@ public class TestDataFactory {
         return response;
     }
 
-    // Auth DTOs
     public static SignUpRequest createSignUpRequest() {
         SignUpRequest request = new SignUpRequest();
         request.setUsername("testuser");
@@ -173,7 +164,6 @@ public class TestDataFactory {
         return new JwtAuthenticationResponse("test-jwt-token");
     }
 
-    // Like DTOs
     public static LikePostRequest createLikePostRequest() {
         LikePostRequest request = new LikePostRequest();
         request.setPostId(1L);
@@ -218,7 +208,6 @@ public class TestDataFactory {
         return response;
     }
 
-    // Message DTOs
     public static MessageRequest createMessageRequest() {
         return MessageRequest.builder()
                 .receiverUserId(2L)
@@ -261,7 +250,6 @@ public class TestDataFactory {
                 .build();
     }
 
-    // Post DTOs
     public static PostRequest createPostRequest() {
         return PostRequest.builder()
                 .content("test")
@@ -312,7 +300,6 @@ public class TestDataFactory {
                 .build();
     }
 
-    // Profile DTOs
     public static ProfileRequest createProfileRequest() {
         return ProfileRequest.builder()
                 .bio("Тестовое описание")
@@ -335,7 +322,6 @@ public class TestDataFactory {
         return response;
     }
 
-    // Relationship DTOs
     public static RelationshipRequest createRelationshipRequest() {
         RelationshipRequest request = new RelationshipRequest();
         request.setTargetUserId(2L);
@@ -369,9 +355,7 @@ public class TestDataFactory {
         response.setUpdatedAt(relationship.getUpdatedAt());
         return response;
     }
-    // Добавить в класс TestDataFactory
 
-    // User creation with specific parameters
     public static User createTestUser(Long id, String username, String email, String city) {
         User user = new User();
         user.setId(id);
@@ -382,7 +366,6 @@ public class TestDataFactory {
         return user;
     }
 
-    // Like creation with specific parameters
     public static Like createTestLike(Long id, User user, Post post, Comment comment) {
         Like like = Like.builder()
                 .user(user)
@@ -390,7 +373,7 @@ public class TestDataFactory {
                 .comment(comment)
                 .createdAt(LocalDateTime.now())
                 .build();
-        like.setId(id); // Устанавливаем ID через сеттер
+        like.setId(id);
         return like;
     }
 
@@ -410,17 +393,15 @@ public class TestDataFactory {
                 .build();
     }
 
-    // Like creation with ID only
     public static Like createTestLike(Long id) {
         Like like = Like.builder()
                 .user(createTestUser())
                 .createdAt(LocalDateTime.now())
                 .build();
-        like.setId(id); // Устанавливаем ID через сеттер
+        like.setId(id);
         return like;
     }
 
-    // Post creation with ID
     public static Post createTestPost(Long id, User user, String content, String imageUrl) {
         Post post = Post.builder()
                 .user(user)
@@ -428,11 +409,10 @@ public class TestDataFactory {
                 .content(content)
                 .time(LocalDateTime.now())
                 .build();
-        post.setId(id); // Устанавливаем ID через сеттер
+        post.setId(id);
         return post;
     }
 
-    // Comment creation with ID
     public static Comment createTestComment(Long id, User creator, Post post, String content) {
         Comment comment = new Comment();
         comment.setId(id);
@@ -444,7 +424,6 @@ public class TestDataFactory {
     }
 
 
-    // Like DTOs with specific parameters
     public static LikePostResponse createTestLikePostResponse(Long id, Long userId, String username, Long postId) {
         LikePostResponse response = new LikePostResponse();
         response.setId(id);
@@ -465,7 +444,6 @@ public class TestDataFactory {
         return response;
     }
 
-    // List creation helpers
     public static List<Like> createTestLikesForPost(Long postId, int count) {
         List<Like> likes = new ArrayList<>();
         for (int i = 1; i <= count; i++) {
@@ -486,26 +464,15 @@ public class TestDataFactory {
         return likes;
     }
 
-    // Empty like creation (for null cases in tests)
-    public static Like createEmptyTestLike(User user) {
-        return Like.builder()
-                .user(user)
-                .createdAt(LocalDateTime.now())
-                .build();
-    }
-
-    // Исправленные методы в TestDataFactory
-
     public static LikeCommentResponse createTestLikeCommentResponse(Like like) {
         LikeCommentResponse response = new LikeCommentResponse();
         response.setId(like.getId());
         response.setUserId(like.getUser().getId());
         response.setUsername(like.getUser().getUsername());
-        // Добавляем проверку на null для комментария
         if (like.getComment() != null) {
             response.setCommentId(like.getComment().getId());
         } else {
-            response.setCommentId(1L); // или любое другое значение по умолчанию
+            response.setCommentId(1L);
         }
         response.setCreatedAt(like.getCreatedAt());
         return response;
@@ -575,19 +542,31 @@ public class TestDataFactory {
                 .id(1L)
                 .type(NotificationType.POST_LIKED)
                 .status(NotificationStatus.UNREAD)
-                .additionalData(Map.of("postId", "123", "likerId", "456"))
+                .additionalData(Map.of("postId", "123"))
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
     }
 
     public static List<NotificationResponse> createTestNotificationResponseList() {
-        return List.of(
-                createTestNotificationResponse(),
-                NotificationResponse.builder()
-                        .id(2L)
-                        .type(NotificationType.NEW_MESSAGE)
-                        .status(NotificationStatus.UNREAD)
-                        .additionalData(Map.of("senderId", "789", "messagePreview", "Hello!"))
-                        .build()
-        );
+        NotificationResponse response1 = NotificationResponse.builder()
+                .id(1L)
+                .type(NotificationType.POST_LIKED)
+                .status(NotificationStatus.UNREAD)
+                .additionalData(Map.of("postId", "123"))
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        NotificationResponse response2 = NotificationResponse.builder()
+                .id(2L)
+                .type(NotificationType.NEW_MESSAGE)
+                .status(NotificationStatus.UNREAD)
+                .additionalData(Map.of("messageId", "456"))
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        return List.of(response1, response2);
     }
 }

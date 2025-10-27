@@ -1,16 +1,18 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.NotificationResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.NotificationService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.UserService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/notifications")
@@ -31,19 +33,47 @@ public class NotificationContoller {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Получение всех уведомлений текущего пользователя")
     @GetMapping()
-    public ResponseEntity<List<NotificationResponse>> getAllUserNotifications() {
+    public ResponseEntity<PageResponse<NotificationResponse>> getAllUserNotifications(
+            @RequestParam(defaultValue = "1", required = false) @Min(1) Integer pageSize,
+            @RequestParam(defaultValue = "1", required = false) @Min(1) Integer pageNumber,
+            @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
+            @RequestParam(defaultValue = "DESC", required = false) String direction
+    ) {
         User currentUser = userService.getCurrentUser();
-        List<NotificationResponse> responseList = notificationService.getUserNotifications(currentUser);
-        return ResponseEntity.ok(responseList);
+
+        var pageRequest = PageRequest.builder()
+                .pageNumber(pageNumber)
+                .size(pageSize)
+                .sortBy(sortedBy)
+                .direction(Sort.Direction.fromString(direction))
+                .build().toPageable();
+
+        PageResponse<NotificationResponse> responsePage =
+                notificationService.getUserNotifications(currentUser, pageRequest);
+        return ResponseEntity.ok(responsePage);
     }
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Получение непрочитанных уведомлений текущего пользователя")
     @GetMapping("/unread")
-    public ResponseEntity<List<NotificationResponse>> getUnreadUserNotifications() {
+    public ResponseEntity<PageResponse<NotificationResponse>> getUnreadUserNotifications(
+            @RequestParam(defaultValue = "1", required = false) @Min(1) Integer pageSize,
+            @RequestParam(defaultValue = "1", required = false) @Min(1) Integer pageNumber,
+            @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
+            @RequestParam(defaultValue = "DESC", required = false) String direction
+    ) {
         User currentUser = userService.getCurrentUser();
-        List<NotificationResponse> responseList = notificationService.getUnreadNotifications(currentUser);
-        return ResponseEntity.ok(responseList);
+
+        var pageRequest = PageRequest.builder()
+                .pageNumber(pageNumber)
+                .size(pageSize)
+                .sortBy(sortedBy)
+                .direction(Sort.Direction.fromString(direction))
+                .build().toPageable();
+
+        PageResponse<NotificationResponse> responsePage =
+                notificationService.getUnreadNotifications(currentUser, pageRequest);
+        return ResponseEntity.ok(responsePage);
     }
 
 
@@ -92,7 +122,6 @@ public class NotificationContoller {
         return ResponseEntity.ok().build();
     }
 }
-
 
 
 

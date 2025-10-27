@@ -6,18 +6,19 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.NotificationResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Notification;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationStatus;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationType;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.GenericNotificationEvent;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.notification.NotificationNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.NotificationRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.NotificationServiceImpl;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.WebSocketNotificationServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
@@ -25,8 +26,6 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.Notif
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -40,13 +39,7 @@ class NotificationServiceImplTest {
     private NotificationRepository notificationRepository;
 
     @Mock
-    private UserRepository userRepository;
-
-    @Mock
     private EntityMapper entityMapper;
-
-    @Mock
-    private WebSocketNotificationServiceImpl webSocketNotificationServiceImpl;
 
     @Mock
     private NotificationValidator notificationValidator;
@@ -61,6 +54,7 @@ class NotificationServiceImplTest {
     private User otherUser;
     private Notification notification;
     private NotificationResponse notificationResponse;
+    private PageRequest pageRequest;
 
     @BeforeEach
     void setUp() {
@@ -69,58 +63,24 @@ class NotificationServiceImplTest {
         notification = createTestNotification(currentUser, NotificationType.POST_LIKED, NotificationStatus.UNREAD);
         notification.setId(1L);
         notificationResponse = createTestNotificationResponse(notification);
-    }
-
-    @Test
-    void handleNotificationEvent_whenEventIsValid() {
-        GenericNotificationEvent event = createTestNotificationEvent(
-                currentUser.getId(),
-                NotificationType.POST_LIKED,
-                Map.of("postId", "123", "likerId", "456", "likerUsername", "likerUser")
-        );
-
-        when(userRepository.findById(currentUser.getId())).thenReturn(Optional.of(currentUser));
-        when(notificationRepository.save(any(Notification.class))).thenReturn(notification);
-
-        notificationServiceImpl.handleNotificationEvent(event);
-
-        verify(userRepository).findById(currentUser.getId());
-        verify(notificationRepository).save(any(Notification.class));
-        verify(webSocketNotificationServiceImpl).sendNotification(eq(currentUser.getId()), any(Notification.class));
-    }
-
-    @Test
-    void handleNotificationEvent_whenUserNotFound() {
-        GenericNotificationEvent event = createTestNotificationEvent(
-                999L,
-                NotificationType.POST_LIKED,
-                Map.of("postId", "123", "likerId", "456")
-        );
-
-        when(userRepository.findById(999L)).thenReturn(Optional.empty());
-
-        notificationServiceImpl.handleNotificationEvent(event);
-
-        verify(userRepository).findById(999L);
-        verify(notificationRepository, never()).save(any(Notification.class));
-        verify(webSocketNotificationServiceImpl, never()).sendNotification(anyLong(), any(Notification.class));
+        pageRequest = org.springframework.data.domain.PageRequest.of(0, 10);
     }
 
     @Test
     void getUserNotifications_whenUserHasNotifications() {
         List<Notification> notifications = List.of(notification);
-        List<NotificationResponse> expectedResponses = List.of(notificationResponse);
+        Page<Notification> notificationPage = new PageImpl<>(notifications);
+        Page<NotificationResponse> expectedResponses = new PageImpl<>(List.of(notificationResponse));
 
-        when(notificationRepository.findByUserActionOrderByCreatedAtDesc(currentUser)).thenReturn(notifications);
-        when(entityMapper.mapList(notifications, NotificationResponse.class)).thenReturn(expectedResponses);
+        when(notificationRepository.findByUserActionOrderByCreatedAtDesc(eq(currentUser), any(PageRequest.class))).thenReturn(notificationPage);
+        when(entityMapper.map(notification, NotificationResponse.class)).thenReturn(notificationResponse);
 
-        List<NotificationResponse> result = notificationServiceImpl.getUserNotifications(currentUser);
+        PageResponse<NotificationResponse> result = notificationServiceImpl.getUserNotifications(currentUser, pageRequest);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getContent().size());
 
-        verify(notificationRepository).findByUserActionOrderByCreatedAtDesc(currentUser);
-        verify(entityMapper).mapList(notifications, NotificationResponse.class);
+        verify(notificationRepository).findByUserActionOrderByCreatedAtDesc(eq(currentUser), any(PageRequest.class));
     }
 
     @Test
@@ -173,19 +133,19 @@ class NotificationServiceImplTest {
     @Test
     void getUnreadNotifications_whenUserHasUnreadNotifications() {
         List<Notification> unreadNotifications = List.of(notification);
-        List<NotificationResponse> expectedResponses = List.of(notificationResponse);
+        Page<Notification> notificationPage = new PageImpl<>(unreadNotifications);
+        Page<NotificationResponse> expectedResponses = new PageImpl<>(List.of(notificationResponse));
 
-        when(notificationRepository.findByUserActionAndStatusOrderByCreatedAtDesc(currentUser, NotificationStatus.UNREAD))
-                .thenReturn(unreadNotifications);
-        when(entityMapper.mapList(unreadNotifications, NotificationResponse.class)).thenReturn(expectedResponses);
+        when(notificationRepository.findByUserActionAndStatusOrderByCreatedAtDesc(eq(currentUser), eq(NotificationStatus.UNREAD), any(PageRequest.class)))
+                .thenReturn(notificationPage);
+        when(entityMapper.map(notification, NotificationResponse.class)).thenReturn(notificationResponse);
 
-        List<NotificationResponse> result = notificationServiceImpl.getUnreadNotifications(currentUser);
+        PageResponse<NotificationResponse> result = notificationServiceImpl.getUnreadNotifications(currentUser, pageRequest);
 
         assertNotNull(result);
-        assertEquals(1, result.size());
+        assertEquals(1, result.getContent().size());
 
-        verify(notificationRepository).findByUserActionAndStatusOrderByCreatedAtDesc(currentUser, NotificationStatus.UNREAD);
-        verify(entityMapper).mapList(unreadNotifications, NotificationResponse.class);
+        verify(notificationRepository).findByUserActionAndStatusOrderByCreatedAtDesc(eq(currentUser), eq(NotificationStatus.UNREAD), any(PageRequest.class));
     }
 
     @Test
@@ -272,25 +232,4 @@ class NotificationServiceImplTest {
 
         verify(notificationRepository).deleteAllDeletedByUser(currentUser);
     }
-
-    @Test
-    void handleNotificationEvent_whenExceptionOccurs() {
-        GenericNotificationEvent event = createTestNotificationEvent(
-                currentUser.getId(),
-                NotificationType.POST_LIKED,
-                Map.of("postId", "123")
-        );
-
-        when(userRepository.findById(currentUser.getId())).thenThrow(new RuntimeException("Database error"));
-
-        assertDoesNotThrow(() -> notificationServiceImpl.handleNotificationEvent(event));
-
-        verify(userRepository).findById(currentUser.getId());
-        verify(notificationRepository, never()).save(any(Notification.class));
-        verify(webSocketNotificationServiceImpl, never()).sendNotification(anyLong(), any(Notification.class));
-    }
 }
-
-
-
-
