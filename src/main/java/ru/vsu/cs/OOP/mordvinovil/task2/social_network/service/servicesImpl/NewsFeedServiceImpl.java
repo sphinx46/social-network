@@ -1,15 +1,16 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.NewsFeedResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.NewsFeedRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.NewsFeedService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -18,9 +19,12 @@ public class NewsFeedServiceImpl implements NewsFeedService {
     private final EntityMapper entityMapper;
 
     @Override
-    public List<NewsFeedResponse> getPostsByFriends(User currentUser) {
-        List<Post> posts = newsFeedRepository.findPostsByFriends(currentUser.getId());
+    public PageResponse<NewsFeedResponse> getPostsByFriends(User currentUser, PageRequest pageRequest) {
+        Page<Post> posts = newsFeedRepository.findPostsByFriends(currentUser.getId(),
+                pageRequest.toPageable());
 
-        return entityMapper.mapListWithName(posts, NewsFeedResponse.class, "fullNewsFeed");
+        return PageResponse.of(posts.map(
+                post -> entityMapper.mapWithName(post, NewsFeedResponse.class, "fullNewsFeed")
+        ));
     }
 }

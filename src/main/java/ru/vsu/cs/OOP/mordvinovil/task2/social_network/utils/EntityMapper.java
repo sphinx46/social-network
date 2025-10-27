@@ -19,6 +19,13 @@ public class EntityMapper {
         return modelMapper.map(source, targetClass);
     }
 
+    public <S, T> T mapWithName(S source, Class<T> targetClass, String name) {
+        if (source == null) {
+            return null;
+        }
+        return modelMapper.map(source, targetClass, name);
+    }
+
     public <S, T> List<T> mapList(List<S> source, Class<T> targetClass) {
         if (source == null) {
             return List.of();

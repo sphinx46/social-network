@@ -136,18 +136,43 @@ public class ModelMapperConfig {
     private void configureNewsFeedMappings(ModelMapper modelMapper) {
         Converter<Post, PostResponse> postToPostResponseConverter = context -> {
             Post post = context.getSource();
-            return modelMapper.map(post, PostResponse.class, "withDetails");
+            PostResponse postResponse = new PostResponse();
+
+            postResponse.setId(post.getId());
+            postResponse.setUsername(post.getUser().getUsername());
+            postResponse.setContent(post.getContent());
+            postResponse.setImageUrl(post.getImageUrl());
+            postResponse.setTime(post.getCreatedAt());
+
+            if (post.getComments() != null) {
+                List<CommentResponse> commentResponses = post.getComments().stream()
+                        .map(comment -> modelMapper.map(comment, CommentResponse.class))
+                        .collect(Collectors.toList());
+                postResponse.setCommentResponseList(commentResponses);
+            } else {
+                postResponse.setCommentResponseList(List.of());
+            }
+
+            if (post.getLikes() != null) {
+                List<LikePostResponse> likeResponses = post.getLikes().stream()
+                        .map(like -> modelMapper.map(like, LikePostResponse.class))
+                        .collect(Collectors.toList());
+                postResponse.setLikePostResponseList(likeResponses);
+            } else {
+                postResponse.setLikePostResponseList(List.of());
+            }
+
+            return postResponse;
         };
 
         modelMapper.createTypeMap(Post.class, NewsFeedResponse.class, "fullNewsFeed")
                 .addMappings(mapper -> {
                     mapper.map(Post::getId, NewsFeedResponse::setId);
                     mapper.map(src -> src.getUser().getUsername(), NewsFeedResponse::setAuthor);
-
-                    mapper.using(postToPostResponseConverter)
-                            .map(source -> source, NewsFeedResponse::setPostResponse);
+                    mapper.using(postToPostResponseConverter).map(source -> source, NewsFeedResponse::setPostResponse);
                 });
     }
+
 
     private void configurePostMappings(ModelMapper modelMapper) {
         modelMapper.addMappings(new PropertyMap<Post, PostResponse>() {

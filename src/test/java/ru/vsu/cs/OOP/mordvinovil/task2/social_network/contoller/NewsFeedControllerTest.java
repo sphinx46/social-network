@@ -7,6 +7,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.NewsFeedController;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.NewsFeedResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.NewsFeedService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.BaseControllerTest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
@@ -28,30 +29,41 @@ public class NewsFeedControllerTest extends BaseControllerTest {
     @DisplayName("Получение ленты новостей для авторизованного пользователя - успешно")
     void getNewsFeed_whenUserIsAuth() throws Exception {
         List<NewsFeedResponse> newsFeedResponseList = TestDataFactory.createTestNewsFeedResponseList();
+        var pageResponse = PageResponse.<NewsFeedResponse>builder()
+                .content(newsFeedResponseList)
+                .currentPage(0)
+                .totalPages(1)
+                .totalElements(10L)
+                .pageSize(10)
+                .first(true)
+                .last(true)
+                .build();
 
         when(userService.getCurrentUser()).thenReturn(createTestUser(1L, "testUser"));
-        when(newsFeedService.getPostsByFriends(any())).thenReturn(newsFeedResponseList);
+        when(newsFeedService.getPostsByFriends(any(), any())).thenReturn(pageResponse);
 
-
-        mockMvcUtils.performGet("/newsfeed")
+        mockMvcUtils.performGet("/newsfeed?size=10&pageNumber=0")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(newsFeedResponseList.size()))
-                .andExpect(jsonPath("$[0].id").value(0L))
-                .andExpect(jsonPath("$[0].author").value("username0"))
-                .andExpect(jsonPath("$[0].postResponse.id").value(0L))
-                .andExpect(jsonPath("$[0].postResponse.username").value("username0"))
-                .andExpect(jsonPath("$[0].postResponse.content").value("test"))
-                .andExpect(jsonPath("$[0].postResponse.imageUrl").value("http://example.com/image.jpg"))
-                .andExpect(jsonPath("$[9].id").value(9L))
-                .andExpect(jsonPath("$[9].author").value("username9"))
-                .andExpect(jsonPath("$[9].postResponse.id").value(9L));
+                .andExpect(jsonPath("$.content.length()").value(10))
+                .andExpect(jsonPath("$.content[0].id").value(0L))
+                .andExpect(jsonPath("$.content[0].author").value("username0"))
+                .andExpect(jsonPath("$.content[0].postResponse.id").value(0L))
+                .andExpect(jsonPath("$.content[0].postResponse.username").value("username0"))
+                .andExpect(jsonPath("$.content[0].postResponse.content").value("test"))
+                .andExpect(jsonPath("$.content[0].postResponse.imageUrl").value("http://example.com/image.jpg"))
+                .andExpect(jsonPath("$.content[9].id").value(9L))
+                .andExpect(jsonPath("$.content[9].author").value("username9"))
+                .andExpect(jsonPath("$.content[9].postResponse.id").value(9L))
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.totalElements").value(10));
 
-        verify(newsFeedService, times(1)).getPostsByFriends(any());
+        verify(newsFeedService, times(1)).getPostsByFriends(any(), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
-    @DisplayName("Получение ленты новостей для авторизованного пользователя - 401 ошибка")
+    @DisplayName("Получение ленты новостей для неавторизованного пользователя - 401 ошибка")
     void getNewsFeed_whenUserIsNotAuth() throws Exception {
         mockMvcUtils.performGet("/newsfeed")
                 .andExpect(status().isUnauthorized());
