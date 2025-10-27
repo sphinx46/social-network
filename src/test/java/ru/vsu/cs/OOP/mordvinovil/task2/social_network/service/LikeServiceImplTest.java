@@ -5,10 +5,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Sort;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.LikeCommentRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.LikePostRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.LikeCommentResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.LikePostResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Like;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
@@ -123,17 +128,22 @@ public class LikeServiceImplTest {
                 createTestLikePostResponse(likes.get(0)),
                 createTestLikePostResponse(likes.get(1))
         );
+        Page<Like> likePage = new PageImpl<>(likes);
+        PageRequest pageRequest = PageRequest.builder()
+                .pageNumber(0)
+                .size(10)
+                .direction(Sort.Direction.DESC)
+                .sortBy("createdAt")
+                .build();
 
-        when(likeRepository.findByPostId(1L)).thenReturn(likes);
-        when(entityMapper.mapList(likes, LikePostResponse.class)).thenReturn(expectedResponses);
+        when(likeRepository.findByPostId(eq(1L), any(org.springframework.data.domain.PageRequest.class))).thenReturn(likePage);
 
-        List<LikePostResponse> result = likeServiceImpl.getLikesByPost(1L);
+        PageResponse<LikePostResponse> result = likeServiceImpl.getLikesByPost(1L, pageRequest);
 
         assertNotNull(result);
-        assertEquals(2, result.size());
+        assertEquals(2, result.getContent().size());
 
-        verify(likeRepository).findByPostId(1L);
-        verify(entityMapper).mapList(likes, LikePostResponse.class);
+        verify(likeRepository).findByPostId(eq(1L), any(org.springframework.data.domain.PageRequest.class));
     }
 
     @Test
@@ -148,17 +158,22 @@ public class LikeServiceImplTest {
                 createTestLikeCommentResponse(likes.get(0)),
                 createTestLikeCommentResponse(likes.get(1))
         );
+        Page<Like> likePage = new PageImpl<>(likes);
+        PageRequest pageRequest = PageRequest.builder()
+                .pageNumber(0)
+                .size(10)
+                .direction(Sort.Direction.DESC)
+                .sortBy("createdAt")
+                .build();
 
-        when(likeRepository.findByCommentId(1L)).thenReturn(likes);
-        when(entityMapper.mapList(likes, LikeCommentResponse.class)).thenReturn(expectedResponses);
+        when(likeRepository.findByCommentId(eq(1L), any(org.springframework.data.domain.PageRequest.class))).thenReturn(likePage);
 
-        List<LikeCommentResponse> result = likeServiceImpl.getLikesByComment(1L);
+        PageResponse<LikeCommentResponse> result = likeServiceImpl.getLikesByComment(1L, pageRequest);
 
         assertNotNull(result);
-        assertEquals(2, result.size());
+        assertEquals(2, result.getContent().size());
 
-        verify(likeRepository).findByCommentId(1L);
-        verify(entityMapper).mapList(likes, LikeCommentResponse.class);
+        verify(likeRepository).findByCommentId(eq(1L), any(org.springframework.data.domain.PageRequest.class));
     }
 
     @Test
@@ -231,4 +246,3 @@ public class LikeServiceImplTest {
         verify(likeRepository).findByUserIdAndPostId(currentUser.getId(), 1L);
     }
 }
-

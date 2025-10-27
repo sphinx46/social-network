@@ -2,11 +2,14 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.LikeCommentRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.LikePostRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.LikeCommentResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.LikePostResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Like;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
@@ -20,8 +23,6 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMe
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.LikeFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.LikeValidator;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -64,15 +65,19 @@ public class LikeServiceImpl implements LikeService {
     }
 
     @Override
-    public List<LikePostResponse> getLikesByPost(Long postId) {
-        List<Like> likes = likeRepository.findByPostId(postId);
-        return entityMapper.mapList(likes, LikePostResponse.class);
+    public PageResponse<LikePostResponse> getLikesByPost(Long postId, PageRequest pageRequest) {
+        Page<Like> likes = likeRepository.findByPostId(postId, pageRequest.toPageable());
+        return PageResponse.of(likes.map(
+                like -> entityMapper.map(like, LikePostResponse.class)
+        ));
     }
 
     @Override
-    public List<LikeCommentResponse> getLikesByComment(Long commentId) {
-        List<Like> likes = likeRepository.findByCommentId(commentId);
-        return entityMapper.mapList(likes, LikeCommentResponse.class);
+    public PageResponse<LikeCommentResponse> getLikesByComment(Long commentId, PageRequest pageRequest) {
+        Page<Like> likes = likeRepository.findByCommentId(commentId, pageRequest.toPageable());
+        return PageResponse.of(likes.map(
+                like -> entityMapper.map(like, LikeCommentResponse.class)
+        ));
     }
 
     @Transactional

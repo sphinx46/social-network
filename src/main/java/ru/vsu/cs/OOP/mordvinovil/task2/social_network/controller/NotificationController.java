@@ -17,7 +17,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.UserService;
 @RestController
 @RequestMapping("/notifications")
 @RequiredArgsConstructor
-public class NotificationContoller {
+public class NotificationController {
     private final NotificationService notificationService;
     private final UserService userService;
 

@@ -8,7 +8,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.NotificationContoller;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.NotificationController;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.NotificationResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationStatus;
@@ -27,7 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory.createTestNotificationResponse;
 import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory.createTestNotificationResponseList;
 
-@WebMvcTest(NotificationContoller.class)
+@WebMvcTest(NotificationController.class)
 class NotificationControllerTest extends BaseControllerTest {
 
     @MockitoBean

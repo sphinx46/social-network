@@ -6,6 +6,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.LikeController;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.LikeCommentResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.LikePostResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.LikeService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.BaseControllerTest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
@@ -103,17 +107,29 @@ class LikeControllerTest extends BaseControllerTest {
     @DisplayName("Получение лайков поста - успешно")
     void getLikesOnPost_whenRequestIsValid() throws Exception {
         var responses = List.of(TestDataFactory.createLikePostResponse());
+        var pageResponse = PageResponse.<LikePostResponse>builder()
+                .content(responses)
+                .currentPage(0)
+                .totalPages(1)
+                .totalElements(1L)
+                .pageSize(10)
+                .first(true)
+                .last(true)
+                .build();
 
-        when(likeService.getLikesByPost(1L)).thenReturn(responses);
+        when(likeService.getLikesByPost(eq(1L), any(PageRequest.class))).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/likes/post/1")
+        mockMvcUtils.performGet("/likes/post/1?size=10&pageNumber=0")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].userId").value(1L))
-                .andExpect(jsonPath("$[0].username").value("testUser"))
-                .andExpect(jsonPath("$[0].postId").value(1L));
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].userId").value(1L))
+                .andExpect(jsonPath("$.content[0].username").value("testUser"))
+                .andExpect(jsonPath("$.content[0].postId").value(1L))
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1));
 
-        verify(likeService, times(1)).getLikesByPost(1L);
+        verify(likeService, times(1)).getLikesByPost(eq(1L), any(PageRequest.class));
         verifyNoInteractions(userService);
     }
 
@@ -122,17 +138,29 @@ class LikeControllerTest extends BaseControllerTest {
     @DisplayName("Получение лайков комментария - успешно")
     void getLikesOnComment_whenRequestIsValid() throws Exception {
         var responses = List.of(TestDataFactory.createLikeCommentResponse());
+        var pageResponse = PageResponse.<LikeCommentResponse>builder()
+                .content(responses)
+                .currentPage(0)
+                .totalPages(1)
+                .totalElements(1L)
+                .pageSize(10)
+                .first(true)
+                .last(true)
+                .build();
 
-        when(likeService.getLikesByComment(1L)).thenReturn(responses);
+        when(likeService.getLikesByComment(eq(1L), any(PageRequest.class))).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/likes/comment/1")
+        mockMvcUtils.performGet("/likes/comment/1?size=10&pageNumber=0")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].userId").value(1L))
-                .andExpect(jsonPath("$[0].username").value("testUser"))
-                .andExpect(jsonPath("$[0].commentId").value(1L));
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].userId").value(1L))
+                .andExpect(jsonPath("$.content[0].username").value("testUser"))
+                .andExpect(jsonPath("$.content[0].commentId").value(1L))
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1));
 
-        verify(likeService, times(1)).getLikesByComment(1L);
+        verify(likeService, times(1)).getLikesByComment(eq(1L), any(PageRequest.class));
         verifyNoInteractions(userService);
     }
 

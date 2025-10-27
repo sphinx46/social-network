@@ -2,19 +2,21 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.LikeCommentRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.LikePostRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.LikeCommentResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.LikePostResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.LikeService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.UserService;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/likes")
@@ -47,18 +49,40 @@ public class LikeController {
 
     @Operation(summary = "Получение списка лайков на посте")
     @GetMapping("/post/{postId}")
-    public ResponseEntity<List<LikePostResponse>> getLikesOnPost(
-            @PathVariable Long postId) {
-        List<LikePostResponse> response = likeService.getLikesByPost(postId);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<PageResponse<LikePostResponse>> getLikesOnPost(
+            @PathVariable Long postId,
+            @RequestParam(defaultValue = "1", required = false) @Min(1) Integer size,
+            @RequestParam(defaultValue = "0", required = false) @Min(0) Integer pageNumber,
+            @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
+            @RequestParam(defaultValue = "DESC", required = false) String direction) {
+        var pageRequest = PageRequest.builder()
+                .pageNumber(pageNumber)
+                .size(size)
+                .sortBy(sortedBy)
+                .direction(Sort.Direction.fromString(direction))
+                .build();
+        PageResponse<LikePostResponse> pageResponse = likeService.getLikesByPost(postId, pageRequest);
+        return ResponseEntity.ok(pageResponse);
     }
 
     @Operation(summary = "Получение списка лайков на комментарии")
     @GetMapping("/comment/{commentId}")
-    public ResponseEntity<List<LikeCommentResponse>> getLikesOnComment(
-            @PathVariable Long commentId) {
-        List<LikeCommentResponse> response = likeService.getLikesByComment(commentId);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<PageResponse<LikeCommentResponse>> getLikesOnComment(
+            @PathVariable Long commentId,
+            @RequestParam(defaultValue = "1", required = false) @Min(1) Integer size,
+            @RequestParam(defaultValue = "0", required = false) @Min(0) Integer pageNumber,
+            @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
+            @RequestParam(defaultValue = "DESC", required = false) String direction) {
+
+        var pageRequest = PageRequest.builder()
+                .pageNumber(pageNumber)
+                .size(size)
+                .sortBy(sortedBy)
+                .direction(Sort.Direction.fromString(direction))
+                .build();
+
+        PageResponse<LikeCommentResponse> pageResponse = likeService.getLikesByComment(commentId, pageRequest);
+        return ResponseEntity.ok(pageResponse);
     }
 
     @PreAuthorize("isAuthenticated()")
