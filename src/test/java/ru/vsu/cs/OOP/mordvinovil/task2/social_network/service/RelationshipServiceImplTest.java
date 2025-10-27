@@ -5,7 +5,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Sort;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.RelationshipRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.RelationshipResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Relationship;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
@@ -19,7 +24,6 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.user.Use
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.RelationshipRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.RelationshipServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.RelationshipFactory;
@@ -270,21 +274,72 @@ public class RelationshipServiceImplTest {
                 createTestRelationship(currentUser, createTestUser(2L, "friend1", "friend1@example.com"), FriendshipStatus.ACCEPTED),
                 createTestRelationship(currentUser, createTestUser(3L, "friend2", "friend2@example.com"), FriendshipStatus.ACCEPTED)
         );
-        List<RelationshipResponse> expectedResponses = relationships.stream()
-                .map(TestDataFactory::createTestRelationshipResponse)
-                .toList();
+        Page<Relationship> relationshipPage = new PageImpl<>(relationships);
+        PageRequest pageRequest = PageRequest.builder()
+                .pageNumber(0)
+                .size(10)
+                .direction(Sort.Direction.DESC)
+                .sortBy("createdAt")
+                .build();
 
-        when(relationshipRepository.findByUserAndStatus(currentUser.getId(), FriendshipStatus.ACCEPTED))
-                .thenReturn(relationships);
-        when(entityMapper.mapList(relationships, RelationshipResponse.class))
-                .thenReturn(expectedResponses);
+        when(relationshipRepository.findByUserAndStatus(eq(currentUser.getId()), eq(FriendshipStatus.ACCEPTED), any()))
+                .thenReturn(relationshipPage);
 
-        List<RelationshipResponse> result = relationshipServiceImpl.getFriendList(currentUser);
+        PageResponse<RelationshipResponse> result = relationshipServiceImpl.getFriendList(currentUser, pageRequest);
 
         assertNotNull(result);
-        assertEquals(2, result.size());
+        assertEquals(2, result.getContent().size());
 
-        verify(relationshipRepository).findByUserAndStatus(currentUser.getId(), FriendshipStatus.ACCEPTED);
-        verify(entityMapper).mapList(relationships, RelationshipResponse.class);
+        verify(relationshipRepository).findByUserAndStatus(eq(currentUser.getId()), eq(FriendshipStatus.ACCEPTED), any());
+    }
+
+    @Test
+    void getBlackList() {
+        User currentUser = createTestUser(1L, "user", "example@example.com");
+        List<Relationship> relationships = List.of(
+                createTestRelationship(currentUser, createTestUser(2L, "blocked1", "blocked1@example.com"), FriendshipStatus.BLOCKED)
+        );
+        Page<Relationship> relationshipPage = new PageImpl<>(relationships);
+        PageRequest pageRequest = PageRequest.builder()
+                .pageNumber(0)
+                .size(10)
+                .direction(Sort.Direction.DESC)
+                .sortBy("createdAt")
+                .build();
+
+        when(relationshipRepository.findByUserAndStatus(eq(currentUser.getId()), eq(FriendshipStatus.BLOCKED), any()))
+                .thenReturn(relationshipPage);
+
+        PageResponse<RelationshipResponse> result = relationshipServiceImpl.getBlackList(currentUser, pageRequest);
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+
+        verify(relationshipRepository).findByUserAndStatus(eq(currentUser.getId()), eq(FriendshipStatus.BLOCKED), any());
+    }
+
+    @Test
+    void getDeclinedList() {
+        User currentUser = createTestUser(1L, "user", "example@example.com");
+        List<Relationship> relationships = List.of(
+                createTestRelationship(currentUser, createTestUser(2L, "declined1", "declined1@example.com"), FriendshipStatus.DECLINED)
+        );
+        Page<Relationship> relationshipPage = new PageImpl<>(relationships);
+        PageRequest pageRequest = PageRequest.builder()
+                .pageNumber(0)
+                .size(10)
+                .direction(Sort.Direction.DESC)
+                .sortBy("createdAt")
+                .build();
+
+        when(relationshipRepository.findByUserAndStatus(eq(currentUser.getId()), eq(FriendshipStatus.DECLINED), any()))
+                .thenReturn(relationshipPage);
+
+        PageResponse<RelationshipResponse> result = relationshipServiceImpl.getDeclinedList(currentUser, pageRequest);
+
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+
+        verify(relationshipRepository).findByUserAndStatus(eq(currentUser.getId()), eq(FriendshipStatus.DECLINED), any());
     }
 }

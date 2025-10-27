@@ -1,8 +1,11 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.RelationshipRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.RelationshipResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Relationship;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
@@ -18,7 +21,6 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.Relationship
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.RelationshipValidator;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -43,16 +45,16 @@ public class RelationshipServiceImpl  implements RelationshipService {
         return entityMapper.map(savedRelationship, RelationshipResponse.class);
     }
 
-    public List<RelationshipResponse> getFriendList(User currentUser) {
-        return getRelationshipsByStatus(currentUser, FriendshipStatus.ACCEPTED);
+    public PageResponse<RelationshipResponse> getFriendList(User currentUser, PageRequest pageRequest) {
+        return getRelationshipsByStatus(currentUser, FriendshipStatus.ACCEPTED, pageRequest);
     }
 
-    public List<RelationshipResponse> getBlackList(User currentUser) {
-        return getRelationshipsByStatus(currentUser, FriendshipStatus.BLOCKED);
+    public PageResponse<RelationshipResponse> getBlackList(User currentUser, PageRequest pageRequest) {
+        return getRelationshipsByStatus(currentUser, FriendshipStatus.BLOCKED, pageRequest);
     }
 
-    public List<RelationshipResponse> getDeclinedList(User currentUser) {
-        return getRelationshipsByStatus(currentUser, FriendshipStatus.DECLINED);
+    public PageResponse<RelationshipResponse> getDeclinedList(User currentUser, PageRequest pageRequest) {
+        return getRelationshipsByStatus(currentUser, FriendshipStatus.DECLINED, pageRequest);
     }
 
     public RelationshipResponse blockUser(RelationshipRequest request, User currentUser) {
@@ -83,9 +85,11 @@ public class RelationshipServiceImpl  implements RelationshipService {
         return changeRelationshipStatus(request, FriendshipStatus.DECLINED, currentUser);
     }
 
-    private List<RelationshipResponse> getRelationshipsByStatus(User currentUser, FriendshipStatus status) {
-        List<Relationship> relationships = relationshipRepository.findByUserAndStatus(currentUser.getId(), status);
-        return entityMapper.mapList(relationships, RelationshipResponse.class);
+    private PageResponse<RelationshipResponse> getRelationshipsByStatus(User currentUser, FriendshipStatus status, PageRequest pageRequest) {
+        Page<Relationship> relationships = relationshipRepository.findByUserAndStatus(currentUser.getId(), status, pageRequest.toPageable());
+        return PageResponse.of(relationships.map(
+                relationship -> entityMapper.map(relationship, RelationshipResponse.class)
+        ));
     }
 
     private RelationshipResponse changeRelationshipStatus(RelationshipRequest request, FriendshipStatus status, User currentUser) {
@@ -105,3 +109,4 @@ public class RelationshipServiceImpl  implements RelationshipService {
         return relationship;
     }
 }
+

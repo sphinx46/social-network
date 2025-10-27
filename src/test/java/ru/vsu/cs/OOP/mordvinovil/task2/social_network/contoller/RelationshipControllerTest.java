@@ -6,7 +6,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.RelationshipController;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.*;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.RelationshipResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.RelationshipService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.BaseControllerTest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
 
@@ -49,7 +51,6 @@ class RelationshipControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.status").value("PENDING"));
 
         verify(relationshipService, times(1)).sendFriendRequest(any(), any());
-        verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
@@ -65,26 +66,39 @@ class RelationshipControllerTest extends BaseControllerTest {
                 .andExpect(status().isInternalServerError());
 
         verify(relationshipService, times(1)).sendFriendRequest(any(), any());
-        verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
     @WithMockUser(username = "testUser", authorities = "USER")
     @DisplayName("Получение списка друзей - успешно")
     void getFriendList_whenRequestIsValid() throws Exception {
-        var responses = List.of(TestDataFactory.createRelationshipResponse());
+        var response = TestDataFactory.createRelationshipResponse();
+        var pageResponse = PageResponse.<RelationshipResponse>builder()
+                .content(List.of(response))
+                .totalPages(1)
+                .totalElements(1L)
+                .pageSize(10)
+                .currentPage(0)
+                .first(true)
+                .last(true)
+                .build();
 
-        when(relationshipService.getFriendList(any())).thenReturn(responses);
+        when(relationshipService.getFriendList(any(), any())).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/relationships/friends")
+        mockMvcUtils.performGet("/relationships/friends?size=10&pageNumber=0&sortedBy=createdAt&direction=DESC")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].senderId").value(1L))
-                .andExpect(jsonPath("$[0].receiverId").value(2L))
-                .andExpect(jsonPath("$[0].status").value("PENDING"));
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].senderId").value(1L))
+                .andExpect(jsonPath("$.content[0].receiverId").value(2L))
+                .andExpect(jsonPath("$.content[0].status").value("PENDING"))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.first").value(true))
+                .andExpect(jsonPath("$.last").value(true));
 
-        verify(relationshipService, times(1)).getFriendList(any());
-        verify(userService, times(1)).getCurrentUser();
+        verify(relationshipService, times(1)).getFriendList(any(), any());
     }
 
     @Test
@@ -98,38 +112,66 @@ class RelationshipControllerTest extends BaseControllerTest {
     @WithMockUser(username = "testUser", authorities = "USER")
     @DisplayName("Получение черного списка - успешно")
     void getBlackList_whenRequestIsValid() throws Exception {
-        var responses = List.of(TestDataFactory.createRelationshipResponse());
+        var response = TestDataFactory.createRelationshipResponse();
+        var pageResponse = PageResponse.<RelationshipResponse>builder()
+                .content(List.of(response))
+                .totalPages(1)
+                .totalElements(1L)
+                .pageSize(10)
+                .currentPage(0)
+                .first(true)
+                .last(true)
+                .build();
 
-        when(relationshipService.getBlackList(any())).thenReturn(responses);
+        when(relationshipService.getBlackList(any(), any())).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/relationships/blackList")
+        mockMvcUtils.performGet("/relationships/blackList?size=10&pageNumber=0&sortedBy=createdAt&direction=DESC")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].senderId").value(1L))
-                .andExpect(jsonPath("$[0].receiverId").value(2L))
-                .andExpect(jsonPath("$[0].status").value("PENDING"));
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].senderId").value(1L))
+                .andExpect(jsonPath("$.content[0].receiverId").value(2L))
+                .andExpect(jsonPath("$.content[0].status").value("PENDING"))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.first").value(true))
+                .andExpect(jsonPath("$.last").value(true));
 
-        verify(relationshipService, times(1)).getBlackList(any());
-        verify(userService, times(1)).getCurrentUser();
+        verify(relationshipService, times(1)).getBlackList(any(), any());
     }
 
     @Test
     @WithMockUser(username = "testUser", authorities = "USER")
     @DisplayName("Получение списка отклоненных запросов - успешно")
     void getDeclinedList_whenRequestIsValid() throws Exception {
-        var responses = List.of(TestDataFactory.createRelationshipResponse());
+        var response = TestDataFactory.createRelationshipResponse();
+        var pageResponse = PageResponse.<RelationshipResponse>builder()
+                .content(List.of(response))
+                .totalPages(1)
+                .totalElements(1L)
+                .pageSize(10)
+                .currentPage(0)
+                .first(true)
+                .last(true)
+                .build();
 
-        when(relationshipService.getDeclinedList(any())).thenReturn(responses);
+        when(relationshipService.getDeclinedList(any(), any())).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/relationships/declinedList")
+        mockMvcUtils.performGet("/relationships/declinedList?size=10&pageNumber=0&sortedBy=createdAt&direction=DESC")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(1L))
-                .andExpect(jsonPath("$[0].senderId").value(1L))
-                .andExpect(jsonPath("$[0].receiverId").value(2L))
-                .andExpect(jsonPath("$[0].status").value("PENDING"));
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].senderId").value(1L))
+                .andExpect(jsonPath("$.content[0].receiverId").value(2L))
+                .andExpect(jsonPath("$.content[0].status").value("PENDING"))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1))
+                .andExpect(jsonPath("$.pageSize").value(10))
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.first").value(true))
+                .andExpect(jsonPath("$.last").value(true));
 
-        verify(relationshipService, times(1)).getDeclinedList(any());
-        verify(userService, times(1)).getCurrentUser();
+        verify(relationshipService, times(1)).getDeclinedList(any(), any());
     }
 
     @Test
@@ -147,7 +189,6 @@ class RelationshipControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.status").value("PENDING"));
 
         verify(relationshipService, times(1)).acceptFriendRequest(any(), any());
-        verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
@@ -174,7 +215,6 @@ class RelationshipControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.status").value("PENDING"));
 
         verify(relationshipService, times(1)).declineFriendRequest(any(), any());
-        verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
@@ -192,7 +232,6 @@ class RelationshipControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.status").value("PENDING"));
 
         verify(relationshipService, times(1)).blockUser(any(), any());
-        verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
@@ -208,7 +247,6 @@ class RelationshipControllerTest extends BaseControllerTest {
                 .andExpect(status().isInternalServerError());
 
         verify(relationshipService, times(1)).acceptFriendRequest(any(), any());
-        verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
@@ -224,7 +262,6 @@ class RelationshipControllerTest extends BaseControllerTest {
                 .andExpect(status().isInternalServerError());
 
         verify(relationshipService, times(1)).declineFriendRequest(any(), any());
-        verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
@@ -240,9 +277,5 @@ class RelationshipControllerTest extends BaseControllerTest {
                 .andExpect(status().isInternalServerError());
 
         verify(relationshipService, times(1)).blockUser(any(), any());
-        verify(userService, times(1)).getCurrentUser();
     }
 }
-
-
-

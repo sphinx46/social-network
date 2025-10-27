@@ -1,5 +1,7 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,6 +25,12 @@ public interface RelationshipRepository extends JpaRepository<Relationship, Long
             "AND r.status = :status")
     List<Relationship> findByUserAndStatus(@Param("userId") Long userId,
                                            @Param("status") FriendshipStatus status);
+
+    @Query("SELECT r FROM Relationship r WHERE (r.sender.id = :userId OR r.receiver.id = :userId) " +
+            "AND r.status = :status")
+    Page<Relationship> findByUserAndStatus(@Param("userId") Long userId,
+                                           @Param("status") FriendshipStatus status,
+                                           Pageable pageable);
 
     @Query("SELECT r FROM Relationship r WHERE r.sender.id = :userId AND r.status = :status")
     List<Relationship> findSentRequestsByUserAndStatus(@Param("userId") Long userId,
