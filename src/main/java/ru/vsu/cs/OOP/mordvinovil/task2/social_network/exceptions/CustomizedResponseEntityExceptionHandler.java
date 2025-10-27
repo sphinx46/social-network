@@ -11,9 +11,20 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.ExceptionResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.FileProcessingException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.*;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.comment.CommentNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.like.LikeNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.message.MessageNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.message.SelfMessageException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.post.PostNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.profile.ProfileAlreadyExistsException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.profile.ProfileNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.DuplicateRelationshipException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.RelationshipNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.SelfRelationshipException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.user.UserNotFoundException;
 
 import java.util.Date;
 

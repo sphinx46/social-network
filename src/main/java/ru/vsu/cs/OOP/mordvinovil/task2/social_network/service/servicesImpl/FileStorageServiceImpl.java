@@ -5,9 +5,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.FileProcessingException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.FileEmptyException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.FileOversizeException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.FileUnsupportedFormat;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.file.FileEmptyException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.file.FileOversizeException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.file.FileUnsupportedFormat;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.FileStorageService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 

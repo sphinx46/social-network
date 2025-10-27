@@ -13,7 +13,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.Notificatio
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationType;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.GenericNotificationEvent;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.NotificationNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.notification.NotificationNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.NotificationRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.NotificationServiceImpl;

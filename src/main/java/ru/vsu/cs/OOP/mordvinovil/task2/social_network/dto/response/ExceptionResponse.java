@@ -1,4 +1,4 @@
-package ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions;
+package ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response;
 
 import java.util.Date;
 

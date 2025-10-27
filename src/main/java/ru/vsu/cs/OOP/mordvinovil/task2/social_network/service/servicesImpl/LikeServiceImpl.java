@@ -12,7 +12,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Like;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.LikeNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.like.LikeNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.LikeRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.LikeService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;

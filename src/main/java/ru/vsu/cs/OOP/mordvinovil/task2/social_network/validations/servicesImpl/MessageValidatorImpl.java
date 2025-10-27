@@ -6,10 +6,10 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.MessageRequest
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Message;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.MessageContentEmptyException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.MessageContentTooLongException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.SelfMessageException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.UserNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.message.MessageContentEmptyException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.message.MessageContentTooLongException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.message.SelfMessageException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.user.UserNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.MessageValidator;

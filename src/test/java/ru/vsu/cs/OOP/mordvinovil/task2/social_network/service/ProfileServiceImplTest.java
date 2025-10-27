@@ -10,7 +10,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.ProfileRequest
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.ProfileResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Profile;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.ProfileAlreadyExistsException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.profile.ProfileAlreadyExistsException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.ProfileRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.FileStorageServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.ProfileServiceImpl;

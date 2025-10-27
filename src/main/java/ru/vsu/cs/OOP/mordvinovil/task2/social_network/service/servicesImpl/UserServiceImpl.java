@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Role;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.UserAlreadyExistsException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.user.UserAlreadyExistsException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.security.filters.UserDetailsImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.UserService;
