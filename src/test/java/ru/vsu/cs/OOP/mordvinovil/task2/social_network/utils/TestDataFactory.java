@@ -44,7 +44,6 @@ public class TestDataFactory {
                 .user(user)
                 .imageUrl(imageUrl)
                 .content(content)
-                .time(LocalDateTime.now())
                 .build();
     }
 
@@ -55,7 +54,6 @@ public class TestDataFactory {
         comment.setPost(post);
         comment.setContent(content);
         comment.setCreator(creator);
-        comment.setTime(LocalDateTime.now());
         return comment;
     }
 
@@ -64,7 +62,6 @@ public class TestDataFactory {
         comment.setId(id);
         comment.setContent(content);
         comment.setCreator(createTestUser(1L, "commentCreator", "creator@example.com"));
-        comment.setTime(LocalDateTime.now());
         return comment;
     }
 
@@ -73,7 +70,6 @@ public class TestDataFactory {
                 .user(user)
                 .post(post)
                 .comment(comment)
-                .createdAt(LocalDateTime.now())
                 .build();
     }
 
@@ -85,7 +81,6 @@ public class TestDataFactory {
                 .content(content)
                 .imageUrl(imageUrl)
                 .status(status)
-                .createdAt(createdAt)
                 .updatedAt(updatedAt)
                 .build();
     }
@@ -95,7 +90,6 @@ public class TestDataFactory {
                 .sender(sender)
                 .receiver(receiver)
                 .status(status)
-                .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
     }
@@ -139,7 +133,6 @@ public class TestDataFactory {
         response.setId(comment.getId());
         response.setContent(comment.getContent());
         response.setImageUrl(comment.getImageUrl());
-        response.setTime(comment.getTime());
         response.setUsername(comment.getCreator().getUsername());
         return response;
     }
@@ -296,7 +289,6 @@ public class TestDataFactory {
                 .username(post.getUser().getUsername())
                 .content(post.getContent())
                 .imageUrl(post.getImageUrl())
-                .time(post.getTime())
                 .build();
     }
 
@@ -371,7 +363,6 @@ public class TestDataFactory {
                 .user(user)
                 .post(post)
                 .comment(comment)
-                .createdAt(LocalDateTime.now())
                 .build();
         like.setId(id);
         return like;
@@ -381,7 +372,6 @@ public class TestDataFactory {
         return Like.builder()
                 .user(user)
                 .post(post)
-                .createdAt(LocalDateTime.now())
                 .build();
     }
 
@@ -389,14 +379,12 @@ public class TestDataFactory {
         return Like.builder()
                 .user(user)
                 .comment(comment)
-                .createdAt(LocalDateTime.now())
                 .build();
     }
 
     public static Like createTestLike(Long id) {
         Like like = Like.builder()
                 .user(createTestUser())
-                .createdAt(LocalDateTime.now())
                 .build();
         like.setId(id);
         return like;
@@ -407,7 +395,6 @@ public class TestDataFactory {
                 .user(user)
                 .imageUrl(imageUrl)
                 .content(content)
-                .time(LocalDateTime.now())
                 .build();
         post.setId(id);
         return post;
@@ -419,7 +406,6 @@ public class TestDataFactory {
         comment.setPost(post);
         comment.setContent(content);
         comment.setCreator(creator);
-        comment.setTime(LocalDateTime.now());
         return comment;
     }
 
@@ -512,7 +498,6 @@ public class TestDataFactory {
                 .type(type)
                 .status(status)
                 .additionalData(Map.of("test", "data"))
-                .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
     }

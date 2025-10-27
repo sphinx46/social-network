@@ -13,6 +13,6 @@ public class PageRequest {
     private Sort.Direction direction = Sort.Direction.DESC;
 
     public org.springframework.data.domain.PageRequest toPageable() {
-        return org.springframework.data.domain.PageRequest.of(size, pageNumber, direction, sortBy);
+        return org.springframework.data.domain.PageRequest.of(pageNumber, size, direction, sortBy);
     }
 }

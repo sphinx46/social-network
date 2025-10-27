@@ -7,8 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @Entity
 @Builder
@@ -29,7 +27,4 @@ public class Comment extends BaseEntity {
 
     @Column(name = "image_url")
     private String imageUrl;
-
-    @Column(name = "time", nullable = false)
-    private LocalDateTime time;
 }

@@ -34,8 +34,8 @@ public class NotificationContoller {
     @Operation(summary = "Получение всех уведомлений текущего пользователя")
     @GetMapping()
     public ResponseEntity<PageResponse<NotificationResponse>> getAllUserNotifications(
-            @RequestParam(defaultValue = "1", required = false) @Min(1) Integer pageSize,
-            @RequestParam(defaultValue = "1", required = false) @Min(1) Integer pageNumber,
+            @RequestParam(defaultValue = "5", required = false) @Min(1) Integer size,
+            @RequestParam(defaultValue = "0", required = false) @Min(0) Integer pageNumber,
             @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
             @RequestParam(defaultValue = "DESC", required = false) String direction
     ) {
@@ -43,7 +43,7 @@ public class NotificationContoller {
 
         var pageRequest = PageRequest.builder()
                 .pageNumber(pageNumber)
-                .size(pageSize)
+                .size(size)
                 .sortBy(sortedBy)
                 .direction(Sort.Direction.fromString(direction))
                 .build().toPageable();
@@ -57,8 +57,8 @@ public class NotificationContoller {
     @Operation(summary = "Получение непрочитанных уведомлений текущего пользователя")
     @GetMapping("/unread")
     public ResponseEntity<PageResponse<NotificationResponse>> getUnreadUserNotifications(
-            @RequestParam(defaultValue = "1", required = false) @Min(1) Integer pageSize,
-            @RequestParam(defaultValue = "1", required = false) @Min(1) Integer pageNumber,
+            @RequestParam(defaultValue = "1", required = false) @Min(1) Integer size,
+            @RequestParam(defaultValue = "0", required = false) @Min(0) Integer pageNumber,
             @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
             @RequestParam(defaultValue = "DESC", required = false) String direction
     ) {
@@ -66,7 +66,7 @@ public class NotificationContoller {
 
         var pageRequest = PageRequest.builder()
                 .pageNumber(pageNumber)
-                .size(pageSize)
+                .size(size)
                 .sortBy(sortedBy)
                 .direction(Sort.Direction.fromString(direction))
                 .build().toPageable();

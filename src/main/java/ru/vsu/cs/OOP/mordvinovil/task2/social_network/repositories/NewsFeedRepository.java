@@ -22,6 +22,6 @@ public interface NewsFeedRepository extends JpaRepository<Post, Long> {
             "    WHERE r.receiver.id = :userId " +
             "    AND r.status = FriendshipStatus.ACCEPTED" +
             ") " +
-            "ORDER BY p.time DESC")
+            "ORDER BY p.createdAt DESC")
     List<Post> findPostsByFriends(@Param("userId") Long userId);
 }

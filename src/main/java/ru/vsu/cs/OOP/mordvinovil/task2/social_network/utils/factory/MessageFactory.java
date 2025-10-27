@@ -18,7 +18,6 @@ public class MessageFactory {
                 .content(request.getContent())
                 .imageUrl(request.getImageUrl())
                 .status(MessageStatus.SENT)
-                .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
     }

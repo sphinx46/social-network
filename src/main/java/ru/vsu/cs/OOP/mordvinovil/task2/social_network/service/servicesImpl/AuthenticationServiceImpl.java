@@ -15,8 +15,6 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.security.filters.UserDetailsImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.AuthenticationService;
 
-import java.time.LocalDateTime;
-
 @Service
 @RequiredArgsConstructor
 public class AuthenticationServiceImpl implements AuthenticationService {
@@ -39,7 +37,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .username(request.getUsername())
                 .email(request.getEmail())
                 .city(request.getCity())
-                .createdAt(LocalDateTime.now())
                 .isOnline(false)
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.ROLE_USER)

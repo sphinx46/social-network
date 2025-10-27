@@ -7,8 +7,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.multipart.MultipartFile;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.CommentController;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.PostController;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PostRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PostResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.BaseEntity;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
@@ -189,16 +193,16 @@ class PostServiceImplTest {
         var posts = List.of(post1, post2);
         var responses = posts.stream().map(TestDataFactory::createTestPostResponse).toList();
 
-        when(postRepository.getAllPostsByUser(owner)).thenReturn(posts);
-        when(entityMapper.mapList(posts, PostResponse.class)).thenReturn(responses);
+        when(postRepository.getAllPostsByUserWithCommentsAndLikes(owner)).thenReturn(posts);
+        when(entityMapper.mapListWithName(posts, PostResponse.class, "withDetails")).thenReturn(responses);
 
         var result = postServiceImpl.getAllPostsByUser(owner);
 
         assertNotNull(result);
         assertEquals(2, result.size());
 
-        verify(postRepository).getAllPostsByUser(owner);
-        verify(entityMapper).mapList(posts, PostResponse.class);
+        verify(postRepository).getAllPostsByUserWithCommentsAndLikes(owner);
+        verify(entityMapper).mapListWithName(posts, PostResponse.class, "withDetails");
     }
 
     @Test
@@ -249,3 +253,4 @@ class PostServiceImplTest {
         verify(postRepository, never()).save(any());
     }
 }
+

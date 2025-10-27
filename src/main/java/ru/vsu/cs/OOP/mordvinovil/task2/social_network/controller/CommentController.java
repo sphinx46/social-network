@@ -2,12 +2,16 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.CommentRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.CommentResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.CustomException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.CommentService;
@@ -63,8 +67,29 @@ public class CommentController {
 
     @Operation(summary = "Получение комментария по Id")
     @GetMapping("/{commentId}")
-    public ResponseEntity<CommentResponse> getCommentById(@PathVariable Long commentId) {
+    public ResponseEntity<CommentResponse> getCommentById(
+            @PathVariable Long commentId) {
         CommentResponse response = commentService.getCommentById(commentId);
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "Получение комементариев на пост")
+    @GetMapping("/onPost/{postId}")
+    public ResponseEntity<PageResponse<CommentResponse>> getAllCommentsOnPost(
+            @PathVariable Long postId,
+            @RequestParam(defaultValue = "10", required = false) @Min(1) Integer size,
+            @RequestParam(defaultValue = "0", required = false) @Min(0) Integer pageNumber,
+            @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
+            @RequestParam(defaultValue = "DESC", required = false) String direction
+    ) {
+        var pageRequest = PageRequest.builder()
+                .pageNumber(pageNumber)
+                .size(size)
+                .sortBy(sortedBy)
+                .direction(Sort.Direction.fromString(direction))
+                .build();
+
+        PageResponse<CommentResponse> comments = commentService.getAllCommentsOnPost(postId, pageRequest);
+        return ResponseEntity.ok(comments);
     }
 }

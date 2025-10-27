@@ -27,9 +27,6 @@ public class Relationship extends BaseEntity {
     @Column(name = "status")
     private FriendshipStatus status;
 
-    @Column(name = "time_added", nullable = false)
-    private LocalDateTime createdAt;
-
     @Column(name = "time_updated", nullable = false)
     private LocalDateTime updatedAt;
 }

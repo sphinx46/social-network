@@ -5,8 +5,6 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 
-import java.time.LocalDateTime;
-
 @Component
 public class ContentFactory {
 
@@ -15,7 +13,6 @@ public class ContentFactory {
                 .user(user)
                 .content(content)
                 .imageUrl(imageUrl)
-                .time(LocalDateTime.now())
                 .build();
     }
 
@@ -25,7 +22,6 @@ public class ContentFactory {
                 .creator(creator)
                 .content(content)
                 .imageUrl(imageUrl)
-                .time(LocalDateTime.now())
                 .build();
     }
 }

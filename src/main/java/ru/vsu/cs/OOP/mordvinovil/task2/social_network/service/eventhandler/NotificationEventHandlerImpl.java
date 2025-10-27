@@ -49,7 +49,6 @@ public class NotificationEventHandlerImpl implements NotificationEventHandler {
                 .type(event.getNotificationType())
                 .status(NotificationStatus.UNREAD)
                 .additionalData(event.getAdditionalData())
-                .createdAt(event.getTimeCreated())
                 .updatedAt(event.getTimeCreated())
                 .build();
     }

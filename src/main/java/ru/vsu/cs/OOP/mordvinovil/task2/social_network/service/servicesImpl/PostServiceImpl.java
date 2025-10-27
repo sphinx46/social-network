@@ -40,8 +40,8 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<PostResponse> getAllPostsByUser(User user) {
-        List<Post> posts = postRepository.getAllPostsByUser(user);
-        return entityMapper.mapList(posts, PostResponse.class);
+        List<Post> posts = postRepository.getAllPostsByUserWithCommentsAndLikes(user);
+        return entityMapper.mapListWithName(posts, PostResponse.class, "withDetails");
     }
 
     @Transactional

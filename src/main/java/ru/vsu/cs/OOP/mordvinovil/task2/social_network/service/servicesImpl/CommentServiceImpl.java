@@ -2,9 +2,12 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.CommentRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.CommentResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
@@ -76,5 +79,16 @@ public class CommentServiceImpl implements CommentService {
     public CommentResponse getCommentById(Long commentId) {
         Comment comment = entityUtils.getComment(commentId);
         return entityMapper.map(comment, CommentResponse.class);
+    }
+
+    @Override
+    public PageResponse<CommentResponse> getAllCommentsOnPost(Long postId, PageRequest pageRequest) {
+        Post post = entityUtils.getPost(postId);
+
+        Page<Comment> commentPage = commentRepository.findByPostId(post.getId(), pageRequest.toPageable());
+
+        return PageResponse.of(commentPage.map(
+                comment -> entityMapper.map(comment, CommentResponse.class)
+        ));
     }
 }
