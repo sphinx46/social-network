@@ -2,7 +2,9 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.Primary;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.MessageRequest;
@@ -24,10 +26,9 @@ import java.time.LocalDateTime;
 
 import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.MessageStatusValidator.isStatusAllowed;
 
-@Primary
-@Service
 @RequiredArgsConstructor
-public class MessageServiceImpl implements MessageService {
+@Service
+public class CachingMessageServiceImpl implements MessageService {
     private final MessageRepository messageRepository;
     private final EntityMapper entityMapper;
     private final MessageFactory messageFactory;
@@ -37,6 +38,10 @@ public class MessageServiceImpl implements MessageService {
 
     @Transactional
     @Override
+    @Caching(evict = {
+            @CacheEvict(value = "conversation", key = "'conv:' + #currentUser.id + ':' + #request.receiverUserId"),
+            @CacheEvict(value = "conversation", key = "'conv:' + #request.receiverUserId + ':' + #currentUser.id")
+    })
     public MessageResponse create(MessageRequest request, User currentUser) {
         messageValidator.validateMessageCreation(request, currentUser);
 
@@ -57,8 +62,11 @@ public class MessageServiceImpl implements MessageService {
         return entityMapper.map(message, MessageResponse.class);
     }
 
-
     @Override
+    @Cacheable(
+            value = "conversation",
+            key = "'conv:' + #currentUser.id + ':' + #otherUserId"
+    )
     public PageResponse<MessageResponse> getConversation(Long otherUserId, User currentUser, PageRequest pageRequest) {
         Long id = entityUtils.getUser(otherUserId).getId();
         Page<Message> messages = messageRepository.findMessagesBetweenUsers(currentUser.getId(),
@@ -73,7 +81,7 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public PageResponse<MessageResponse> getSentMessages(User currentUser, PageRequest pageRequest) {
         Page<Message> messages = messageRepository.findBySenderId(currentUser.getId(),
-                pageRequest.toPageable())
+                        pageRequest.toPageable())
                 .orElse(Page.empty());
         return PageResponse.of(messages.map(
                 message -> entityMapper.map(message, MessageResponse.class))
@@ -104,6 +112,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Transactional
     @Override
+    @CacheEvict(value = "conversation", allEntries = true)
     public MessageResponse editMessage(Long messageId, MessageRequest request, User currentUser) {
         messageValidator.validateMessageUpdate(request, currentUser);
 
@@ -120,6 +129,7 @@ public class MessageServiceImpl implements MessageService {
 
     @Transactional
     @Override
+    @CacheEvict(value = "conversation", allEntries = true)
     public void deleteMessage(Long messageId, User currentUser) {
         Message message = entityUtils.getMessage(messageId);
         messageValidator.validateMessageOwnership(currentUser, message);
@@ -130,7 +140,7 @@ public class MessageServiceImpl implements MessageService {
 
     private PageResponse<MessageResponse> getMessagesByStatus(User currentUser, MessageStatus status, PageRequest pageRequest) {
         Page<Message> messages = messageRepository.findByReceiverIdAndStatus(currentUser.getId(), status,
-                pageRequest.toPageable())
+                        pageRequest.toPageable())
                 .orElse(Page.empty());
         return PageResponse.of(messages.map(
                 message -> entityMapper.map(message, MessageResponse.class))
@@ -150,3 +160,4 @@ public class MessageServiceImpl implements MessageService {
         return entityMapper.map(message, MessageResponse.class);
     }
 }
+

@@ -80,5 +80,15 @@ logging:
     ru.vsu.cs.OOP.mordvinovil.task2.social_network: DEBUG
     org.springframework.security: DEBUG
     org.springframework.cache: TRACE
+    org.springframework.cache.interceptor: TRACE
+    org.springframework.data.redis: DEBUG
+    org.springframework.data.redis.cache: TRACE
+    org.springframework.transaction: DEBUG
+    org.springframework.transaction.interceptor: TRACE
+    org.springframework.orm.jpa: DEBUG
+    org.springframework.aop: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.hibernate.stat: DEBUG
+    io.lettuce.core: WARN
+    redis.clients.jedis: WARN

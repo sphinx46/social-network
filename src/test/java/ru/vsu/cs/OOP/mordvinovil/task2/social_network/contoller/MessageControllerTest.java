@@ -9,7 +9,9 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.MessageControll
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.MessageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.CacheMode;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.MessageService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.factory.MessageServiceFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.BaseControllerTest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
 
@@ -25,7 +27,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class MessageControllerTest extends BaseControllerTest {
 
     @MockitoBean
-    private MessageService messageService;
+    private MessageServiceFactory messageServiceFactory;
+
+    @MockitoBean
+    private MessageService cachingMessageService;
+
+    @MockitoBean
+    private MessageService notCachingMessageService;
 
     @Test
     @DisplayName("Создание сообщения без авторизации - должно вернуть 401")
@@ -38,14 +46,15 @@ class MessageControllerTest extends BaseControllerTest {
 
     @Test
     @WithMockUser(username = "testUser", authorities = "USER")
-    @DisplayName("Создание сообщения - успешное создание")
-    void createMessage_whenValidData_shouldCreateMessage() throws Exception {
+    @DisplayName("Создание сообщения с кешированием - успешное создание")
+    void createMessage_withCache_shouldCreateMessage() throws Exception {
         var request = TestDataFactory.createMessageRequest();
         var response = TestDataFactory.createMessageResponse();
 
-        when(messageService.create(any(), any())).thenReturn(response);
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
+        when(cachingMessageService.create(any(), any())).thenReturn(response);
 
-        mockMvcUtils.performPost("/messages/create", request)
+        mockMvcUtils.performPost("/messages/create?cacheMode=CACHE", request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.senderUsername").value("testUser"))
@@ -53,7 +62,27 @@ class MessageControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.content").value("Тестовое сообщение"))
                 .andExpect(jsonPath("$.status").value("SENT"));
 
-        verify(messageService, times(1)).create(any(), any());
+        verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
+        verify(cachingMessageService, times(1)).create(any(), any());
+        verify(userService, times(1)).getCurrentUser();
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", authorities = "USER")
+    @DisplayName("Создание сообщения без кеширования - успешное создание")
+    void createMessage_withoutCache_shouldCreateMessage() throws Exception {
+        var request = TestDataFactory.createMessageRequest();
+        var response = TestDataFactory.createMessageResponse();
+
+        when(messageServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(notCachingMessageService);
+        when(notCachingMessageService.create(any(), any())).thenReturn(response);
+
+        mockMvcUtils.performPost("/messages/create?cacheMode=NONE_CACHE", request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L));
+
+        verify(messageServiceFactory, times(1)).getService(CacheMode.NONE_CACHE);
+        verify(notCachingMessageService, times(1)).create(any(), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -63,33 +92,56 @@ class MessageControllerTest extends BaseControllerTest {
     void createMessage_whenServiceThrowsException_shouldReturnError() throws Exception {
         var request = TestDataFactory.createMessageRequest();
 
-        when(messageService.create(any(), any()))
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
+        when(cachingMessageService.create(any(), any()))
                 .thenThrow(new RuntimeException("Ошибка создания сообщения"));
 
-        mockMvcUtils.performPost("/messages/create", request)
+        mockMvcUtils.performPost("/messages/create?cacheMode=CACHE", request)
                 .andExpect(status().isInternalServerError());
 
-        verify(messageService, times(1)).create(any(), any());
+        verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
+        verify(cachingMessageService, times(1)).create(any(), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
     @WithMockUser(username = "testUser", authorities = "USER")
-    @DisplayName("Получение сообщения по ID - успешно")
-    void getMessage_whenRequestIsValid() throws Exception {
+    @DisplayName("Получение сообщения по ID с кешированием - успешно")
+    void getMessage_withCache_whenRequestIsValid() throws Exception {
         Long messageId = 1L;
         var response = TestDataFactory.createMessageResponse();
 
-        when(messageService.getMessageById(eq(messageId), any())).thenReturn(response);
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
+        when(cachingMessageService.getMessageById(eq(messageId), any())).thenReturn(response);
 
-        mockMvcUtils.performGet("/messages/" + messageId)
+        mockMvcUtils.performGet("/messages/" + messageId + "?cacheMode=CACHE")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(messageId))
                 .andExpect(jsonPath("$.senderUsername").value("testUser"))
                 .andExpect(jsonPath("$.receiverUsername").value("receiverUser"))
                 .andExpect(jsonPath("$.content").value("Тестовое сообщение"));
 
-        verify(messageService, times(1)).getMessageById(eq(messageId), any());
+        verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
+        verify(cachingMessageService, times(1)).getMessageById(eq(messageId), any());
+        verify(userService, times(1)).getCurrentUser();
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", authorities = "USER")
+    @DisplayName("Получение сообщения по ID без кеширования - успешно")
+    void getMessage_withoutCache_whenRequestIsValid() throws Exception {
+        Long messageId = 1L;
+        var response = TestDataFactory.createMessageResponse();
+
+        when(messageServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(notCachingMessageService);
+        when(notCachingMessageService.getMessageById(eq(messageId), any())).thenReturn(response);
+
+        mockMvcUtils.performGet("/messages/" + messageId + "?cacheMode=NONE_CACHE")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(messageId));
+
+        verify(messageServiceFactory, times(1)).getService(CacheMode.NONE_CACHE);
+        verify(notCachingMessageService, times(1)).getMessageById(eq(messageId), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -104,8 +156,8 @@ class MessageControllerTest extends BaseControllerTest {
 
     @Test
     @WithMockUser(username = "testUser", authorities = "USER")
-    @DisplayName("Получение переписки с пользователем - успешно")
-    void getConversation_whenRequestIsValid() throws Exception {
+    @DisplayName("Получение переписки с пользователем с кешированием - успешно")
+    void getConversation_withCache_whenRequestIsValid() throws Exception {
         Long userId = 2L;
         var responses = List.of(TestDataFactory.createMessageResponse());
         var pageResponse = PageResponse.<MessageResponse>builder()
@@ -118,9 +170,10 @@ class MessageControllerTest extends BaseControllerTest {
                 .last(true)
                 .build();
 
-        when(messageService.getConversation(eq(userId), any(), any(PageRequest.class))).thenReturn(pageResponse);
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
+        when(cachingMessageService.getConversation(eq(userId), any(), any(PageRequest.class))).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/messages/conversation/" + userId + "?size=10&pageNumber=0")
+        mockMvcUtils.performGet("/messages/conversation/" + userId + "?size=10&pageNumber=0&cacheMode=CACHE")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(1L))
                 .andExpect(jsonPath("$.content[0].senderUsername").value("testUser"))
@@ -129,14 +182,16 @@ class MessageControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.totalPages").value(1))
                 .andExpect(jsonPath("$.totalElements").value(1));
 
-        verify(messageService, times(1)).getConversation(eq(userId), any(), any(PageRequest.class));
+        verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
+        verify(cachingMessageService, times(1)).getConversation(eq(userId), any(), any(PageRequest.class));
         verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
     @WithMockUser(username = "testUser", authorities = "USER")
-    @DisplayName("Получение отправленных сообщений - успешно")
-    void getSentMessages_whenRequestIsValid() throws Exception {
+    @DisplayName("Получение переписки с пользователем без кеширования - успешно")
+    void getConversation_withoutCache_whenRequestIsValid() throws Exception {
+        Long userId = 2L;
         var responses = List.of(TestDataFactory.createMessageResponse());
         var pageResponse = PageResponse.<MessageResponse>builder()
                 .content(responses)
@@ -148,25 +203,22 @@ class MessageControllerTest extends BaseControllerTest {
                 .last(true)
                 .build();
 
-        when(messageService.getSentMessages(any(), any(PageRequest.class))).thenReturn(pageResponse);
+        when(messageServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(notCachingMessageService);
+        when(notCachingMessageService.getConversation(eq(userId), any(), any(PageRequest.class))).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/messages/sent?size=10&pageNumber=0")
+        mockMvcUtils.performGet("/messages/conversation/" + userId + "?size=10&pageNumber=0&cacheMode=NONE_CACHE")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content[0].id").value(1L))
-                .andExpect(jsonPath("$.content[0].senderUsername").value("testUser"))
-                .andExpect(jsonPath("$.content[0].receiverUsername").value("receiverUser"))
-                .andExpect(jsonPath("$.currentPage").value(0))
-                .andExpect(jsonPath("$.totalPages").value(1))
-                .andExpect(jsonPath("$.totalElements").value(1));
+                .andExpect(jsonPath("$.content[0].id").value(1L));
 
-        verify(messageService, times(1)).getSentMessages(any(), any(PageRequest.class));
+        verify(messageServiceFactory, times(1)).getService(CacheMode.NONE_CACHE);
+        verify(notCachingMessageService, times(1)).getConversation(eq(userId), any(), any(PageRequest.class));
         verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
     @WithMockUser(username = "testUser", authorities = "USER")
-    @DisplayName("Получение полученных сообщений - успешно")
-    void getReceivedMessages_whenRequestIsValid() throws Exception {
+    @DisplayName("Получение отправленных сообщений с кешированием - успешно")
+    void getSentMessages_withCache_whenRequestIsValid() throws Exception {
         var responses = List.of(TestDataFactory.createMessageResponse());
         var pageResponse = PageResponse.<MessageResponse>builder()
                 .content(responses)
@@ -178,9 +230,10 @@ class MessageControllerTest extends BaseControllerTest {
                 .last(true)
                 .build();
 
-        when(messageService.getReceivedMessages(any(), any(PageRequest.class))).thenReturn(pageResponse);
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
+        when(cachingMessageService.getSentMessages(any(), any(PageRequest.class))).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/messages/received?size=10&pageNumber=0")
+        mockMvcUtils.performGet("/messages/sent?size=10&pageNumber=0&cacheMode=CACHE")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(1L))
                 .andExpect(jsonPath("$.content[0].senderUsername").value("testUser"))
@@ -189,14 +242,15 @@ class MessageControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.totalPages").value(1))
                 .andExpect(jsonPath("$.totalElements").value(1));
 
-        verify(messageService, times(1)).getReceivedMessages(any(), any(PageRequest.class));
+        verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
+        verify(cachingMessageService, times(1)).getSentMessages(any(), any(PageRequest.class));
         verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
     @WithMockUser(username = "testUser", authorities = "USER")
-    @DisplayName("Получение прочитанных сообщений - успешно")
-    void getReadMessages_whenRequestIsValid() throws Exception {
+    @DisplayName("Получение полученных сообщений с кешированием - успешно")
+    void getReceivedMessages_withCache_whenRequestIsValid() throws Exception {
         var responses = List.of(TestDataFactory.createMessageResponse());
         var pageResponse = PageResponse.<MessageResponse>builder()
                 .content(responses)
@@ -208,9 +262,10 @@ class MessageControllerTest extends BaseControllerTest {
                 .last(true)
                 .build();
 
-        when(messageService.getReadMessages(any(), any(PageRequest.class))).thenReturn(pageResponse);
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
+        when(cachingMessageService.getReceivedMessages(any(), any(PageRequest.class))).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/messages/read?size=10&pageNumber=0")
+        mockMvcUtils.performGet("/messages/received?size=10&pageNumber=0&cacheMode=CACHE")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(1L))
                 .andExpect(jsonPath("$.content[0].senderUsername").value("testUser"))
@@ -219,26 +274,61 @@ class MessageControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.totalPages").value(1))
                 .andExpect(jsonPath("$.totalElements").value(1));
 
-        verify(messageService, times(1)).getReadMessages(any(), any(PageRequest.class));
+        verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
+        verify(cachingMessageService, times(1)).getReceivedMessages(any(), any(PageRequest.class));
         verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
     @WithMockUser(username = "testUser", authorities = "USER")
-    @DisplayName("Редактирование сообщения - успешно")
-    void editMessage_whenRequestIsValid() throws Exception {
+    @DisplayName("Получение прочитанных сообщений с кешированием - успешно")
+    void getReadMessages_withCache_whenRequestIsValid() throws Exception {
+        var responses = List.of(TestDataFactory.createMessageResponse());
+        var pageResponse = PageResponse.<MessageResponse>builder()
+                .content(responses)
+                .currentPage(0)
+                .totalPages(1)
+                .totalElements(1L)
+                .pageSize(10)
+                .first(true)
+                .last(true)
+                .build();
+
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
+        when(cachingMessageService.getReadMessages(any(), any(PageRequest.class))).thenReturn(pageResponse);
+
+        mockMvcUtils.performGet("/messages/read?size=10&pageNumber=0&cacheMode=CACHE")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].id").value(1L))
+                .andExpect(jsonPath("$.content[0].senderUsername").value("testUser"))
+                .andExpect(jsonPath("$.content[0].receiverUsername").value("receiverUser"))
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.totalElements").value(1));
+
+        verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
+        verify(cachingMessageService, times(1)).getReadMessages(any(), any(PageRequest.class));
+        verify(userService, times(1)).getCurrentUser();
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", authorities = "USER")
+    @DisplayName("Редактирование сообщения с кешированием - успешно")
+    void editMessage_withCache_whenRequestIsValid() throws Exception {
         Long messageId = 1L;
         var request = TestDataFactory.createMessageRequest();
         var response = TestDataFactory.createMessageResponse();
 
-        when(messageService.editMessage(eq(messageId), any(), any())).thenReturn(response);
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
+        when(cachingMessageService.editMessage(eq(messageId), any(), any())).thenReturn(response);
 
-        mockMvcUtils.performPut("/messages/" + messageId, request)
+        mockMvcUtils.performPut("/messages/" + messageId + "?cacheMode=CACHE", request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(messageId))
                 .andExpect(jsonPath("$.content").value("Тестовое сообщение"));
 
-        verify(messageService, times(1)).editMessage(eq(messageId), any(), any());
+        verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
+        verify(cachingMessageService, times(1)).editMessage(eq(messageId), any(), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -249,64 +339,72 @@ class MessageControllerTest extends BaseControllerTest {
         Long messageId = 1L;
         var request = TestDataFactory.createMessageRequest();
 
-        when(messageService.editMessage(eq(messageId), any(), any()))
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
+        when(cachingMessageService.editMessage(eq(messageId), any(), any()))
                 .thenThrow(new RuntimeException("Доступ запрещён"));
 
-        mockMvcUtils.performPut("/messages/" + messageId, request)
+        mockMvcUtils.performPut("/messages/" + messageId + "?cacheMode=CACHE", request)
                 .andExpect(status().isInternalServerError());
 
-        verify(messageService, times(1)).editMessage(eq(messageId), any(), any());
+        verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
+        verify(cachingMessageService, times(1)).editMessage(eq(messageId), any(), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
     @WithMockUser(username = "testUser", authorities = "USER")
-    @DisplayName("Отметка сообщения как доставленного - успешно")
-    void receiveMessage_whenRequestIsValid() throws Exception {
+    @DisplayName("Отметка сообщения как доставленного с кешированием - успешно")
+    void receiveMessage_withCache_whenRequestIsValid() throws Exception {
         Long messageId = 1L;
         var response = TestDataFactory.createMessageResponse();
 
-        when(messageService.markAsReceived(eq(messageId), any())).thenReturn(response);
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
+        when(cachingMessageService.markAsReceived(eq(messageId), any())).thenReturn(response);
 
-        mockMvcUtils.performPatch("/messages/" + messageId + "/receive")
+        mockMvcUtils.performPatch("/messages/" + messageId + "/receive?cacheMode=CACHE")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(messageId))
                 .andExpect(jsonPath("$.status").value("SENT"));
 
-        verify(messageService, times(1)).markAsReceived(eq(messageId), any());
+        verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
+        verify(cachingMessageService, times(1)).markAsReceived(eq(messageId), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
     @WithMockUser(username = "testUser", authorities = "USER")
-    @DisplayName("Отметка сообщения как прочитанного - успешно")
-    void readMessage_whenRequestIsValid() throws Exception {
+    @DisplayName("Отметка сообщения как прочитанного с кешированием - успешно")
+    void readMessage_withCache_whenRequestIsValid() throws Exception {
         Long messageId = 1L;
         var response = TestDataFactory.createMessageResponse();
 
-        when(messageService.markAsRead(eq(messageId), any())).thenReturn(response);
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
+        when(cachingMessageService.markAsRead(eq(messageId), any())).thenReturn(response);
 
-        mockMvcUtils.performPatch("/messages/" + messageId + "/read")
+        mockMvcUtils.performPatch("/messages/" + messageId + "/read?cacheMode=CACHE")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(messageId))
                 .andExpect(jsonPath("$.status").value("SENT"));
 
-        verify(messageService, times(1)).markAsRead(eq(messageId), any());
+        verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
+        verify(cachingMessageService, times(1)).markAsRead(eq(messageId), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
     @WithMockUser(username = "testUser", authorities = "USER")
-    @DisplayName("Удаление сообщения - успешное удаление")
-    void deleteMessage_whenRequestIsValid() throws Exception {
+    @DisplayName("Удаление сообщения с кешированием - успешное удаление")
+    void deleteMessage_withCache_whenRequestIsValid() throws Exception {
         Long messageId = 1L;
 
-        doNothing().when(messageService).deleteMessage(eq(messageId), any());
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
+        doNothing().when(cachingMessageService).deleteMessage(eq(messageId), any());
 
-        mockMvcUtils.performDelete("/messages/" + messageId)
+        mockMvcUtils.performDelete("/messages/" + messageId + "?cacheMode=CACHE")
                 .andExpect(status().isNoContent());
 
-        verify(messageService, times(1)).deleteMessage(eq(messageId), any());
+        verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
+        verify(cachingMessageService, times(1)).deleteMessage(eq(messageId), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -316,13 +414,15 @@ class MessageControllerTest extends BaseControllerTest {
     void deleteMessage_whenUserIsNotOwner() throws Exception {
         Long messageId = 1L;
 
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
         doThrow(new RuntimeException("Доступ запрещён"))
-                .when(messageService).deleteMessage(eq(messageId), any());
+                .when(cachingMessageService).deleteMessage(eq(messageId), any());
 
-        mockMvcUtils.performDelete("/messages/" + messageId)
+        mockMvcUtils.performDelete("/messages/" + messageId + "?cacheMode=CACHE")
                 .andExpect(status().isInternalServerError());
 
-        verify(messageService, times(1)).deleteMessage(eq(messageId), any());
+        verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
+        verify(cachingMessageService, times(1)).deleteMessage(eq(messageId), any());
         verify(userService, times(1)).getCurrentUser();
     }
 }
