@@ -13,7 +13,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.NotificationR
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationStatus;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationType;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.NotificationService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.notification.NotificationService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.BaseControllerTest;
 
 import java.util.List;

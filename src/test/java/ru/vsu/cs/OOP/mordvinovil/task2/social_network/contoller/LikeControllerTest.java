@@ -10,7 +10,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.LikeCommentResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.LikePostResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.LikeService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.content.LikeService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.BaseControllerTest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
 

@@ -6,7 +6,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.cache.GenericCacheEvent;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.NewsFeedCacheService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.feed.NewsFeedCacheService;
 
 @Slf4j
 @Component

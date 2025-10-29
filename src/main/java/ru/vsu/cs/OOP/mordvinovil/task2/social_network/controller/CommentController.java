@@ -16,8 +16,8 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.CommentRespon
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.CustomException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.CommentService;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.UserService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.content.CommentService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.UserService;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;

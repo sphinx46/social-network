@@ -10,6 +10,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.NewsFeedRespo
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.CacheMode;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.factory.NewsFeedServiceFactory;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.feed.NewsFeedService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.BaseControllerTest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
 
@@ -42,7 +43,7 @@ public class NewsFeedControllerTest extends BaseControllerTest {
                 .build();
 
         var user = TestDataFactory.createTestUser(1L, "testUser");
-        var cachingService = mock(ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.NewsFeedService.class);
+        var cachingService = mock(NewsFeedService.class);
 
         when(userService.getCurrentUser()).thenReturn(user);
         when(newsFeedServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingService);
@@ -85,7 +86,7 @@ public class NewsFeedControllerTest extends BaseControllerTest {
                 .build();
 
         var user = TestDataFactory.createTestUser(1L, "testUser");
-        var nonCachingService = mock(ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.NewsFeedService.class);
+        var nonCachingService = mock(NewsFeedService.class);
 
         when(userService.getCurrentUser()).thenReturn(user);
         when(newsFeedServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(nonCachingService);
@@ -119,7 +120,7 @@ public class NewsFeedControllerTest extends BaseControllerTest {
                 .build();
 
         var user = TestDataFactory.createTestUser(1L, "testUser");
-        var nonCachingService = mock(ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.NewsFeedService.class);
+        var nonCachingService = mock(NewsFeedService.class);
 
         when(userService.getCurrentUser()).thenReturn(user);
         when(newsFeedServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(nonCachingService);

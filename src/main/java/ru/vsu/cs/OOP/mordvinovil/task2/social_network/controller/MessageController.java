@@ -16,16 +16,15 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.MessageRespon
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.CacheMode;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.MessageService;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.UserService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.factory.MessageServiceFactory;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.messaging.MessageService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.UserService;
 
 @RestController
 @RequestMapping("/messages")
 @RequiredArgsConstructor
 public class MessageController {
     private final UserService userService;
-    private final MessageService service;
     private final MessageServiceFactory messageServiceFactory;
     private static final Logger log = LoggerFactory.getLogger(MessageController.class);
 
@@ -49,6 +48,7 @@ public class MessageController {
         User user = userService.getCurrentUser();
         log.info("Пользователь {} запрашивает сообщение {}", user.getId(), messageId);
 
+        MessageService service = messageServiceFactory.getService(CacheMode.NONE_CACHE);
         MessageResponse response = service.getMessageById(messageId, user);
 
         log.info("Сообщение {} успешно получено пользователем {}", messageId, user.getId());
@@ -100,6 +100,7 @@ public class MessageController {
                 .direction(Sort.Direction.fromString(direction))
                 .build();
 
+        MessageService service = messageServiceFactory.getService(CacheMode.NONE_CACHE);
         PageResponse<MessageResponse> response = service.getSentMessages(user, pageRequest);
         log.info("Получено {} отправленных сообщений пользователя {}", response.getContent().size(), user.getId());
         return ResponseEntity.ok(response);
@@ -124,6 +125,7 @@ public class MessageController {
                 .direction(Sort.Direction.fromString(direction))
                 .build();
 
+        MessageService service = messageServiceFactory.getService(CacheMode.NONE_CACHE);
         PageResponse<MessageResponse> response = service.getReceivedMessages(user, pageRequest);
         log.info("Получено {} полученных сообщений пользователя {}", response.getContent().size(), user.getId());
         return ResponseEntity.ok(response);
@@ -148,6 +150,7 @@ public class MessageController {
                 .direction(Sort.Direction.fromString(direction))
                 .build();
 
+        MessageService service = messageServiceFactory.getService(CacheMode.NONE_CACHE);
         PageResponse<MessageResponse> response = service.getReadMessages(user, pageRequest);
         log.info("Получено {} прочитанных сообщений пользователя {}", response.getContent().size(), user.getId());
         return ResponseEntity.ok(response);

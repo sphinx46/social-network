@@ -10,8 +10,8 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.MessageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.CacheMode;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.MessageService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.factory.MessageServiceFactory;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.messaging.MessageService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.BaseControllerTest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
 
@@ -29,11 +29,7 @@ class MessageControllerTest extends BaseControllerTest {
     @MockitoBean
     private MessageServiceFactory messageServiceFactory;
 
-    @MockitoBean
-    private MessageService cachingMessageService;
-
-    @MockitoBean
-    private MessageService notCachingMessageService;
+    private final MessageService mockMessageService = mock(MessageService.class);
 
     @Test
     @DisplayName("Создание сообщения без авторизации - должно вернуть 401")
@@ -51,8 +47,8 @@ class MessageControllerTest extends BaseControllerTest {
         var request = TestDataFactory.createMessageRequest();
         var response = TestDataFactory.createMessageResponse();
 
-        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
-        when(cachingMessageService.create(any(), any())).thenReturn(response);
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(mockMessageService);
+        when(mockMessageService.create(any(), any())).thenReturn(response);
 
         mockMvcUtils.performPost("/messages/create?cacheMode=CACHE", request)
                 .andExpect(status().isOk())
@@ -63,7 +59,7 @@ class MessageControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.status").value("SENT"));
 
         verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
-        verify(cachingMessageService, times(1)).create(any(), any());
+        verify(mockMessageService, times(1)).create(any(), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -74,15 +70,15 @@ class MessageControllerTest extends BaseControllerTest {
         var request = TestDataFactory.createMessageRequest();
         var response = TestDataFactory.createMessageResponse();
 
-        when(messageServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(notCachingMessageService);
-        when(notCachingMessageService.create(any(), any())).thenReturn(response);
+        when(messageServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(mockMessageService);
+        when(mockMessageService.create(any(), any())).thenReturn(response);
 
         mockMvcUtils.performPost("/messages/create?cacheMode=NONE_CACHE", request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L));
 
         verify(messageServiceFactory, times(1)).getService(CacheMode.NONE_CACHE);
-        verify(notCachingMessageService, times(1)).create(any(), any());
+        verify(mockMessageService, times(1)).create(any(), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -92,15 +88,15 @@ class MessageControllerTest extends BaseControllerTest {
     void createMessage_whenServiceThrowsException_shouldReturnError() throws Exception {
         var request = TestDataFactory.createMessageRequest();
 
-        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
-        when(cachingMessageService.create(any(), any()))
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(mockMessageService);
+        when(mockMessageService.create(any(), any()))
                 .thenThrow(new RuntimeException("Ошибка создания сообщения"));
 
         mockMvcUtils.performPost("/messages/create?cacheMode=CACHE", request)
                 .andExpect(status().isInternalServerError());
 
         verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
-        verify(cachingMessageService, times(1)).create(any(), any());
+        verify(mockMessageService, times(1)).create(any(), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -111,18 +107,18 @@ class MessageControllerTest extends BaseControllerTest {
         Long messageId = 1L;
         var response = TestDataFactory.createMessageResponse();
 
-        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
-        when(cachingMessageService.getMessageById(eq(messageId), any())).thenReturn(response);
+        when(messageServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(mockMessageService);
+        when(mockMessageService.getMessageById(eq(messageId), any())).thenReturn(response);
 
-        mockMvcUtils.performGet("/messages/" + messageId + "?cacheMode=CACHE")
+        mockMvcUtils.performGet("/messages/" + messageId)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(messageId))
                 .andExpect(jsonPath("$.senderUsername").value("testUser"))
                 .andExpect(jsonPath("$.receiverUsername").value("receiverUser"))
                 .andExpect(jsonPath("$.content").value("Тестовое сообщение"));
 
-        verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
-        verify(cachingMessageService, times(1)).getMessageById(eq(messageId), any());
+        verify(messageServiceFactory, times(1)).getService(CacheMode.NONE_CACHE);
+        verify(mockMessageService, times(1)).getMessageById(eq(messageId), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -133,15 +129,15 @@ class MessageControllerTest extends BaseControllerTest {
         Long messageId = 1L;
         var response = TestDataFactory.createMessageResponse();
 
-        when(messageServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(notCachingMessageService);
-        when(notCachingMessageService.getMessageById(eq(messageId), any())).thenReturn(response);
+        when(messageServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(mockMessageService);
+        when(mockMessageService.getMessageById(eq(messageId), any())).thenReturn(response);
 
-        mockMvcUtils.performGet("/messages/" + messageId + "?cacheMode=NONE_CACHE")
+        mockMvcUtils.performGet("/messages/" + messageId)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(messageId));
 
         verify(messageServiceFactory, times(1)).getService(CacheMode.NONE_CACHE);
-        verify(notCachingMessageService, times(1)).getMessageById(eq(messageId), any());
+        verify(mockMessageService, times(1)).getMessageById(eq(messageId), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -170,10 +166,10 @@ class MessageControllerTest extends BaseControllerTest {
                 .last(true)
                 .build();
 
-        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
-        when(cachingMessageService.getConversation(eq(userId), any(), any(PageRequest.class))).thenReturn(pageResponse);
+        when(messageServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(mockMessageService);
+        when(mockMessageService.getConversation(eq(userId), any(), any(PageRequest.class))).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/messages/conversation/" + userId + "?size=10&pageNumber=0&cacheMode=CACHE")
+        mockMvcUtils.performGet("/messages/conversation/" + userId + "?size=10&pageNumber=0")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(1L))
                 .andExpect(jsonPath("$.content[0].senderUsername").value("testUser"))
@@ -182,8 +178,8 @@ class MessageControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.totalPages").value(1))
                 .andExpect(jsonPath("$.totalElements").value(1));
 
-        verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
-        verify(cachingMessageService, times(1)).getConversation(eq(userId), any(), any(PageRequest.class));
+        verify(messageServiceFactory, times(1)).getService(CacheMode.NONE_CACHE);
+        verify(mockMessageService, times(1)).getConversation(eq(userId), any(), any(PageRequest.class));
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -203,15 +199,15 @@ class MessageControllerTest extends BaseControllerTest {
                 .last(true)
                 .build();
 
-        when(messageServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(notCachingMessageService);
-        when(notCachingMessageService.getConversation(eq(userId), any(), any(PageRequest.class))).thenReturn(pageResponse);
+        when(messageServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(mockMessageService);
+        when(mockMessageService.getConversation(eq(userId), any(), any(PageRequest.class))).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/messages/conversation/" + userId + "?size=10&pageNumber=0&cacheMode=NONE_CACHE")
+        mockMvcUtils.performGet("/messages/conversation/" + userId + "?size=10&pageNumber=0")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(1L));
 
         verify(messageServiceFactory, times(1)).getService(CacheMode.NONE_CACHE);
-        verify(notCachingMessageService, times(1)).getConversation(eq(userId), any(), any(PageRequest.class));
+        verify(mockMessageService, times(1)).getConversation(eq(userId), any(), any(PageRequest.class));
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -230,10 +226,10 @@ class MessageControllerTest extends BaseControllerTest {
                 .last(true)
                 .build();
 
-        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
-        when(cachingMessageService.getSentMessages(any(), any(PageRequest.class))).thenReturn(pageResponse);
+        when(messageServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(mockMessageService);
+        when(mockMessageService.getSentMessages(any(), any(PageRequest.class))).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/messages/sent?size=10&pageNumber=0&cacheMode=CACHE")
+        mockMvcUtils.performGet("/messages/sent?size=10&pageNumber=0")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(1L))
                 .andExpect(jsonPath("$.content[0].senderUsername").value("testUser"))
@@ -242,8 +238,8 @@ class MessageControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.totalPages").value(1))
                 .andExpect(jsonPath("$.totalElements").value(1));
 
-        verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
-        verify(cachingMessageService, times(1)).getSentMessages(any(), any(PageRequest.class));
+        verify(messageServiceFactory, times(1)).getService(CacheMode.NONE_CACHE);
+        verify(mockMessageService, times(1)).getSentMessages(any(), any(PageRequest.class));
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -262,10 +258,10 @@ class MessageControllerTest extends BaseControllerTest {
                 .last(true)
                 .build();
 
-        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
-        when(cachingMessageService.getReceivedMessages(any(), any(PageRequest.class))).thenReturn(pageResponse);
+        when(messageServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(mockMessageService);
+        when(mockMessageService.getReceivedMessages(any(), any(PageRequest.class))).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/messages/received?size=10&pageNumber=0&cacheMode=CACHE")
+        mockMvcUtils.performGet("/messages/received?size=10&pageNumber=0")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(1L))
                 .andExpect(jsonPath("$.content[0].senderUsername").value("testUser"))
@@ -274,8 +270,8 @@ class MessageControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.totalPages").value(1))
                 .andExpect(jsonPath("$.totalElements").value(1));
 
-        verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
-        verify(cachingMessageService, times(1)).getReceivedMessages(any(), any(PageRequest.class));
+        verify(messageServiceFactory, times(1)).getService(CacheMode.NONE_CACHE);
+        verify(mockMessageService, times(1)).getReceivedMessages(any(), any(PageRequest.class));
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -294,10 +290,10 @@ class MessageControllerTest extends BaseControllerTest {
                 .last(true)
                 .build();
 
-        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
-        when(cachingMessageService.getReadMessages(any(), any(PageRequest.class))).thenReturn(pageResponse);
+        when(messageServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(mockMessageService);
+        when(mockMessageService.getReadMessages(any(), any(PageRequest.class))).thenReturn(pageResponse);
 
-        mockMvcUtils.performGet("/messages/read?size=10&pageNumber=0&cacheMode=CACHE")
+        mockMvcUtils.performGet("/messages/read?size=10&pageNumber=0")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].id").value(1L))
                 .andExpect(jsonPath("$.content[0].senderUsername").value("testUser"))
@@ -306,8 +302,8 @@ class MessageControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.totalPages").value(1))
                 .andExpect(jsonPath("$.totalElements").value(1));
 
-        verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
-        verify(cachingMessageService, times(1)).getReadMessages(any(), any(PageRequest.class));
+        verify(messageServiceFactory, times(1)).getService(CacheMode.NONE_CACHE);
+        verify(mockMessageService, times(1)).getReadMessages(any(), any(PageRequest.class));
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -319,8 +315,8 @@ class MessageControllerTest extends BaseControllerTest {
         var request = TestDataFactory.createMessageRequest();
         var response = TestDataFactory.createMessageResponse();
 
-        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
-        when(cachingMessageService.editMessage(eq(messageId), any(), any())).thenReturn(response);
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(mockMessageService);
+        when(mockMessageService.editMessage(eq(messageId), any(), any())).thenReturn(response);
 
         mockMvcUtils.performPut("/messages/" + messageId + "?cacheMode=CACHE", request)
                 .andExpect(status().isOk())
@@ -328,7 +324,7 @@ class MessageControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.content").value("Тестовое сообщение"));
 
         verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
-        verify(cachingMessageService, times(1)).editMessage(eq(messageId), any(), any());
+        verify(mockMessageService, times(1)).editMessage(eq(messageId), any(), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -339,15 +335,15 @@ class MessageControllerTest extends BaseControllerTest {
         Long messageId = 1L;
         var request = TestDataFactory.createMessageRequest();
 
-        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
-        when(cachingMessageService.editMessage(eq(messageId), any(), any()))
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(mockMessageService);
+        when(mockMessageService.editMessage(eq(messageId), any(), any()))
                 .thenThrow(new RuntimeException("Доступ запрещён"));
 
         mockMvcUtils.performPut("/messages/" + messageId + "?cacheMode=CACHE", request)
                 .andExpect(status().isInternalServerError());
 
         verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
-        verify(cachingMessageService, times(1)).editMessage(eq(messageId), any(), any());
+        verify(mockMessageService, times(1)).editMessage(eq(messageId), any(), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -358,8 +354,8 @@ class MessageControllerTest extends BaseControllerTest {
         Long messageId = 1L;
         var response = TestDataFactory.createMessageResponse();
 
-        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
-        when(cachingMessageService.markAsReceived(eq(messageId), any())).thenReturn(response);
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(mockMessageService);
+        when(mockMessageService.markAsReceived(eq(messageId), any())).thenReturn(response);
 
         mockMvcUtils.performPatch("/messages/" + messageId + "/receive?cacheMode=CACHE")
                 .andExpect(status().isOk())
@@ -367,7 +363,7 @@ class MessageControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.status").value("SENT"));
 
         verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
-        verify(cachingMessageService, times(1)).markAsReceived(eq(messageId), any());
+        verify(mockMessageService, times(1)).markAsReceived(eq(messageId), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -378,8 +374,8 @@ class MessageControllerTest extends BaseControllerTest {
         Long messageId = 1L;
         var response = TestDataFactory.createMessageResponse();
 
-        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
-        when(cachingMessageService.markAsRead(eq(messageId), any())).thenReturn(response);
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(mockMessageService);
+        when(mockMessageService.markAsRead(eq(messageId), any())).thenReturn(response);
 
         mockMvcUtils.performPatch("/messages/" + messageId + "/read?cacheMode=CACHE")
                 .andExpect(status().isOk())
@@ -387,7 +383,7 @@ class MessageControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.status").value("SENT"));
 
         verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
-        verify(cachingMessageService, times(1)).markAsRead(eq(messageId), any());
+        verify(mockMessageService, times(1)).markAsRead(eq(messageId), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -397,14 +393,14 @@ class MessageControllerTest extends BaseControllerTest {
     void deleteMessage_withCache_whenRequestIsValid() throws Exception {
         Long messageId = 1L;
 
-        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
-        doNothing().when(cachingMessageService).deleteMessage(eq(messageId), any());
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(mockMessageService);
+        doNothing().when(mockMessageService).deleteMessage(eq(messageId), any());
 
         mockMvcUtils.performDelete("/messages/" + messageId + "?cacheMode=CACHE")
                 .andExpect(status().isNoContent());
 
         verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
-        verify(cachingMessageService, times(1)).deleteMessage(eq(messageId), any());
+        verify(mockMessageService, times(1)).deleteMessage(eq(messageId), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -414,15 +410,16 @@ class MessageControllerTest extends BaseControllerTest {
     void deleteMessage_whenUserIsNotOwner() throws Exception {
         Long messageId = 1L;
 
-        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingMessageService);
+        when(messageServiceFactory.getService(CacheMode.CACHE)).thenReturn(mockMessageService);
         doThrow(new RuntimeException("Доступ запрещён"))
-                .when(cachingMessageService).deleteMessage(eq(messageId), any());
+                .when(mockMessageService).deleteMessage(eq(messageId), any());
 
         mockMvcUtils.performDelete("/messages/" + messageId + "?cacheMode=CACHE")
                 .andExpect(status().isInternalServerError());
 
         verify(messageServiceFactory, times(1)).getService(CacheMode.CACHE);
-        verify(cachingMessageService, times(1)).deleteMessage(eq(messageId), any());
+        verify(mockMessageService, times(1)).deleteMessage(eq(messageId), any());
         verify(userService, times(1)).getCurrentUser();
     }
 }
+

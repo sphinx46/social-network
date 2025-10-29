@@ -2,9 +2,9 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.factory;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.NewsFeedService;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.CachingNewsFeedServiceImpl;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.NewsFeedServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.feed.NewsFeedService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.feed.CachingNewsFeedServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.feed.NewsFeedServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.CacheMode;
 
 

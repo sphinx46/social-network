@@ -16,10 +16,10 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.JwtAuthentica
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Role;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.security.filters.UserDetailsImpl;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.AuthenticationServiceImpl;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.JwtServiceImpl;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.ProfileServiceImpl;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.UserServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.user.AuthenticationServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.user.JwtServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.user.ProfileServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.user.UserServiceImpl;
 
 import java.time.LocalDateTime;
 

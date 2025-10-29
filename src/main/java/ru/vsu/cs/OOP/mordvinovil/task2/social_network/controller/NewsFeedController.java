@@ -15,8 +15,8 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.NewsFeedRespo
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.CacheMode;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.NewsFeedService;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.UserService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.feed.NewsFeedService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.UserService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.factory.NewsFeedServiceFactory;
 import lombok.extern.slf4j.Slf4j;
 

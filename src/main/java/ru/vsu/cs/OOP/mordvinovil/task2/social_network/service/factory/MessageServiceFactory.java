@@ -3,9 +3,9 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.factory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.CacheMode;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.MessageService;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.CachingMessageServiceImpl;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.MessageServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.messaging.MessageService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.messaging.CachingMessageServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.messaging.MessageServiceImpl;
 
 @Component
 @RequiredArgsConstructor

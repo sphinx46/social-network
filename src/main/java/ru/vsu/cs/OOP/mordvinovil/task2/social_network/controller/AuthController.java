@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.SignInRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.SignUpRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.JwtAuthenticationResponse;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.AuthenticationService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.AuthenticationService;
 
 @RestController
 @RequestMapping("/auth")

@@ -14,6 +14,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.Generi
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.NotificationRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.eventhandler.notification.NotificationEventHandlerImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.notification.WebSocketNotificationService;
 
 import java.util.Map;
 import java.util.Optional;
