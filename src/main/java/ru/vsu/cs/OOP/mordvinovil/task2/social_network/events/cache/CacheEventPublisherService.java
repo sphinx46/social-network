@@ -37,6 +37,10 @@ public class CacheEventPublisherService {
         publishEvent(eventFactory.createPostEditEvent(source, target, postId));
     }
 
+    public void publishPostCreate(Object source, Object target, Long postId) {
+        publishEvent(eventFactory.createPostEvent(source, target, postId));
+    }
+
     private void publishEvent(GenericCacheEvent event) {
         try {
             eventPublisher.publishEvent(event);

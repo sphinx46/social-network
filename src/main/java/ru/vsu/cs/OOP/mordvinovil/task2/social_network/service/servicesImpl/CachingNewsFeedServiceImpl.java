@@ -23,9 +23,10 @@ public class CachingNewsFeedServiceImpl implements NewsFeedService {
 
     @Cacheable(
             value = "newsFeed",
-            key = "'user:' + #currentUser.id"
-    )
-    @Override
+            key = "'user:' + #currentUser.id + ':page:' + #pageRequest.pageNumber + '" +
+                    ":size:' + #pageRequest.size + ':sort:' + #pageRequest.sortBy + " +
+                    "':dir:' + #pageRequest.direction")
+            @Override
     public PageResponse<NewsFeedResponse> getPostsByFriends(User currentUser, PageRequest pageRequest) {
         log.info("Получение постов друзей для пользователя id={} с кешированием. Параметры страницы: page={}, size={}, sort={}",
                 currentUser.getId(), pageRequest.getPageNumber(), pageRequest.getSize(), pageRequest.getSortBy());

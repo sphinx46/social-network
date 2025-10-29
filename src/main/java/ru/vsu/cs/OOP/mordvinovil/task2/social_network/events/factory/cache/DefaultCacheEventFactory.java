@@ -50,4 +50,10 @@ public class DefaultCacheEventFactory extends AbstractCacheEventFactory {
         Map<String, Object> data = Map.of("postId", postId);
         return createEvent(source, target, data);
     }
+
+    @Override
+    public GenericCacheEvent createPostEvent(Object source, Object target, Long postId) {
+        Map<String, Object> data = Map.of("postId", postId);
+        return createEvent(source, target, data);
+    }
 }

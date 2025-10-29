@@ -14,6 +14,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Like;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.cache.CacheEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.NotificationEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.like.LikeNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.LikeRepository;
@@ -33,6 +34,7 @@ public class LikeServiceImpl implements LikeService {
     private final LikeFactory likeFactory;
     private final LikeValidator likeValidator;
     private final NotificationEventPublisherService notificationEventPublisherService;
+    private final CacheEventPublisherService cacheEventPublisherService;
 
     @Transactional
     @Override
@@ -61,6 +63,7 @@ public class LikeServiceImpl implements LikeService {
         Like savedLike = likeRepository.save(like);
 
         notificationEventPublisherService.publishPostLiked(this, postOwnerId, like.getPost().getId(), currentUser.getId());
+        cacheEventPublisherService.publishLikedPost(this, like, post.getId(), currentUser.getId(), savedLike.getId());
         return entityMapper.map(savedLike, LikePostResponse.class);
     }
 
@@ -103,6 +106,7 @@ public class LikeServiceImpl implements LikeService {
 
         LikePostResponse response = entityMapper.map(like, LikePostResponse.class);
         likeRepository.delete(like);
+        cacheEventPublisherService.publishLikeDeleted(this, like, postId, like.getId());
         return response;
     }
 }

@@ -22,6 +22,26 @@ import java.time.Duration;
 public class CacheConfig {
 
     @Bean
+    public RedisTemplate<String, Object> redisTemplate(
+            RedisConnectionFactory redisConnectionFactory,
+            ObjectMapper objectMapper
+    ) {
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+
+        Jackson2JsonRedisSerializer<Object> serializer =
+                new Jackson2JsonRedisSerializer<>(objectMapper, Object.class);
+        redisTemplate.setValueSerializer(serializer);
+        redisTemplate.setHashValueSerializer(serializer);
+
+        redisTemplate.afterPropertiesSet();
+        return redisTemplate;
+    }
+
+    @Bean
     public RedisTemplate<String, PageResponse<NewsFeedResponse>> redisNewsFeedTemplate(
             RedisConnectionFactory redisConnectionFactory,
             ObjectMapper objectMapper
@@ -61,6 +81,7 @@ public class CacheConfig {
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig)
                 .withCacheConfiguration("news", newsCacheConfig)
+                .withCacheConfiguration("newsFeed", newsCacheConfig)
                 .transactionAware()
                 .build();
     }

@@ -16,6 +16,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PostResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.cache.CacheEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.FileStorageServiceImpl;
@@ -54,6 +55,9 @@ class PostServiceImplTest {
 
     @Mock
     private EntityUtils entityUtils;
+
+    @Mock
+    private CacheEventPublisherService cacheEventPublisherService;
 
     @InjectMocks
     private PostServiceImpl postServiceImpl;
@@ -96,6 +100,7 @@ class PostServiceImplTest {
         verify(contentFactory).createPost(owner, request.getContent(), request.getImageUrl());
         verify(postRepository).save(any(Post.class));
         verify(entityMapper).map(savedPost, PostResponse.class);
+        verify(cacheEventPublisherService).publishPostCreate(eq(postServiceImpl), eq(savedPost), eq(1L));
     }
 
     @Test
@@ -120,6 +125,7 @@ class PostServiceImplTest {
         verify(postValidator).validatePostUpdate(request, 1L, owner);
         verify(postRepository).save(any(Post.class));
         verify(entityMapper).map(updatedPost, PostResponse.class);
+        verify(cacheEventPublisherService).publishPostEdit(eq(postServiceImpl), eq(updatedPost), eq(1L));
     }
 
     @Test
@@ -146,6 +152,7 @@ class PostServiceImplTest {
         verify(fileStorageServiceImpl).savePostImage(imageFile, 1L);
         verify(postRepository).save(any(Post.class));
         verify(entityMapper).map(postAfterUpdate, PostResponse.class);
+        verify(cacheEventPublisherService).publishPostEdit(eq(postServiceImpl), eq(postAfterUpdate), eq(1L));
     }
 
     @Test
@@ -169,6 +176,7 @@ class PostServiceImplTest {
         verify(fileStorageServiceImpl).deleteFile("existing.jpg");
         verify(postRepository).save(argThat(p -> p.getImageUrl() == null));
         verify(entityMapper).map(postAfterRemoval, PostResponse.class);
+        verify(cacheEventPublisherService).publishPostEdit(eq(postServiceImpl), eq(postAfterRemoval), eq(1L));
     }
 
     @Test
@@ -242,6 +250,7 @@ class PostServiceImplTest {
 
         verify(postValidator).validatePostUpdate(request, 1L, notOwner);
         verify(postRepository, never()).save(any());
+        verify(cacheEventPublisherService, never()).publishPostEdit(any(), any(), anyLong());
     }
 
     @Test
@@ -259,6 +268,7 @@ class PostServiceImplTest {
         verify(postValidator).validatePostOwnership(1L, notOwner);
         verify(fileStorageServiceImpl, never()).savePostImage(any(), anyLong());
         verify(postRepository, never()).save(any());
+        verify(cacheEventPublisherService, never()).publishPostEdit(any(), any(), anyLong());
     }
 
     @Test
@@ -274,5 +284,6 @@ class PostServiceImplTest {
         verify(postValidator).validatePostOwnership(1L, notOwner);
         verify(fileStorageServiceImpl, never()).deleteFile(anyString());
         verify(postRepository, never()).save(any());
+        verify(cacheEventPublisherService, never()).publishPostEdit(any(), any(), anyLong());
     }
 }

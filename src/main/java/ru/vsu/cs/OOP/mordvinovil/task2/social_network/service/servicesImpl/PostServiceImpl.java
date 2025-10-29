@@ -11,6 +11,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PostResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.cache.CacheEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.PostService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
@@ -27,6 +28,7 @@ public class PostServiceImpl implements PostService {
     private final ContentFactory contentFactory;
     private final PostValidator postValidator;
     private final EntityUtils entityUtils;
+    private final CacheEventPublisherService cacheEventPublisherService;
 
     @Transactional
     @Override
@@ -36,6 +38,7 @@ public class PostServiceImpl implements PostService {
         Post post = contentFactory.createPost(user, request.getContent(), request.getImageUrl());
         Post savedPost = postRepository.save(post);
 
+        cacheEventPublisherService.publishPostCreate(this, savedPost, savedPost.getId());
         return entityMapper.map(savedPost, PostResponse.class);
     }
 
@@ -64,6 +67,7 @@ public class PostServiceImpl implements PostService {
         }
 
         Post updatedPost = postRepository.save(post);
+        cacheEventPublisherService.publishPostEdit(this, updatedPost, id);
         return entityMapper.map(updatedPost, PostResponse.class);
     }
 
@@ -82,6 +86,7 @@ public class PostServiceImpl implements PostService {
         String imageUrl = fileStorageServiceImpl.savePostImage(imageFile, id);
         post.setImageUrl(imageUrl);
         Post updatedPost = postRepository.save(post);
+        cacheEventPublisherService.publishPostEdit(this, updatedPost, id);
         return entityMapper.map(updatedPost, PostResponse.class);
     }
 
@@ -98,6 +103,7 @@ public class PostServiceImpl implements PostService {
 
         post.setImageUrl(null);
         Post updatedPost = postRepository.save(post);
+        cacheEventPublisherService.publishPostEdit(this, updatedPost, id);
         return entityMapper.map(updatedPost, PostResponse.class);
     }
 

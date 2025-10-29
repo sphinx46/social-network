@@ -9,4 +9,5 @@ public interface CacheEventFactory {
     GenericCacheEvent createCommentEditEvent(Object source, Object target, Long postId, Long commentId);
     GenericCacheEvent createCommentDeletedEvent(Object source, Object target, Long postId, Long commentId);
     GenericCacheEvent createPostEditEvent(Object source, Object target, Long postId);
+    GenericCacheEvent createPostEvent(Object source, Object target, Long postId);
 }

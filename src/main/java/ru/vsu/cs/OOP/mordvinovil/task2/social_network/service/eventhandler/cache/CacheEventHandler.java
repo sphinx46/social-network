@@ -5,3 +5,8 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.cache.GenericCacheE
 public interface CacheEventHandler {
     void handleCacheEvent(GenericCacheEvent event);
 }
+
+
+
+
+

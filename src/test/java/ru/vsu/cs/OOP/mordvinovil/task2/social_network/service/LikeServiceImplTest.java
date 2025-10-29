@@ -18,6 +18,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Like;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.cache.CacheEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.NotificationEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.like.LikeNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.LikeRepository;
@@ -57,6 +58,9 @@ public class LikeServiceImplTest {
 
     @Mock
     private NotificationEventPublisherService notificationEventPublisherService;
+
+    @Mock
+    private CacheEventPublisherService cacheEventPublisherService;
 
     @InjectMocks
     private LikeServiceImpl likeServiceImpl;
@@ -113,6 +117,8 @@ public class LikeServiceImplTest {
         verify(likeRepository).save(any(Like.class));
         verify(notificationEventPublisherService).publishPostLiked(any(), eq(postOwner.getId()),
                 eq(post.getId()), eq(currentUser.getId()));
+        verify(cacheEventPublisherService).publishLikedPost(any(), eq(like), eq(post.getId()),
+                eq(currentUser.getId()), eq(like.getId()));
         verify(entityMapper).map(like, LikePostResponse.class);
     }
 
@@ -228,6 +234,7 @@ public class LikeServiceImplTest {
         verify(likeValidator).validateLikeDeletion(1L, "post", currentUser);
         verify(likeRepository).findByUserIdAndPostId(currentUser.getId(), 1L);
         verify(likeRepository).delete(like);
+        verify(cacheEventPublisherService).publishLikeDeleted(any(), eq(like), eq(1L), eq(like.getId()));
         verify(entityMapper).map(like, LikePostResponse.class);
     }
 
