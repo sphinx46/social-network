@@ -8,7 +8,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.NewsFeedController;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.NewsFeedResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.NewsFeedService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.CachingNewsFeedServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.NewsFeedServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.BaseControllerTest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
 
@@ -22,12 +23,84 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(NewsFeedController.class)
 public class NewsFeedControllerTest extends BaseControllerTest {
     @MockitoBean
-    private NewsFeedService newsFeedService;
+    private CachingNewsFeedServiceImpl cachingNewsFeedService;
+
+    @MockitoBean
+    private NewsFeedServiceImpl newsFeedService;
 
     @Test
     @WithMockUser(username = "testUser", authorities = "USER")
-    @DisplayName("Получение ленты новостей для авторизованного пользователя - успешно")
-    void getNewsFeed_whenUserIsAuth() throws Exception {
+    @DisplayName("Получение ленты новостей с кешированием - успешно")
+    void getNewsFeed_withCacheMode() throws Exception {
+        List<NewsFeedResponse> newsFeedResponseList = TestDataFactory.createTestNewsFeedResponseList();
+        var pageResponse = PageResponse.<NewsFeedResponse>builder()
+                .content(newsFeedResponseList)
+                .currentPage(0)
+                .totalPages(1)
+                .totalElements(10L)
+                .pageSize(10)
+                .first(true)
+                .last(true)
+                .build();
+
+        when(userService.getCurrentUser()).thenReturn(createTestUser(1L, "testUser"));
+        when(cachingNewsFeedService.getPostsByFriends(any(), any())).thenReturn(pageResponse);
+
+        mockMvcUtils.performGet("/newsfeed?size=10&pageNumber=0&cacheMode=CACHE")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(10))
+                .andExpect(jsonPath("$.content[0].id").value(0L))
+                .andExpect(jsonPath("$.content[0].author").value("username0"))
+                .andExpect(jsonPath("$.content[0].postResponse.id").value(0L))
+                .andExpect(jsonPath("$.content[0].postResponse.username").value("username0"))
+                .andExpect(jsonPath("$.content[0].postResponse.content").value("test"))
+                .andExpect(jsonPath("$.content[0].postResponse.imageUrl").value("http://example.com/image.jpg"))
+                .andExpect(jsonPath("$.content[9].id").value(9L))
+                .andExpect(jsonPath("$.content[9].author").value("username9"))
+                .andExpect(jsonPath("$.content[9].postResponse.id").value(9L))
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.totalElements").value(10));
+
+        verify(cachingNewsFeedService, times(1)).getPostsByFriends(any(), any());
+        verify(newsFeedService, never()).getPostsByFriends(any(), any());
+        verify(userService, times(1)).getCurrentUser();
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", authorities = "USER")
+    @DisplayName("Получение ленты новостей без кеширования - успешно")
+    void getNewsFeed_withoutCacheMode() throws Exception {
+        List<NewsFeedResponse> newsFeedResponseList = TestDataFactory.createTestNewsFeedResponseList();
+        var pageResponse = PageResponse.<NewsFeedResponse>builder()
+                .content(newsFeedResponseList)
+                .currentPage(0)
+                .totalPages(1)
+                .totalElements(10L)
+                .pageSize(10)
+                .first(true)
+                .last(true)
+                .build();
+
+        when(userService.getCurrentUser()).thenReturn(createTestUser(1L, "testUser"));
+        when(newsFeedService.getPostsByFriends(any(), any())).thenReturn(pageResponse);
+
+        mockMvcUtils.performGet("/newsfeed?size=10&pageNumber=0&cacheMode=NONE_CACHE")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(10))
+                .andExpect(jsonPath("$.currentPage").value(0))
+                .andExpect(jsonPath("$.totalPages").value(1))
+                .andExpect(jsonPath("$.totalElements").value(10));
+
+        verify(newsFeedService, times(1)).getPostsByFriends(any(), any());
+        verify(cachingNewsFeedService, never()).getPostsByFriends(any(), any());
+        verify(userService, times(1)).getCurrentUser();
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", authorities = "USER")
+    @DisplayName("Получение ленты новостей с режимом кеширования по умолчанию")
+    void getNewsFeed_withDefaultCacheMode() throws Exception {
         List<NewsFeedResponse> newsFeedResponseList = TestDataFactory.createTestNewsFeedResponseList();
         var pageResponse = PageResponse.<NewsFeedResponse>builder()
                 .content(newsFeedResponseList)
@@ -44,22 +117,10 @@ public class NewsFeedControllerTest extends BaseControllerTest {
 
         mockMvcUtils.performGet("/newsfeed?size=10&pageNumber=0")
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.content.length()").value(10))
-                .andExpect(jsonPath("$.content[0].id").value(0L))
-                .andExpect(jsonPath("$.content[0].author").value("username0"))
-                .andExpect(jsonPath("$.content[0].postResponse.id").value(0L))
-                .andExpect(jsonPath("$.content[0].postResponse.username").value("username0"))
-                .andExpect(jsonPath("$.content[0].postResponse.content").value("test"))
-                .andExpect(jsonPath("$.content[0].postResponse.imageUrl").value("http://example.com/image.jpg"))
-                .andExpect(jsonPath("$.content[9].id").value(9L))
-                .andExpect(jsonPath("$.content[9].author").value("username9"))
-                .andExpect(jsonPath("$.content[9].postResponse.id").value(9L))
-                .andExpect(jsonPath("$.currentPage").value(0))
-                .andExpect(jsonPath("$.totalPages").value(1))
-                .andExpect(jsonPath("$.totalElements").value(10));
+                .andExpect(jsonPath("$.content.length()").value(10));
 
         verify(newsFeedService, times(1)).getPostsByFriends(any(), any());
-        verify(userService, times(1)).getCurrentUser();
+        verify(cachingNewsFeedService, never()).getPostsByFriends(any(), any());
     }
 
     @Test
@@ -67,5 +128,22 @@ public class NewsFeedControllerTest extends BaseControllerTest {
     void getNewsFeed_whenUserIsNotAuth() throws Exception {
         mockMvcUtils.performGet("/newsfeed")
                 .andExpect(status().isUnauthorized());
+
+        verify(cachingNewsFeedService, never()).getPostsByFriends(any(), any());
+        verify(newsFeedService, never()).getPostsByFriends(any(), any());
+        verify(userService, never()).getCurrentUser();
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", authorities = "USER")
+    @DisplayName("Получение ленты новостей с некорректным cacheMode")
+    void getNewsFeed_withInvalidCacheMode() throws Exception {
+        when(userService.getCurrentUser()).thenReturn(createTestUser(1L, "testUser"));
+
+        mockMvcUtils.performGet("/newsfeed?cacheMode=INVALID_MODE")
+                .andExpect(status().isBadRequest());
+
+        verify(cachingNewsFeedService, never()).getPostsByFriends(any(), any());
+        verify(newsFeedService, never()).getPostsByFriends(any(), any());
     }
 }

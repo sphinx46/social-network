@@ -58,6 +58,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/profile/**").authenticated()
                         .requestMatchers("/comments/**").authenticated()
                         .requestMatchers("/posts/**").authenticated()
+                        .requestMatchers("/newsfeed/**").authenticated()
                         .requestMatchers("/messages/**").authenticated()
                         .requestMatchers("/relationships/**").authenticated()
                         .requestMatchers("/swagger-ui/**").permitAll()

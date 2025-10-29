@@ -82,7 +82,6 @@ public class PostServiceImpl implements PostService {
         String imageUrl = fileStorageServiceImpl.savePostImage(imageFile, id);
         post.setImageUrl(imageUrl);
         Post updatedPost = postRepository.save(post);
-
         return entityMapper.map(updatedPost, PostResponse.class);
     }
 
@@ -99,7 +98,6 @@ public class PostServiceImpl implements PostService {
 
         post.setImageUrl(null);
         Post updatedPost = postRepository.save(post);
-
         return entityMapper.map(updatedPost, PostResponse.class);
     }
 

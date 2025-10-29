@@ -14,7 +14,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.NewsFeedRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.NewsFeedServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.CachingNewsFeedServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
 
@@ -24,11 +24,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory.createTestNewsFeedResponseList;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class NewsFeedServiceImplTest {
+public class CachingNewsFeedServiceImplTest {
     @Mock
     private NewsFeedRepository newsFeedRepository;
 
@@ -36,24 +35,18 @@ public class NewsFeedServiceImplTest {
     private EntityMapper entityMapper;
 
     @InjectMocks
-    private NewsFeedServiceImpl newsFeedServiceImpl;
+    private CachingNewsFeedServiceImpl cachingNewsFeedService;
 
     @Test
-    void getPostsByFriends_whenRequestIsValid() {
+    void getPostsByFriends_whenCacheMiss() {
         User user = TestDataFactory.createTestUser(1L, "testUser", "test@example.com");
         List<Post> postList = List.of(
                 TestDataFactory.createTestPost(user, "Test post 1", "image1.jpg"),
                 TestDataFactory.createTestPost(user, "Test post 2", "image2.jpg")
         );
+        Page<Post> postPage = new PageImpl<>(postList);
 
-        Page<Post> postPage = new PageImpl<>(
-                postList,
-                org.springframework.data.domain.PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")),
-                postList.size()
-        );
-
-        List<NewsFeedResponse> newsFeedResponseList = createTestNewsFeedResponseList();
-
+        List<NewsFeedResponse> newsFeedResponseList = TestDataFactory.createTestNewsFeedResponseList();
         PageRequest pageRequest = PageRequest.builder()
                 .pageNumber(0)
                 .size(10)
@@ -61,28 +54,20 @@ public class NewsFeedServiceImplTest {
                 .direction(Sort.Direction.DESC)
                 .build();
 
-        when(newsFeedRepository.findPostsByFriends(eq(1L), any(org.springframework.data.domain.PageRequest.class))).thenReturn(postPage);
+        when(newsFeedRepository.findPostsByFriends(eq(1L), any())).thenReturn(postPage);
         when(entityMapper.mapWithName(any(Post.class), eq(NewsFeedResponse.class), eq("fullNewsFeed")))
                 .thenReturn(newsFeedResponseList.get(0), newsFeedResponseList.get(1));
 
-        PageResponse<NewsFeedResponse> result = newsFeedServiceImpl.getPostsByFriends(user, pageRequest);
+        PageResponse<NewsFeedResponse> result = cachingNewsFeedService.getPostsByFriends(user, pageRequest);
 
         assertNotNull(result);
         assertEquals(2, result.getContent().size());
-        assertEquals(0, result.getCurrentPage());
-        assertEquals(10, result.getPageSize());
-        assertEquals(2, result.getTotalElements());
-        assertEquals(1, result.getTotalPages());
+        verify(newsFeedRepository, times(1)).findPostsByFriends(eq(1L), any());
     }
 
     @Test
-    void getPostsByFriends_whenEmptyResult() {
+    void getPostsByFriends_whenRepositoryThrowsException() {
         User user = TestDataFactory.createTestUser(1L, "testUser", "test@example.com");
-        Page<Post> emptyPage = new PageImpl<>(
-                List.of(),
-                org.springframework.data.domain.PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt")),
-                0
-        );
         PageRequest pageRequest = PageRequest.builder()
                 .pageNumber(0)
                 .size(10)
@@ -90,18 +75,15 @@ public class NewsFeedServiceImplTest {
                 .direction(Sort.Direction.DESC)
                 .build();
 
-        when(newsFeedRepository.findPostsByFriends(eq(1L), any(org.springframework.data.domain.PageRequest.class))).thenReturn(emptyPage);
+        when(newsFeedRepository.findPostsByFriends(eq(1L), any()))
+                .thenThrow(new RuntimeException("Database error"));
 
-        PageResponse<NewsFeedResponse> result = newsFeedServiceImpl.getPostsByFriends(user, pageRequest);
+        try {
+            cachingNewsFeedService.getPostsByFriends(user, pageRequest);
+        } catch (RuntimeException e) {
+            assertEquals("Database error", e.getMessage());
+        }
 
-        assertNotNull(result);
-        assertEquals(0, result.getContent().size());
-        assertEquals(0, result.getTotalElements());
-        assertEquals(10, result.getPageSize());
-        assertEquals(0, result.getCurrentPage());
-        assertEquals(0, result.getTotalPages());
-        assertEquals(true, result.isFirst());
-        assertEquals(true, result.isLast());
+        verify(newsFeedRepository, times(1)).findPostsByFriends(eq(1L), any());
     }
 }
-

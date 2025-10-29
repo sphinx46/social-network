@@ -65,6 +65,7 @@ public class DefaultNotificationEventFactory extends AbstractNotificationEventFa
         return createEventWithUserData(source, targetUserId, NotificationType.NEW_POST, creatorUserId, "creator", data);
     }
 
+
     @Override
     public GenericNotificationEvent createCustomEvent(Object source, Long targetUserId, NotificationType type, Map<String, Object> data) {
         return createEvent(source, targetUserId, type, data);

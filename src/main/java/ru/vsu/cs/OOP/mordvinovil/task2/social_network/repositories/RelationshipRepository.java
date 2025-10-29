@@ -11,6 +11,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.FriendshipS
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface RelationshipRepository extends JpaRepository<Relationship, Long> {
@@ -60,4 +61,8 @@ public interface RelationshipRepository extends JpaRepository<Relationship, Long
     @Query("SELECT r FROM Relationship r WHERE r.receiver.id = :userId AND r.status = :status")
     List<Relationship> findPendingRequestsForUser(@Param("userId") Long userId,
                                                   @Param("status") FriendshipStatus status);
+
+    @Query("SELECT CASE WHEN r.receiver.id = :userId THEN r.sender.id ELSE r.receiver.id END " +
+            "FROM Relationship r WHERE (r.receiver.id = :userId OR r.sender.id = :userId) AND r.status = :status")
+    Set<Long> findFriendIdsByUserId(@Param("userId") Long userId, @Param("status") FriendshipStatus status);
 }

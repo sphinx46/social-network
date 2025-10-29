@@ -13,6 +13,10 @@ public interface NewsFeedRepository extends JpaRepository<Post, Long> {
 
     @Query("SELECT DISTINCT p FROM Post p " +
             "JOIN FETCH p.user " +
+            "LEFT JOIN FETCH p.comments c " +
+            "LEFT JOIN FETCH c.creator " +
+            "LEFT JOIN FETCH p.likes l " +
+            "LEFT JOIN FETCH l.user " +
             "WHERE p.user.id IN (" +
             "    SELECT r.receiver.id FROM Relationship r " +
             "    WHERE r.sender.id = :userId " +
