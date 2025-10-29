@@ -25,6 +25,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.factory.MessageSer
 @RequiredArgsConstructor
 public class MessageController {
     private final UserService userService;
+    private final MessageService service;
     private final MessageServiceFactory messageServiceFactory;
     private static final Logger log = LoggerFactory.getLogger(MessageController.class);
 
@@ -44,13 +45,11 @@ public class MessageController {
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Получить сообщение по ID")
     @GetMapping("/{messageId}")
-    public ResponseEntity<MessageResponse> getMessage(@PathVariable Long messageId,
-                                                      @RequestParam(value = "cacheMode", defaultValue = "NONE_CACHE") CacheMode cacheMode) {
+    public ResponseEntity<MessageResponse> getMessage(@PathVariable Long messageId) {
         User user = userService.getCurrentUser();
         log.info("Пользователь {} запрашивает сообщение {}", user.getId(), messageId);
 
-        MessageService messageService = messageServiceFactory.getService(cacheMode);
-        MessageResponse response = messageService.getMessageById(messageId, user);
+        MessageResponse response = service.getMessageById(messageId, user);
 
         log.info("Сообщение {} успешно получено пользователем {}", messageId, user.getId());
         return ResponseEntity.ok(response);
@@ -89,8 +88,7 @@ public class MessageController {
             @RequestParam(defaultValue = "1", required = false) @Min(1) Integer size,
             @RequestParam(defaultValue = "0", required = false) @Min(0) Integer pageNumber,
             @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
-            @RequestParam(defaultValue = "DESC", required = false) String direction,
-            @RequestParam(value = "cacheMode", defaultValue = "NONE_CACHE") CacheMode cacheMode
+            @RequestParam(defaultValue = "DESC", required = false) String direction
     ) {
         User user = userService.getCurrentUser();
         log.info("Пользователь {} запрашивает отправленные сообщения, страница {}, размер {}", user.getId(), pageNumber, size);
@@ -102,8 +100,7 @@ public class MessageController {
                 .direction(Sort.Direction.fromString(direction))
                 .build();
 
-        MessageService messageService = messageServiceFactory.getService(cacheMode);
-        PageResponse<MessageResponse> response = messageService.getSentMessages(user, pageRequest);
+        PageResponse<MessageResponse> response = service.getSentMessages(user, pageRequest);
         log.info("Получено {} отправленных сообщений пользователя {}", response.getContent().size(), user.getId());
         return ResponseEntity.ok(response);
     }
@@ -115,8 +112,7 @@ public class MessageController {
             @RequestParam(defaultValue = "1", required = false) @Min(1) Integer size,
             @RequestParam(defaultValue = "0", required = false) @Min(0) Integer pageNumber,
             @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
-            @RequestParam(defaultValue = "DESC", required = false) String direction,
-            @RequestParam(value = "cacheMode", defaultValue = "NONE_CACHE") CacheMode cacheMode
+            @RequestParam(defaultValue = "DESC", required = false) String direction
     ) {
         User user = userService.getCurrentUser();
         log.info("Пользователь {} запрашивает полученные сообщения, страница {}, размер {}", user.getId(), pageNumber, size);
@@ -128,8 +124,7 @@ public class MessageController {
                 .direction(Sort.Direction.fromString(direction))
                 .build();
 
-        MessageService messageService = messageServiceFactory.getService(cacheMode);
-        PageResponse<MessageResponse> response = messageService.getReceivedMessages(user, pageRequest);
+        PageResponse<MessageResponse> response = service.getReceivedMessages(user, pageRequest);
         log.info("Получено {} полученных сообщений пользователя {}", response.getContent().size(), user.getId());
         return ResponseEntity.ok(response);
     }
@@ -141,8 +136,7 @@ public class MessageController {
             @RequestParam(defaultValue = "1", required = false) @Min(1) Integer size,
             @RequestParam(defaultValue = "0", required = false) @Min(0) Integer pageNumber,
             @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
-            @RequestParam(defaultValue = "DESC", required = false) String direction,
-            @RequestParam(value = "cacheMode", defaultValue = "NONE_CACHE") CacheMode cacheMode
+            @RequestParam(defaultValue = "DESC", required = false) String direction
     ) {
         User user = userService.getCurrentUser();
         log.info("Пользователь {} запрашивает прочитанные сообщения, страница {}, размер {}", user.getId(), pageNumber, size);
@@ -154,8 +148,7 @@ public class MessageController {
                 .direction(Sort.Direction.fromString(direction))
                 .build();
 
-        MessageService messageService = messageServiceFactory.getService(cacheMode);
-        PageResponse<MessageResponse> response = messageService.getReadMessages(user, pageRequest);
+        PageResponse<MessageResponse> response = service.getReadMessages(user, pageRequest);
         log.info("Получено {} прочитанных сообщений пользователя {}", response.getContent().size(), user.getId());
         return ResponseEntity.ok(response);
     }

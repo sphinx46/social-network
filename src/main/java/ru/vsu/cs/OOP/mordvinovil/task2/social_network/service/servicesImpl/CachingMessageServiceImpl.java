@@ -4,7 +4,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.MessageRequest;
@@ -38,10 +37,7 @@ public class CachingMessageServiceImpl implements MessageService {
 
     @Transactional
     @Override
-    @Caching(evict = {
-            @CacheEvict(value = "conversation", key = "'conv:' + #currentUser.id + ':' + #request.receiverUserId"),
-            @CacheEvict(value = "conversation", key = "'conv:' + #request.receiverUserId + ':' + #currentUser.id")
-    })
+    @CacheEvict(value = "conversation", allEntries = true)
     public MessageResponse create(MessageRequest request, User currentUser) {
         messageValidator.validateMessageCreation(request, currentUser);
 
@@ -65,7 +61,7 @@ public class CachingMessageServiceImpl implements MessageService {
     @Override
     @Cacheable(
             value = "conversation",
-            key = "'conv:' + #currentUser.id + ':' + #otherUserId"
+            key = "'conv:' + #currentUser.id + ':' + #otherUserId + ':page:' + #pageRequest.pageNumber + ':size:' + #pageRequest.size"
     )
     public PageResponse<MessageResponse> getConversation(Long otherUserId, User currentUser, PageRequest pageRequest) {
         Long id = entityUtils.getUser(otherUserId).getId();
@@ -100,12 +96,14 @@ public class CachingMessageServiceImpl implements MessageService {
 
     @Transactional
     @Override
+    @CacheEvict(value = "conversation", allEntries = true)
     public MessageResponse markAsReceived(Long messageId, User currentUser) {
         return updateMessageStatus(messageId, currentUser, MessageStatus.RECEIVED, MessageStatus.SENT);
     }
 
     @Transactional
     @Override
+    @CacheEvict(value = "conversation", allEntries = true)
     public MessageResponse markAsRead(Long messageId, User currentUser) {
         return updateMessageStatus(messageId, currentUser, MessageStatus.READ, MessageStatus.RECEIVED, MessageStatus.SENT);
     }
