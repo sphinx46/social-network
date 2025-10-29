@@ -11,7 +11,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Message;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.MessageStatus;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.NotificationEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.MessageRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.MessageService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
@@ -32,7 +32,7 @@ public class MessageServiceImpl implements MessageService {
     private final MessageFactory messageFactory;
     private final MessageValidator messageValidator;
     private final EntityUtils entityUtils;
-    private final EventPublisherService eventPublisherService;
+    private final NotificationEventPublisherService notificationEventPublisherService;
 
     @Transactional
     @Override
@@ -43,7 +43,7 @@ public class MessageServiceImpl implements MessageService {
         Message message = messageFactory.createMessage(currentUser, receiver, request);
         Message savedMessage = messageRepository.save(message);
 
-        eventPublisherService.publishMessageReceived(this, request.getReceiverUserId(),
+        notificationEventPublisherService.publishMessageReceived(this, request.getReceiverUserId(),
                 currentUser.getId(), message.getContent());
 
         return entityMapper.map(savedMessage, MessageResponse.class);
@@ -123,7 +123,7 @@ public class MessageServiceImpl implements MessageService {
         messageValidator.validateMessageOwnership(currentUser, message);
         messageRepository.delete(message);
 
-        eventPublisherService.publishMessageDeleted(this, message.getReceiver().getId(), currentUser.getId());
+        notificationEventPublisherService.publishMessageDeleted(this, message.getReceiver().getId(), currentUser.getId());
     }
 
     private PageResponse<MessageResponse> getMessagesByStatus(User currentUser, MessageStatus status, PageRequest pageRequest) {

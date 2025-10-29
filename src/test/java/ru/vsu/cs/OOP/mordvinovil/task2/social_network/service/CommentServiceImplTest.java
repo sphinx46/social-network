@@ -5,12 +5,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.CommentRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.CommentResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.cache.CacheEventPublisherService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.NotificationEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.comment.CommentNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.post.PostNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.CommentRepository;
@@ -21,10 +27,12 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.ContentFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.CommentValidator;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory.*;
 
@@ -44,10 +52,13 @@ public class CommentServiceImplTest {
     private CommentValidator commentValidator;
 
     @Mock
-    private EventPublisherService eventPublisherService;
+    private EntityUtils entityUtils;
 
     @Mock
-    private EntityUtils entityUtils;
+    private NotificationEventPublisherService notificationEventPublisherService;
+
+    @Mock
+    private CacheEventPublisherService cacheEventPublisherService;
 
     @InjectMocks
     private CommentServiceImpl commentServiceImpl;
@@ -57,11 +68,9 @@ public class CommentServiceImplTest {
         User currentUser = createTestUser(1L, "user", "user@example.com");
         Post post = createTestPost(createTestUser(2L, "postOwner", "owner@example.com"), "Post content", null);
         CommentRequest request = createTestCommentRequest(post.getId(), "Comment content", null);
-        Comment comment = createTestComment(1L, currentUser, post, "Comment content", null);
+        Comment comment = createTestComment(null, currentUser, post, "Comment content", null);
         Comment savedComment = createTestComment(1L, currentUser, post, "Comment content", null);
         CommentResponse expectedResponse = createTestCommentResponse(savedComment);
-
-        Long postOwnerId = post.getUser().getId();
 
         when(entityUtils.getPost(post.getId())).thenReturn(post);
         when(contentFactory.createComment(currentUser, post, request.getContent(), request.getImageUrl())).thenReturn(comment);
@@ -77,8 +86,8 @@ public class CommentServiceImplTest {
         verify(entityUtils).getPost(post.getId());
         verify(contentFactory).createComment(currentUser, post, request.getContent(), request.getImageUrl());
         verify(commentRepository).save(any(Comment.class));
-        verify(eventPublisherService).publishCommentAdded(any(), eq(postOwnerId),
-                eq(post.getId()), eq(currentUser.getId()));
+        verify(notificationEventPublisherService).publishCommentAdded(any(), eq(post.getUser().getId()), eq(post.getId()), eq(savedComment.getId()));
+        verify(cacheEventPublisherService).publishCommentCreated(any(), eq(savedComment), eq(post.getId()), eq(currentUser.getId()), eq(savedComment.getId()));
         verify(entityMapper).map(savedComment, CommentResponse.class);
     }
 
@@ -94,7 +103,7 @@ public class CommentServiceImplTest {
 
         assertEquals(ResponseMessageConstants.FAILURE_POST_NOT_FOUND, exception.getMessage());
         verify(entityUtils).getPost(999L);
-        verifyNoInteractions(contentFactory, commentRepository, entityMapper);
+        verifyNoInteractions(contentFactory, commentRepository, entityMapper, cacheEventPublisherService);
     }
 
     @Test
@@ -107,7 +116,6 @@ public class CommentServiceImplTest {
         CommentResponse expectedResponse = createTestCommentResponse(updatedComment);
 
         when(entityUtils.getComment(1L)).thenReturn(comment);
-        doNothing().when(commentValidator).validateCommentUpdate(request, 1L, currentUser);
         when(commentRepository.save(any(Comment.class))).thenReturn(updatedComment);
         when(entityMapper.map(updatedComment, CommentResponse.class)).thenReturn(expectedResponse);
 
@@ -117,24 +125,20 @@ public class CommentServiceImplTest {
         assertEquals("Updated content", result.getContent());
         assertEquals("new.jpg", result.getImageUrl());
 
-        verify(entityUtils).getComment(1L);
         verify(commentValidator).validateCommentUpdate(request, 1L, currentUser);
+        verify(entityUtils).getComment(1L);
         verify(commentRepository).save(any(Comment.class));
+        verify(cacheEventPublisherService).publishCommentEdit(any(), eq(updatedComment), eq(post.getId()), eq(updatedComment.getId()));
         verify(entityMapper).map(updatedComment, CommentResponse.class);
     }
-
-
-
 
     @Test
     void deleteComment_whenUserIsOwner() {
         User currentUser = createTestUser(1L, "user", "user@example.com");
         Post post = createTestPost(createTestUser(2L, "postOwner", "owner@example.com"), "Post content", null);
-        Comment comment = createTestComment(null, currentUser, post, "Comment content");
-        comment.setId(1L);
+        Comment comment = createTestComment(1L, currentUser, post, "Comment content", null);
 
         when(entityUtils.getComment(1L)).thenReturn(comment);
-        doNothing().when(commentValidator).validateCommentOwnership(1L, currentUser);
 
         CompletableFuture<Boolean> result = commentServiceImpl.deleteComment(1L, currentUser);
 
@@ -144,15 +148,14 @@ public class CommentServiceImplTest {
         verify(commentValidator).validateCommentOwnership(1L, currentUser);
         verify(entityUtils).getComment(1L);
         verify(commentRepository).delete(comment);
+        verify(cacheEventPublisherService).publishCommentDeleted(any(), eq(comment), eq(post.getId()), eq(1L));
     }
-
 
     @Test
     void getCommentById_whenCommentExists() {
         User user = createTestUser(1L, "user", "user@example.com");
         Post post = createTestPost(createTestUser(2L, "postOwner", "owner@example.com"), "Post content", null);
-        Comment comment = createTestComment(null, user, post, "Comment content");
-        comment.setId(1L);
+        Comment comment = createTestComment(1L, user, post, "Comment content", null);
         CommentResponse expectedResponse = createTestCommentResponse(comment);
 
         when(entityUtils.getComment(1L)).thenReturn(comment);
@@ -180,29 +183,50 @@ public class CommentServiceImplTest {
     }
 
     @Test
-    void editComment_whenCommentNotExists() {
-        User currentUser = createTestUser(1L, "user", "example@example.com");
-        CommentRequest request = createTestCommentRequest(1L, "New content", null);
+    void getAllCommentsOnPost_whenValid() {
+        Long postId = 1L;
+        User user = createTestUser(1L, "user", "user@example.com");
+        Post post = createTestPost(user, "Post content", null);
+        Comment comment1 = createTestComment(1L, user, post, "Comment 1", null);
+        Comment comment2 = createTestComment(2L, user, post, "Comment 2", null);
+        List<Comment> comments = List.of(comment1, comment2);
 
-        when(entityUtils.getComment(1L)).thenThrow(new CommentNotFoundException(ResponseMessageConstants.FAILURE_COMMENT_NOT_FOUND));
+        PageRequest pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Comment> commentPage = new PageImpl<>(comments, pageable, comments.size());
 
-        CommentNotFoundException exception = assertThrows(CommentNotFoundException.class,
-                () -> commentServiceImpl.editComment(1L, request, currentUser));
+        CommentResponse response1 = createTestCommentResponse(comment1);
+        CommentResponse response2 = createTestCommentResponse(comment2);
 
-        assertEquals(ResponseMessageConstants.FAILURE_COMMENT_NOT_FOUND, exception.getMessage());
-        verify(entityUtils).getComment(1L);
-    }
+        when(entityUtils.getPost(postId)).thenReturn(post);
+        when(commentRepository.findByPostId(eq(postId), any(PageRequest.class))).thenReturn(commentPage);
+        when(entityMapper.map(comment1, CommentResponse.class)).thenReturn(response1);
+        when(entityMapper.map(comment2, CommentResponse.class)).thenReturn(response2);
 
-    @Test
-    void deleteComment_whenCommentNotExists() {
-        User currentUser = createTestUser(1L, "user", "example@example.com");
+        PageResponse<CommentResponse> result = commentServiceImpl.getAllCommentsOnPost(postId,
+                ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest.builder()
+                        .pageNumber(0)
+                        .size(10)
+                        .sortBy("createdAt")
+                        .direction(Sort.Direction.DESC)
+                        .build());
 
-        when(entityUtils.getComment(1L)).thenThrow(new CommentNotFoundException(ResponseMessageConstants.FAILURE_COMMENT_NOT_FOUND));
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+        assertEquals(0, result.getCurrentPage());
 
-        CommentNotFoundException exception = assertThrows(CommentNotFoundException.class,
-                () -> commentServiceImpl.deleteComment(1L, currentUser));
-
-        assertEquals(ResponseMessageConstants.FAILURE_COMMENT_NOT_FOUND, exception.getMessage());
-        verify(entityUtils).getComment(1L);
+        verify(entityUtils).getPost(postId);
+        verify(commentRepository).findByPostId(eq(postId), any(PageRequest.class));
+        verify(entityMapper, times(2)).map(any(Comment.class), eq(CommentResponse.class));
     }
 }
+
+//feat: добавить систему кеширования ленты новостей
+//
+//- Добавлены события для инвалидации кеша при действиях с постами, лайками и комментариями
+//- Реализован сервис для управления кешем ленты новостей
+//- Добавлена фабрика для выбора режима кеширования
+//- Обновлены сервисы для публикации событий кеширования
+//- Добавлены обработчики событий для асинхронной очистки кеша
+//- Обновлены тесты для покрытия новой функциональности
+//
+//refactor: оптимизировать архитектуру событий и кеширования

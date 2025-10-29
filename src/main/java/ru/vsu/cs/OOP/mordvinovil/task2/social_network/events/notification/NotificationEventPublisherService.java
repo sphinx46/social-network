@@ -1,18 +1,18 @@
-package ru.vsu.cs.OOP.mordvinovil.task2.social_network.events;
+package ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationType;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.factory.DefaultNotificationEventFactory;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.factory.notification.DefaultNotificationEventFactory;
 
 import java.util.Map;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class EventPublisherService {
+public class NotificationEventPublisherService {
     private final ApplicationEventPublisher eventPublisher;
     private final DefaultNotificationEventFactory eventFactory;
 

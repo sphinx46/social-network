@@ -1,4 +1,4 @@
-package ru.vsu.cs.OOP.mordvinovil.task2.social_network.events;
+package ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification;
 
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;

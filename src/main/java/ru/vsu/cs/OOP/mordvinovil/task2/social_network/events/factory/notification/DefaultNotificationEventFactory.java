@@ -1,8 +1,8 @@
-package ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.factory;
+package ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.factory.notification;
 
 import org.springframework.stereotype.Component;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationType;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.GenericNotificationEvent;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.GenericNotificationEvent;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.utils.MessageUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.utils.UserInfoService;
 

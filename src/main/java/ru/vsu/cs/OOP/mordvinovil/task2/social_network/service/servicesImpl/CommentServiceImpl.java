@@ -11,7 +11,8 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.cache.CacheEventPublisherService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.NotificationEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.CommentRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.CommentService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
@@ -29,7 +30,8 @@ public class CommentServiceImpl implements CommentService {
     private final ContentFactory contentFactory;
     private final CommentValidator commentValidator;
     private final EntityUtils entityUtils;
-    private final EventPublisherService eventPublisherService;
+    private final NotificationEventPublisherService notificationEventPublisherService;
+    private final CacheEventPublisherService cacheEventPublisherService;
 
     @Transactional
     @Override
@@ -41,7 +43,8 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = contentFactory.createComment(currentUser, post, request.getContent(), request.getImageUrl());
         Comment savedComment = commentRepository.save(comment);
 
-        eventPublisherService.publishCommentAdded(this, postOwnerId, post.getId(), comment.getId());
+        notificationEventPublisherService.publishCommentAdded(this, postOwnerId, post.getId(), savedComment.getId());
+        cacheEventPublisherService.publishCommentCreated(this, savedComment, post.getId(), currentUser.getId(), savedComment.getId());
 
         return entityMapper.map(savedComment, CommentResponse.class);
     }
@@ -57,11 +60,10 @@ public class CommentServiceImpl implements CommentService {
             comment.setContent(request.getContent());
         }
 
-        if (request.getImageUrl() != null) {
-            comment.setImageUrl(request.getImageUrl());
-        }
+        comment.setImageUrl(request.getImageUrl());
 
         Comment updatedComment = commentRepository.save(comment);
+        cacheEventPublisherService.publishCommentEdit(this, updatedComment, request.getPostId(), updatedComment.getId());
         return entityMapper.map(updatedComment, CommentResponse.class);
     }
 
@@ -72,6 +74,7 @@ public class CommentServiceImpl implements CommentService {
 
         Comment comment = entityUtils.getComment(commentId);
         commentRepository.delete(comment);
+        cacheEventPublisherService.publishCommentDeleted(this, comment, comment.getPost().getId(), commentId);
         return CompletableFuture.completedFuture(true);
     }
 
@@ -85,7 +88,7 @@ public class CommentServiceImpl implements CommentService {
     public PageResponse<CommentResponse> getAllCommentsOnPost(Long postId, PageRequest pageRequest) {
         Post post = entityUtils.getPost(postId);
 
-        Page<Comment> commentPage = commentRepository.findByPostId(post.getId(), pageRequest.toPageable());
+        Page<Comment> commentPage = commentRepository.findByPostId(postId, pageRequest.toPageable());
 
         return PageResponse.of(commentPage.map(
                 comment -> entityMapper.map(comment, CommentResponse.class)

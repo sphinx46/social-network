@@ -10,10 +10,10 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Notification;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationStatus;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationType;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.GenericNotificationEvent;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.GenericNotificationEvent;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.NotificationRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.eventhandler.NotificationEventHandlerImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.eventhandler.notification.NotificationEventHandlerImpl;
 
 import java.util.Map;
 import java.util.Optional;

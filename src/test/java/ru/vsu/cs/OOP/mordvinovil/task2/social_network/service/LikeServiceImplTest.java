@@ -18,7 +18,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Like;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.NotificationEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.like.LikeNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.LikeRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.LikeServiceImpl;
@@ -56,7 +56,7 @@ public class LikeServiceImplTest {
     private LikeValidator likeValidator;
 
     @Mock
-    private EventPublisherService eventPublisherService;
+    private NotificationEventPublisherService notificationEventPublisherService;
 
     @InjectMocks
     private LikeServiceImpl likeServiceImpl;
@@ -84,7 +84,7 @@ public class LikeServiceImplTest {
         verify(entityUtils).getComment(request.getCommentId());
         verify(likeFactory).createCommentLike(currentUser, request.getCommentId());
         verify(likeRepository).save(any(Like.class));
-        verify(eventPublisherService).publishCommentLiked(any(), eq(commentOwner.getId()),
+        verify(notificationEventPublisherService).publishCommentLiked(any(), eq(commentOwner.getId()),
                 eq(comment.getId()), eq(currentUser.getId()));
         verify(entityMapper).map(like, LikeCommentResponse.class);
     }
@@ -111,7 +111,7 @@ public class LikeServiceImplTest {
         verify(entityUtils).getPost(request.getPostId());
         verify(likeFactory).createPostLike(currentUser, request.getPostId());
         verify(likeRepository).save(any(Like.class));
-        verify(eventPublisherService).publishPostLiked(any(), eq(postOwner.getId()),
+        verify(notificationEventPublisherService).publishPostLiked(any(), eq(postOwner.getId()),
                 eq(post.getId()), eq(currentUser.getId()));
         verify(entityMapper).map(like, LikePostResponse.class);
     }

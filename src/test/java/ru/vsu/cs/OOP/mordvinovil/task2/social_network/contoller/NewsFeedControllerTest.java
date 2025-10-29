@@ -8,8 +8,8 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.NewsFeedController;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.NewsFeedResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.CachingNewsFeedServiceImpl;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.NewsFeedServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.CacheMode;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.factory.NewsFeedServiceFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.BaseControllerTest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
 
@@ -22,11 +22,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(NewsFeedController.class)
 public class NewsFeedControllerTest extends BaseControllerTest {
-    @MockitoBean
-    private CachingNewsFeedServiceImpl cachingNewsFeedService;
 
     @MockitoBean
-    private NewsFeedServiceImpl newsFeedService;
+    private NewsFeedServiceFactory newsFeedServiceFactory;
 
     @Test
     @WithMockUser(username = "testUser", authorities = "USER")
@@ -43,8 +41,12 @@ public class NewsFeedControllerTest extends BaseControllerTest {
                 .last(true)
                 .build();
 
-        when(userService.getCurrentUser()).thenReturn(createTestUser(1L, "testUser"));
-        when(cachingNewsFeedService.getPostsByFriends(any(), any())).thenReturn(pageResponse);
+        var user = TestDataFactory.createTestUser(1L, "testUser");
+        var cachingService = mock(ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.NewsFeedService.class);
+
+        when(userService.getCurrentUser()).thenReturn(user);
+        when(newsFeedServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingService);
+        when(cachingService.getPostsByFriends(any(), any())).thenReturn(pageResponse);
 
         mockMvcUtils.performGet("/newsfeed?size=10&pageNumber=0&cacheMode=CACHE")
                 .andExpect(status().isOk())
@@ -62,8 +64,8 @@ public class NewsFeedControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.totalPages").value(1))
                 .andExpect(jsonPath("$.totalElements").value(10));
 
-        verify(cachingNewsFeedService, times(1)).getPostsByFriends(any(), any());
-        verify(newsFeedService, never()).getPostsByFriends(any(), any());
+        verify(newsFeedServiceFactory, times(1)).getService(CacheMode.CACHE);
+        verify(cachingService, times(1)).getPostsByFriends(any(), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -82,8 +84,12 @@ public class NewsFeedControllerTest extends BaseControllerTest {
                 .last(true)
                 .build();
 
-        when(userService.getCurrentUser()).thenReturn(createTestUser(1L, "testUser"));
-        when(newsFeedService.getPostsByFriends(any(), any())).thenReturn(pageResponse);
+        var user = TestDataFactory.createTestUser(1L, "testUser");
+        var nonCachingService = mock(ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.NewsFeedService.class);
+
+        when(userService.getCurrentUser()).thenReturn(user);
+        when(newsFeedServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(nonCachingService);
+        when(nonCachingService.getPostsByFriends(any(), any())).thenReturn(pageResponse);
 
         mockMvcUtils.performGet("/newsfeed?size=10&pageNumber=0&cacheMode=NONE_CACHE")
                 .andExpect(status().isOk())
@@ -92,8 +98,8 @@ public class NewsFeedControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.totalPages").value(1))
                 .andExpect(jsonPath("$.totalElements").value(10));
 
-        verify(newsFeedService, times(1)).getPostsByFriends(any(), any());
-        verify(cachingNewsFeedService, never()).getPostsByFriends(any(), any());
+        verify(newsFeedServiceFactory, times(1)).getService(CacheMode.NONE_CACHE);
+        verify(nonCachingService, times(1)).getPostsByFriends(any(), any());
         verify(userService, times(1)).getCurrentUser();
     }
 
@@ -112,15 +118,20 @@ public class NewsFeedControllerTest extends BaseControllerTest {
                 .last(true)
                 .build();
 
-        when(userService.getCurrentUser()).thenReturn(createTestUser(1L, "testUser"));
-        when(newsFeedService.getPostsByFriends(any(), any())).thenReturn(pageResponse);
+        var user = TestDataFactory.createTestUser(1L, "testUser");
+        var nonCachingService = mock(ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.NewsFeedService.class);
+
+        when(userService.getCurrentUser()).thenReturn(user);
+        when(newsFeedServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(nonCachingService);
+        when(nonCachingService.getPostsByFriends(any(), any())).thenReturn(pageResponse);
 
         mockMvcUtils.performGet("/newsfeed?size=10&pageNumber=0")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(10));
 
-        verify(newsFeedService, times(1)).getPostsByFriends(any(), any());
-        verify(cachingNewsFeedService, never()).getPostsByFriends(any(), any());
+        verify(newsFeedServiceFactory, times(1)).getService(CacheMode.NONE_CACHE);
+        verify(nonCachingService, times(1)).getPostsByFriends(any(), any());
+        verify(userService, times(1)).getCurrentUser();
     }
 
     @Test
@@ -129,21 +140,7 @@ public class NewsFeedControllerTest extends BaseControllerTest {
         mockMvcUtils.performGet("/newsfeed")
                 .andExpect(status().isUnauthorized());
 
-        verify(cachingNewsFeedService, never()).getPostsByFriends(any(), any());
-        verify(newsFeedService, never()).getPostsByFriends(any(), any());
+        verify(newsFeedServiceFactory, never()).getService(any());
         verify(userService, never()).getCurrentUser();
-    }
-
-    @Test
-    @WithMockUser(username = "testUser", authorities = "USER")
-    @DisplayName("Получение ленты новостей с некорректным cacheMode")
-    void getNewsFeed_withInvalidCacheMode() throws Exception {
-        when(userService.getCurrentUser()).thenReturn(createTestUser(1L, "testUser"));
-
-        mockMvcUtils.performGet("/newsfeed?cacheMode=INVALID_MODE")
-                .andExpect(status().isBadRequest());
-
-        verify(cachingNewsFeedService, never()).getPostsByFriends(any(), any());
-        verify(newsFeedService, never()).getPostsByFriends(any(), any());
     }
 }

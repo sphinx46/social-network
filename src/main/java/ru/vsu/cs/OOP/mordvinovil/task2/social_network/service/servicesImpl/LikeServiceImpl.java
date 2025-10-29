@@ -14,7 +14,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Like;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.NotificationEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.like.LikeNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.LikeRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.LikeService;
@@ -32,7 +32,7 @@ public class LikeServiceImpl implements LikeService {
     private final EntityUtils entityUtils;
     private final LikeFactory likeFactory;
     private final LikeValidator likeValidator;
-    private final EventPublisherService eventPublisherService;
+    private final NotificationEventPublisherService notificationEventPublisherService;
 
     @Transactional
     @Override
@@ -45,7 +45,7 @@ public class LikeServiceImpl implements LikeService {
         Like like = likeFactory.createCommentLike(currentUser, request.getCommentId());
         Like savedLike = likeRepository.save(like);
 
-        eventPublisherService.publishCommentLiked(this, commentOwnerId, like.getComment().getId(), currentUser.getId());
+        notificationEventPublisherService.publishCommentLiked(this, commentOwnerId, like.getComment().getId(), currentUser.getId());
         return entityMapper.map(savedLike, LikeCommentResponse.class);
     }
 
@@ -60,7 +60,7 @@ public class LikeServiceImpl implements LikeService {
         Like like = likeFactory.createPostLike(currentUser, request.getPostId());
         Like savedLike = likeRepository.save(like);
 
-        eventPublisherService.publishPostLiked(this, postOwnerId, like.getPost().getId(), currentUser.getId());
+        notificationEventPublisherService.publishPostLiked(this, postOwnerId, like.getPost().getId(), currentUser.getId());
         return entityMapper.map(savedLike, LikePostResponse.class);
     }
 

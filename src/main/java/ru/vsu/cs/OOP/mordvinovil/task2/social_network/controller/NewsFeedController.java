@@ -17,8 +17,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.CacheMode;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.NewsFeedService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.UserService;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.CachingNewsFeedServiceImpl;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.NewsFeedServiceImpl;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.factory.NewsFeedServiceFactory;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -26,8 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/newsfeed")
 @RequiredArgsConstructor
 public class NewsFeedController {
-    private final CachingNewsFeedServiceImpl cachingService;
-    private final NewsFeedServiceImpl notCachingService;
+    private final NewsFeedServiceFactory newsFeedServiceFactory;
     private final UserService userService;
 
     @PreAuthorize("isAuthenticated()")
@@ -53,7 +51,7 @@ public class NewsFeedController {
                 .direction(Sort.Direction.fromString(direction))
                 .build();
 
-        NewsFeedService service = resolveNewsFeedService(cacheMode);
+        NewsFeedService service = newsFeedServiceFactory.getService(cacheMode);
         log.debug("Выбран сервис для обработки: {}", service.getClass().getSimpleName());
 
         PageResponse<NewsFeedResponse> pageResponse = service.getPostsByFriends(user, pageRequest);
@@ -61,19 +59,5 @@ public class NewsFeedController {
                 user.getId(), pageResponse.getContent().size());
 
         return ResponseEntity.ok(pageResponse);
-    }
-
-    private NewsFeedService resolveNewsFeedService(CacheMode cacheMode) {
-        log.debug("Выбор сервиса для режима кеширования: {}", cacheMode);
-        return switch (cacheMode) {
-            case CacheMode.CACHE -> {
-                log.debug("Выбран кеширующий сервис");
-                yield cachingService;
-            }
-            case CacheMode.NONE_CACHE -> {
-                log.debug("Выбран сервис без кеширования");
-                yield notCachingService;
-            }
-        };
     }
 }

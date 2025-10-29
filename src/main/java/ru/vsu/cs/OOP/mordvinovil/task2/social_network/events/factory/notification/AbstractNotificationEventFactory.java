@@ -1,9 +1,9 @@
-package ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.factory;
+package ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.factory.notification;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationType;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.GenericNotificationEvent;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.GenericNotificationEvent;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.utils.UserInfoService;
 
 import java.util.HashMap;

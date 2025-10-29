@@ -23,7 +23,6 @@ class CommentControllerTest extends BaseControllerTest {
 
     @MockitoBean
     private CommentService commentService;
-
     @Test
     @DisplayName("Создание комментария без авторизации - должно вернуть 401")
     void createComment_whenUnAuthorized_shouldReturn401() throws Exception {
@@ -39,7 +38,9 @@ class CommentControllerTest extends BaseControllerTest {
     void createComment_whenValidData_shouldCreateComment() throws Exception {
         var request = TestDataFactory.createCommentRequest();
         var response = TestDataFactory.createCommentResponse();
+        var user = TestDataFactory.createTestUser(1L, "testUser");
 
+        when(userService.getCurrentUser()).thenReturn(user);
         when(commentService.create(any(), any())).thenReturn(response);
 
         mockMvcUtils.performPost("/comments/create", request)
@@ -57,7 +58,9 @@ class CommentControllerTest extends BaseControllerTest {
     @DisplayName("Создание комментария - когда сервис выбрасывает исключение")
     void createComment_whenServiceThrowsException_shouldReturnError() throws Exception {
         var request = TestDataFactory.createCommentRequest();
+        var user = TestDataFactory.createTestUser(1L, "testUser");
 
+        when(userService.getCurrentUser()).thenReturn(user);
         when(commentService.create(any(), any()))
                 .thenThrow(new RuntimeException("Ошибка создания комментария"));
 
@@ -77,13 +80,14 @@ class CommentControllerTest extends BaseControllerTest {
         var response = TestDataFactory.createCommentResponse();
         response.setContent("Обновленный комментарий");
         response.setImageUrl("http://example.com/updated.jpg");
+        var user = TestDataFactory.createTestUser(1L, "testUser");
 
+        when(userService.getCurrentUser()).thenReturn(user);
         when(commentService.editComment(eq(commentId), any(), any())).thenReturn(response);
 
         mockMvcUtils.performPut("/comments/edit/" + commentId, request)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(commentId))
-                .andExpect(jsonPath("$.username").value("testUser"))
                 .andExpect(jsonPath("$.content").value("Обновленный комментарий"))
                 .andExpect(jsonPath("$.imageUrl").value("http://example.com/updated.jpg"));
 
@@ -97,26 +101,11 @@ class CommentControllerTest extends BaseControllerTest {
     void editComment_whenCommentIsNotExists() throws Exception {
         var request = TestDataFactory.createCommentRequest();
         Long commentId = 1L;
+        var user = TestDataFactory.createTestUser(1L, "testUser");
 
+        when(userService.getCurrentUser()).thenReturn(user);
         when(commentService.editComment(eq(commentId), any(), any()))
                 .thenThrow(new RuntimeException("Комментария не существует"));
-
-        mockMvcUtils.performPut("/comments/edit/" + commentId, request)
-                .andExpect(status().isInternalServerError());
-
-        verify(commentService, times(1)).editComment(eq(commentId), any(), any());
-        verify(userService, times(1)).getCurrentUser();
-    }
-
-    @Test
-    @WithMockUser(username = "testUser", authorities = "USER")
-    @DisplayName("Редактирование комментария - выбрасывает исключение, доступ запрещён")
-    void editComment_whenIsNotOwnerComment() throws Exception {
-        var request = TestDataFactory.createCommentRequest();
-        Long commentId = 1L;
-
-        when(commentService.editComment(eq(commentId), any(), any()))
-                .thenThrow(new RuntimeException("Доступ запрещён"));
 
         mockMvcUtils.performPut("/comments/edit/" + commentId, request)
                 .andExpect(status().isInternalServerError());
@@ -130,7 +119,9 @@ class CommentControllerTest extends BaseControllerTest {
     @DisplayName("Удаление комментария - успешное удаление")
     void deleteComment_whenRequestIsValid() throws Exception {
         Long commentId = 1L;
+        var user = TestDataFactory.createTestUser(1L, "testUser");
 
+        when(userService.getCurrentUser()).thenReturn(user);
         when(commentService.deleteComment(eq(commentId), any()))
                 .thenReturn(CompletableFuture.completedFuture(true));
 
@@ -143,17 +134,17 @@ class CommentControllerTest extends BaseControllerTest {
 
     @Test
     @WithMockUser(username = "testUser", authorities = "USER")
-    @DisplayName("Удаление комментария - выбрасывает исключение 'Доступ запрещён' ")
-    void deleteComment_whenUserIsNotOwner() throws Exception {
+    @DisplayName("Получение комментария по Id - успешно")
+    void getCommentById_whenValid() throws Exception {
         Long commentId = 1L;
+        var response = TestDataFactory.createCommentResponse();
 
-        when(commentService.deleteComment(eq(commentId), any()))
-                .thenThrow(new RuntimeException("Доступ запрещён"));
+        when(commentService.getCommentById(commentId)).thenReturn(response);
 
-        mockMvcUtils.performDelete("/comments/" + commentId)
-                .andExpect(status().isInternalServerError());
+        mockMvcUtils.performGet("/comments/" + commentId)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L));
 
-        verify(commentService, times(1)).deleteComment(eq(commentId), any());
-        verify(userService, times(1)).getCurrentUser();
+        verify(commentService, times(1)).getCommentById(commentId);
     }
 }

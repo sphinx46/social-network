@@ -15,7 +15,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.RelationshipR
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Relationship;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.FriendshipStatus;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.NotificationEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.DuplicateRelationshipException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.RelationshipNotFoundException;
@@ -56,7 +56,7 @@ public class RelationshipServiceImplTest {
     private RelationshipValidator relationshipValidator;
 
     @Mock
-    private EventPublisherService eventPublisherService;
+    private NotificationEventPublisherService notificationEventPublisherService;
 
     @InjectMocks
     private RelationshipServiceImpl relationshipServiceImpl;
@@ -84,7 +84,7 @@ public class RelationshipServiceImplTest {
         verify(relationshipFactory).createPendingRelationship(currentUser, receiverUser);
         verify(relationshipRepository).save(any(Relationship.class));
         verify(entityMapper).map(relationship, RelationshipResponse.class);
-        verify(eventPublisherService).publishFriendRequest(any(), eq(receiverUser.getId()), eq(currentUser.getId()));
+        verify(notificationEventPublisherService).publishFriendRequest(any(), eq(receiverUser.getId()), eq(currentUser.getId()));
     }
 
     @Test
@@ -171,7 +171,7 @@ public class RelationshipServiceImplTest {
         verify(relationshipRepository).findBySenderIdAndReceiverIdAndStatus(senderUser.getId(), currentUser.getId(), FriendshipStatus.PENDING);
         verify(relationshipRepository).save(any(Relationship.class));
         verify(entityMapper).map(updatedRelationship, RelationshipResponse.class);
-        verify(eventPublisherService).publishFriendRequestAccepted(any(), eq(senderUser.getId()), eq(currentUser.getId()));
+        verify(notificationEventPublisherService).publishFriendRequestAccepted(any(), eq(senderUser.getId()), eq(currentUser.getId()));
     }
 
     @Test

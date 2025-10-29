@@ -14,7 +14,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Message;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.MessageStatus;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.NotificationEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.MessageRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.MessageServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
@@ -49,7 +49,7 @@ public class MessageServiceImplTest {
     private MessageValidator messageValidator;
 
     @Mock
-    private EventPublisherService eventPublisherService;
+    private NotificationEventPublisherService notificationEventPublisherService;
 
     @Mock
     private EntityUtils entityUtils;
@@ -79,7 +79,7 @@ public class MessageServiceImplTest {
         verify(entityUtils).getUser(receiverUser.getId());
         verify(messageFactory).createMessage(currentUser, receiverUser, request);
         verify(messageRepository).save(any(Message.class));
-        verify(eventPublisherService).publishMessageReceived(any(), eq(receiverUser.getId()),
+        verify(notificationEventPublisherService).publishMessageReceived(any(), eq(receiverUser.getId()),
                 eq(currentUser.getId()), eq("привет"));
         verify(entityMapper).map(message, MessageResponse.class);
     }
@@ -179,7 +179,7 @@ public class MessageServiceImplTest {
         verify(entityUtils).getMessage(1L);
         verify(messageRepository).delete(message);
         verify(messageValidator).validateMessageOwnership(owner, message);
-        verify(eventPublisherService).publishMessageDeleted(any(), eq(receiver.getId()),
+        verify(notificationEventPublisherService).publishMessageDeleted(any(), eq(receiver.getId()),
                 eq(owner.getId()));
     }
 
