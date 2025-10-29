@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,6 +24,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.UserService;
 public class RelationshipController {
     private final RelationshipService relationshipService;
     private final UserService userService;
+    private static final Logger log = LoggerFactory.getLogger(RelationshipController.class);
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Создание нового запроса на дружбу")
@@ -30,7 +33,9 @@ public class RelationshipController {
             @Valid @RequestBody RelationshipRequest request) {
 
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} отправляет запрос на дружбу пользователю {}", user.getId(), request.getTargetUserId());
         RelationshipResponse response = relationshipService.sendFriendRequest(request, user);
+        log.info("Запрос на дружбу от пользователя {} к пользователю {} успешно создан", user.getId(), request.getTargetUserId());
         return ResponseEntity.ok(response);
     }
 
@@ -44,6 +49,7 @@ public class RelationshipController {
             @RequestParam(defaultValue = "DESC", required = false) String direction) {
 
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} запрашивает список друзей, страница {}, размер {}", user.getId(), pageNumber, size);
         var pageRequest = PageRequest.builder()
                 .pageNumber(pageNumber)
                 .size(size)
@@ -51,6 +57,7 @@ public class RelationshipController {
                 .direction(Sort.Direction.fromString(direction))
                 .build();
         PageResponse<RelationshipResponse> pageResponse = relationshipService.getFriendList(user, pageRequest);
+        log.info("Получено {} друзей для пользователя {}", pageResponse.getContent().size(), user.getId());
         return ResponseEntity.ok(pageResponse);
     }
 
@@ -64,6 +71,7 @@ public class RelationshipController {
             @RequestParam(defaultValue = "DESC", required = false) String direction) {
 
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} запрашивает черный список, страница {}, размер {}", user.getId(), pageNumber, size);
         var pageRequest = PageRequest.builder()
                 .pageNumber(pageNumber)
                 .size(size)
@@ -71,6 +79,7 @@ public class RelationshipController {
                 .direction(Sort.Direction.fromString(direction))
                 .build();
         PageResponse<RelationshipResponse> pageResponse = relationshipService.getBlackList(user, pageRequest);
+        log.info("Получено {} пользователей в черном списке для пользователя {}", pageResponse.getContent().size(), user.getId());
         return ResponseEntity.ok(pageResponse);
     }
 
@@ -84,6 +93,7 @@ public class RelationshipController {
             @RequestParam(defaultValue = "DESC", required = false) String direction) {
 
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} запрашивает список отклоненных запросов, страница {}, размер {}", user.getId(), pageNumber, size);
         var pageRequest = PageRequest.builder()
                 .pageNumber(pageNumber)
                 .size(size)
@@ -91,6 +101,7 @@ public class RelationshipController {
                 .direction(Sort.Direction.fromString(direction))
                 .build();
         PageResponse<RelationshipResponse> pageResponse = relationshipService.getDeclinedList(user, pageRequest);
+        log.info("Получено {} отклоненных запросов для пользователя {}", pageResponse.getContent().size(), user.getId());
         return ResponseEntity.ok(pageResponse);
     }
 
@@ -99,7 +110,9 @@ public class RelationshipController {
     @PatchMapping("/acceptFriendRequest")
     public ResponseEntity<RelationshipResponse> acceptFriendRequest(@Valid @RequestBody RelationshipRequest request) {
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} принимает запрос на дружбу от пользователя {}", user.getId(), request.getTargetUserId());
         RelationshipResponse response = relationshipService.acceptFriendRequest(request, user);
+        log.info("Пользователь {} принял запрос на дружбу от пользователя {}", user.getId(), request.getTargetUserId());
         return ResponseEntity.ok(response);
     }
 
@@ -108,7 +121,9 @@ public class RelationshipController {
     @PatchMapping("/declineFriendRequest")
     public ResponseEntity<RelationshipResponse> declineFriendRequest(@Valid @RequestBody RelationshipRequest request) {
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} отклоняет запрос на дружбу от пользователя {}", user.getId(), request.getTargetUserId());
         RelationshipResponse response = relationshipService.declineFriendRequest(request, user);
+        log.info("Пользователь {} отклонил запрос на дружбу от пользователя {}", user.getId(), request.getTargetUserId());
         return ResponseEntity.ok(response);
     }
 
@@ -117,7 +132,9 @@ public class RelationshipController {
     @PatchMapping("/blockFriend")
     public ResponseEntity<RelationshipResponse> blockFriend(@Valid @RequestBody RelationshipRequest request) {
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} блокирует пользователя {}", user.getId(), request.getTargetUserId());
         RelationshipResponse response = relationshipService.blockUser(request, user);
+        log.info("Пользователь {} заблокировал пользователя {}", user.getId(), request.getTargetUserId());
         return ResponseEntity.ok(response);
     }
 }

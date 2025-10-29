@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,6 +25,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.UserService;
 public class PostController {
     private final PostService service;
     private final UserService userService;
+    private static final Logger log = LoggerFactory.getLogger(PostController.class);
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Получение списка постов текущего пользователя")
@@ -34,6 +37,7 @@ public class PostController {
             @RequestParam(defaultValue = "DESC", required = false) String direction
     ) {
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} запрашивает свои посты, страница {}, размер {}", user.getId(), pageNumber, size);
 
         var pageRequest = PageRequest.builder()
                 .pageNumber(pageNumber)
@@ -43,6 +47,7 @@ public class PostController {
                 .build();
 
         PageResponse<PostResponse> responses = service.getAllPostsByUser(user, pageRequest);
+        log.info("Получено {} постов пользователя {}", responses.getContent().size(), user.getId());
         return ResponseEntity.ok(responses);
     }
 
@@ -54,7 +59,9 @@ public class PostController {
             @Valid @RequestBody PostRequest request) {
 
         User currentUser = userService.getCurrentUser();
+        log.info("Пользователь {} редактирует пост {}", currentUser.getId(), id);
         PostResponse response = service.editPost(request, id, currentUser);
+        log.info("Пост {} успешно отредактирован пользователем {}", id, currentUser.getId());
         return ResponseEntity.ok(response);
     }
 
@@ -66,7 +73,9 @@ public class PostController {
             @RequestParam("file") MultipartFile imageFile) {
 
         User currentUser = userService.getCurrentUser();
+        log.info("Пользователь {} загружает изображение для поста {}", currentUser.getId(), id);
         PostResponse response = service.uploadImage(id, imageFile, currentUser);
+        log.info("Изображение успешно загружено для поста {} пользователем {}", id, currentUser.getId());
         return ResponseEntity.ok(response);
     }
 
@@ -77,7 +86,9 @@ public class PostController {
             @PathVariable Long postId) {
 
         User currentUser = userService.getCurrentUser();
+        log.info("Пользователь {} удаляет изображение поста {}", currentUser.getId(), postId);
         PostResponse response = service.removeImage(postId, currentUser);
+        log.info("Изображение поста {} успешно удалено пользователем {}", postId, currentUser.getId());
         return ResponseEntity.ok(response);
     }
 
@@ -85,7 +96,9 @@ public class PostController {
     @Operation(summary = "Получение поста по Id")
     @GetMapping("/{postId}")
     public ResponseEntity<PostResponse> getPostById(@PathVariable Long postId) {
+        log.info("Запрос на получение поста {}", postId);
         PostResponse response = service.getPostById(postId);
+        log.info("Пост {} успешно получен", postId);
         return ResponseEntity.ok(response);
     }
 
@@ -96,7 +109,9 @@ public class PostController {
             @Valid @RequestBody PostRequest request) {
 
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} создает новый пост", user.getId());
         PostResponse response = service.create(request, user);
+        log.info("Пост {} успешно создан пользователем {}", response.getId(), user.getId());
         return ResponseEntity.ok(response);
     }
 }

@@ -19,7 +19,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.EventPublisherServi
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.DuplicateRelationshipException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.RelationshipNotFoundException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.SelfRelationshipException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.RelationshipToSelfException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.user.UserNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.RelationshipRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.RelationshipServiceImpl;
@@ -113,10 +113,10 @@ public class RelationshipServiceImplTest {
         User currentUser = createTestUser(1L, "user", "example@example.com");
         RelationshipRequest request = createTestRelationshipRequest(currentUser.getId());
 
-        doThrow(new SelfRelationshipException(ResponseMessageConstants.FAILURE_RELATIONSHIP_TO_SELF_OPERATION))
+        doThrow(new RelationshipToSelfException(ResponseMessageConstants.FAILURE_RELATIONSHIP_TO_SELF_OPERATION))
                 .when(relationshipValidator).validate(request, currentUser);
 
-        SelfRelationshipException exception = assertThrows(SelfRelationshipException.class,
+        RelationshipToSelfException exception = assertThrows(RelationshipToSelfException.class,
                 () -> relationshipServiceImpl.sendFriendRequest(request, currentUser));
 
         assertEquals(ResponseMessageConstants.FAILURE_RELATIONSHIP_TO_SELF_OPERATION, exception.getMessage());
@@ -343,3 +343,4 @@ public class RelationshipServiceImplTest {
         verify(relationshipRepository).findByUserAndStatus(eq(currentUser.getId()), eq(FriendshipStatus.DECLINED), any());
     }
 }
+

@@ -1,4 +1,4 @@
-package ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom;
+package ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.file;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;

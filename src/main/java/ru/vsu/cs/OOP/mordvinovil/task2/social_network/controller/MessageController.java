@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,13 +24,16 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.UserService;
 public class MessageController {
     private final MessageService service;
     private final UserService userService;
+    private static final Logger log = LoggerFactory.getLogger(MessageController.class);
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Создание нового сообщения")
     @PostMapping("/create")
     public ResponseEntity<MessageResponse> createMessage(@Valid @RequestBody MessageRequest request) {
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} создает сообщение для пользователя {}", user.getId(), request.getReceiverUserId());
         MessageResponse response = service.create(request, user);
+        log.info("Сообщение {} успешно создано пользователем {}", response.getId(), user.getId());
         return ResponseEntity.ok(response);
     }
 
@@ -37,7 +42,9 @@ public class MessageController {
     @GetMapping("/{messageId}")
     public ResponseEntity<MessageResponse> getMessage(@PathVariable Long messageId) {
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} запрашивает сообщение {}", user.getId(), messageId);
         MessageResponse response = service.getMessageById(messageId, user);
+        log.info("Сообщение {} успешно получено пользователем {}", messageId, user.getId());
         return ResponseEntity.ok(response);
     }
 
@@ -51,6 +58,7 @@ public class MessageController {
             @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
             @RequestParam(defaultValue = "DESC", required = false) String direction) {
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} запрашивает переписку с пользователем {}, страница {}, размер {}", user.getId(), userId, pageNumber, size);
 
         var pageRequest = PageRequest.builder()
                 .pageNumber(pageNumber)
@@ -60,6 +68,7 @@ public class MessageController {
                 .build();
 
         PageResponse<MessageResponse> response = service.getConversation(userId, user, pageRequest);
+        log.info("Получено {} сообщений в переписке пользователя {} с пользователем {}", response.getContent().size(), user.getId(), userId);
         return ResponseEntity.ok(response);
     }
 
@@ -73,6 +82,7 @@ public class MessageController {
             @RequestParam(defaultValue = "DESC", required = false) String direction
     ) {
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} запрашивает отправленные сообщения, страница {}, размер {}", user.getId(), pageNumber, size);
 
         var pageRequest = PageRequest.builder()
                 .pageNumber(pageNumber)
@@ -82,6 +92,7 @@ public class MessageController {
                 .build();
 
         PageResponse<MessageResponse> response = service.getSentMessages(user, pageRequest);
+        log.info("Получено {} отправленных сообщений пользователя {}", response.getContent().size(), user.getId());
         return ResponseEntity.ok(response);
     }
 
@@ -95,6 +106,7 @@ public class MessageController {
             @RequestParam(defaultValue = "DESC", required = false) String direction
     ) {
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} запрашивает полученные сообщения, страница {}, размер {}", user.getId(), pageNumber, size);
 
         var pageRequest = PageRequest.builder()
                 .pageNumber(pageNumber)
@@ -104,6 +116,7 @@ public class MessageController {
                 .build();
 
         PageResponse<MessageResponse> response = service.getReceivedMessages(user, pageRequest);
+        log.info("Получено {} полученных сообщений пользователя {}", response.getContent().size(), user.getId());
         return ResponseEntity.ok(response);
     }
 
@@ -117,6 +130,7 @@ public class MessageController {
             @RequestParam(defaultValue = "DESC", required = false) String direction
     ) {
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} запрашивает прочитанные сообщения, страница {}, размер {}", user.getId(), pageNumber, size);
 
         var pageRequest = PageRequest.builder()
                 .pageNumber(pageNumber)
@@ -126,6 +140,7 @@ public class MessageController {
                 .build();
 
         PageResponse<MessageResponse> response = service.getReadMessages(user, pageRequest);
+        log.info("Получено {} прочитанных сообщений пользователя {}", response.getContent().size(), user.getId());
         return ResponseEntity.ok(response);
     }
 
@@ -135,17 +150,20 @@ public class MessageController {
     public ResponseEntity<MessageResponse> editMessage(@PathVariable Long messageId,
                                                        @Valid @RequestBody MessageRequest request) {
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} редактирует сообщение {}", user.getId(), messageId);
         MessageResponse response = service.editMessage(messageId, request, user);
+        log.info("Сообщение {} успешно отредактировано пользователем {}", messageId, user.getId());
         return ResponseEntity.ok(response);
     }
-
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Изменить статус сообщения на 'Доставлено'")
     @PatchMapping("/{messageId}/receive")
     public ResponseEntity<MessageResponse> receiveMessage(@PathVariable Long messageId) {
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} отмечает сообщение {} как доставленное", user.getId(), messageId);
         MessageResponse response = service.markAsReceived(messageId, user);
+        log.info("Сообщение {} отмечено как доставленное пользователем {}", messageId, user.getId());
         return ResponseEntity.ok(response);
     }
 
@@ -154,7 +172,9 @@ public class MessageController {
     @PatchMapping("/{messageId}/read")
     public ResponseEntity<MessageResponse> readMessage(@PathVariable Long messageId) {
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} отмечает сообщение {} как прочитанное", user.getId(), messageId);
         MessageResponse response = service.markAsRead(messageId, user);
+        log.info("Сообщение {} отмечено как прочитанное пользователем {}", messageId, user.getId());
         return ResponseEntity.ok(response);
     }
 
@@ -163,7 +183,9 @@ public class MessageController {
     @DeleteMapping("/{messageId}")
     public ResponseEntity<Void> deleteMessage(@PathVariable Long messageId) {
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} удаляет сообщение {}", user.getId(), messageId);
         service.deleteMessage(messageId, user);
+        log.info("Сообщение {} успешно удалено пользователем {}", messageId, user.getId());
         return ResponseEntity.noContent().build();
     }
 }

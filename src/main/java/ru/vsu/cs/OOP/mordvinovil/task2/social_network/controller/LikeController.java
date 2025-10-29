@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -24,6 +26,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.UserService;
 public class LikeController {
     private final UserService userService;
     private final LikeService likeService;
+    private static final Logger log = LoggerFactory.getLogger(LikeController.class);
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Поставить лайк на пост")
@@ -32,7 +35,9 @@ public class LikeController {
             @Valid @RequestBody LikePostRequest request) {
 
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} ставит лайк на пост {}", user.getId(), request.getPostId());
         LikePostResponse response = likeService.likePost(user, request);
+        log.info("Пользователь {} успешно поставил лайк на пост {}", user.getId(), request.getPostId());
         return ResponseEntity.ok(response);
     }
 
@@ -43,7 +48,9 @@ public class LikeController {
             @Valid @RequestBody LikeCommentRequest request) {
 
         User user = userService.getCurrentUser();
+        log.info("Пользователь {} ставит лайк на комментарий {}", user.getId(), request.getCommentId());
         LikeCommentResponse response = likeService.likeComment(user, request);
+        log.info("Пользователь {} успешно поставил лайк на комментарий {}", user.getId(), request.getCommentId());
         return ResponseEntity.ok(response);
     }
 
@@ -55,6 +62,7 @@ public class LikeController {
             @RequestParam(defaultValue = "0", required = false) @Min(0) Integer pageNumber,
             @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
             @RequestParam(defaultValue = "DESC", required = false) String direction) {
+        log.info("Запрос на получение лайков для поста {}, страница {}, размер {}", postId, pageNumber, size);
         var pageRequest = PageRequest.builder()
                 .pageNumber(pageNumber)
                 .size(size)
@@ -62,6 +70,7 @@ public class LikeController {
                 .direction(Sort.Direction.fromString(direction))
                 .build();
         PageResponse<LikePostResponse> pageResponse = likeService.getLikesByPost(postId, pageRequest);
+        log.info("Получено {} лайков для поста {}", pageResponse.getContent().size(), postId);
         return ResponseEntity.ok(pageResponse);
     }
 
@@ -74,6 +83,7 @@ public class LikeController {
             @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
             @RequestParam(defaultValue = "DESC", required = false) String direction) {
 
+        log.info("Запрос на получение лайков для комментария {}, страница {}, размер {}", commentId, pageNumber, size);
         var pageRequest = PageRequest.builder()
                 .pageNumber(pageNumber)
                 .size(size)
@@ -82,6 +92,7 @@ public class LikeController {
                 .build();
 
         PageResponse<LikeCommentResponse> pageResponse = likeService.getLikesByComment(commentId, pageRequest);
+        log.info("Получено {} лайков для комментария {}", pageResponse.getContent().size(), commentId);
         return ResponseEntity.ok(pageResponse);
     }
 
@@ -91,7 +102,9 @@ public class LikeController {
     public ResponseEntity<LikePostResponse> deleteLikeFromPost(
             @PathVariable Long postId) {
         User currentUser = userService.getCurrentUser();
+        log.info("Пользователь {} удаляет лайк с поста {}", currentUser.getId(), postId);
         LikePostResponse response = likeService.deleteLikeByPost(currentUser, postId);
+        log.info("Пользователь {} успешно удалил лайк с поста {}", currentUser.getId(), postId);
         return ResponseEntity.ok(response);
     }
 
@@ -101,7 +114,9 @@ public class LikeController {
     public ResponseEntity<LikeCommentResponse> deleteLikeFromComment(
             @PathVariable Long commentId) {
         User currentUser = userService.getCurrentUser();
+        log.info("Пользователь {} удаляет лайк с комментария {}", currentUser.getId(), commentId);
         LikeCommentResponse response = likeService.deleteLikeByComment(currentUser, commentId);
+        log.info("Пользователь {} успешно удалил лайк с комментария {}", currentUser.getId(), commentId);
         return ResponseEntity.ok(response);
     }
 }

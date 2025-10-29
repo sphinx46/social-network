@@ -13,17 +13,30 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.ExceptionResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.FileProcessingException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.comment.CommentContentTooLongException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.comment.CommentEmptyContentException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.comment.CommentNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.file.FileEmptyException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.file.FileOversizeException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.file.FileProcessingException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.file.FileUnsupportedFormat;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.like.LikeAlreadyExistsException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.like.LikeNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.message.MessageContentEmptyException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.message.MessageContentTooLongException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.message.MessageNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.message.SelfMessageException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.notification.NotificationNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.post.PostContentEmptyException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.post.PostContentTooLongException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.post.PostNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.profile.ProfileAlreadyExistsException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.profile.ProfileContentTooLongException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.profile.ProfileNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.DuplicateRelationshipException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.RelationshipNoPendingRequestsException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.RelationshipNotFoundException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.SelfRelationshipException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.RelationshipToSelfException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.user.UserNotFoundException;
 
 import java.util.Date;
@@ -63,6 +76,13 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(ProfileContentTooLongException.class)
+    public final ResponseEntity<ExceptionResponse> handleProfileContentTooLongException(ProfileContentTooLongException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
+                request.getDescription(false), false);
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(ProfileAlreadyExistsException.class)
     public final ResponseEntity<ExceptionResponse> handleProfileAlreadyExistsException(ProfileAlreadyExistsException ex, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
@@ -78,6 +98,20 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(PostContentEmptyException.class)
+    public final ResponseEntity<ExceptionResponse> handlePostContentEmptyException(PostContentEmptyException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
+                request.getDescription(false), false);
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(PostContentTooLongException.class)
+    public final ResponseEntity<ExceptionResponse> handlePostContentTooLongException(PostContentTooLongException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
+                request.getDescription(false), false);
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.CONFLICT);
+    }
+
     // Comment exceptions
     @ExceptionHandler(CommentNotFoundException.class)
     public final ResponseEntity<ExceptionResponse> handleCommentNotFoundException(CommentNotFoundException ex, WebRequest request) {
@@ -85,6 +119,21 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
                 request.getDescription(false), false);
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(CommentContentTooLongException.class)
+    public final ResponseEntity<ExceptionResponse> handleCommentContentTooLongException(CommentContentTooLongException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
+                request.getDescription(false), false);
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(CommentEmptyContentException.class)
+    public final ResponseEntity<ExceptionResponse> handleCommentEmptyContentException(CommentEmptyContentException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
+                request.getDescription(false), false);
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.CONFLICT);
+    }
+
 
     // Security exceptions
     @ExceptionHandler(AccessDeniedException.class)
@@ -102,6 +151,27 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(FileEmptyException.class)
+    public final ResponseEntity<ExceptionResponse> handleFileEmptyException(FileEmptyException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
+                request.getDescription(false), false);
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(FileUnsupportedFormat.class)
+    public final ResponseEntity<ExceptionResponse> handleFileUnsupportedFormat(FileUnsupportedFormat ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
+                request.getDescription(false), false);
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(FileOversizeException.class)
+    public final ResponseEntity<ExceptionResponse> handleFileOversizeException(FileOversizeException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
+                request.getDescription(false), false);
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+
     // IllegalArgumentException
     @ExceptionHandler(IllegalArgumentException.class)
     public final ResponseEntity<ExceptionResponse> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
@@ -112,10 +182,17 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
 
     // Like exceptions
     @ExceptionHandler(LikeNotFoundException.class)
-    public final ResponseEntity<ExceptionResponse> handleUserNotFoundException(LikeNotFoundException ex, WebRequest request) {
+    public final ResponseEntity<ExceptionResponse> handleLikeNotFoundException(LikeNotFoundException ex, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
                 request.getDescription(false), false);
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(LikeAlreadyExistsException.class)
+    public final ResponseEntity<ExceptionResponse> handleLikeAlreadyExistsException(LikeAlreadyExistsException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
+                request.getDescription(false), false);
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.CONFLICT);
     }
 
     // Relationship exceptions
@@ -133,12 +210,20 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
         return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(SelfRelationshipException.class)
-    public final ResponseEntity<ExceptionResponse> handleSelfRelationshipException(SelfRelationshipException ex, WebRequest request) {
+    @ExceptionHandler(RelationshipToSelfException.class)
+    public final ResponseEntity<ExceptionResponse> handleRelationshipToSelfException (RelationshipToSelfException  ex, WebRequest request) {
         ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
                 request.getDescription(false), false);
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(RelationshipNoPendingRequestsException.class)
+    public final ResponseEntity<ExceptionResponse> handleRelationshipNoPendingRequestsException(RelationshipNoPendingRequestsException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
+                request.getDescription(false), false);
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+
 
     // Message exceptions
     @ExceptionHandler(SelfMessageException.class)
@@ -154,6 +239,30 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
                 request.getDescription(false), false);
         return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(MessageContentEmptyException.class)
+    public final ResponseEntity<ExceptionResponse> handleMessageContentEmptyException(MessageContentEmptyException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
+                request.getDescription(false), false);
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MessageContentTooLongException.class)
+    public final ResponseEntity<ExceptionResponse> handleMessageContentTooLongException(MessageContentTooLongException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
+                request.getDescription(false), false);
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.BAD_REQUEST);
+    }
+
+
+    // Notification messages
+    @ExceptionHandler(NotificationNotFoundException.class)
+    public final ResponseEntity<ExceptionResponse> handleNotificationNotFoundException(NotificationNotFoundException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse = new ExceptionResponse(new Date(), ex.getMessage(),
+                request.getDescription(false), false);
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.NOT_FOUND);
+    }
+
 
     protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
                                                                   HttpHeaders headers, HttpStatus status, WebRequest request) {

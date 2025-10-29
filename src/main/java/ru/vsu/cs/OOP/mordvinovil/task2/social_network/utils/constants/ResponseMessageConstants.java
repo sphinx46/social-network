@@ -28,6 +28,7 @@ public final class ResponseMessageConstants {
 
     // USER CONSTANTS
     public static final String FAILURE_USER_NOT_FOUND = "Ошибка! Пользователь не найден";
+    public static final String FAILURE_USERNAME_NOT_FOUND = "Ошибка! Пользователь c таким ником не найден";
     public static final String FAILURE_USER_WITH_EMAIL_ALREADY_EXISTS = "Ошибка! Пользователь с таким email уже существует";
     public static final String FAILURE_USER_WITH_NAME_ALREADY_EXISTS = "Ошибка! Пользователь с таким именем уже существует";
 
