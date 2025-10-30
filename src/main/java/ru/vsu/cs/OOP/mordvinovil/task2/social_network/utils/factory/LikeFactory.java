@@ -1,6 +1,7 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Like;
@@ -12,6 +13,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.CommentReposi
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class LikeFactory {
@@ -19,24 +21,30 @@ public class LikeFactory {
     private final PostRepository postRepository;
 
     public Like createCommentLike(User user, Long commentId) {
-        Comment comment = commentRepository.findById(commentId)
+
+        Comment comment = commentRepository.findByIdWithLikes(commentId)
                 .orElseThrow(() -> new CommentNotFoundException(ResponseMessageConstants.FAILURE_COMMENT_NOT_FOUND));
 
-        return Like.builder()
+        Like like = Like.builder()
                 .user(user)
                 .post(null)
                 .comment(comment)
                 .build();
+        return like;
     }
 
     public Like createPostLike(User user, Long postId) {
+
         Post post = postRepository.findByIdWithCommentsAndLikes(postId)
                 .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.FAILURE_POST_NOT_FOUND));
 
-        return Like.builder()
+
+        Like like = Like.builder()
                 .user(user)
                 .post(post)
                 .comment(null)
                 .build();
+
+        return like;
     }
 }

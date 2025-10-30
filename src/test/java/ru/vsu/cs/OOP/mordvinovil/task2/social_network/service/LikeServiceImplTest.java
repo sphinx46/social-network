@@ -90,6 +90,8 @@ public class LikeServiceImplTest {
         verify(likeRepository).save(any(Like.class));
         verify(notificationEventPublisherService).publishCommentLiked(any(), eq(commentOwner.getId()),
                 eq(comment.getId()), eq(currentUser.getId()));
+        verify(cacheEventPublisherService).publishLikedComment(any(), eq(like), eq(comment.getId()),
+                eq(currentUser.getId()), eq(like.getId()));
         verify(entityMapper).map(like, LikeCommentResponse.class);
     }
 

@@ -16,14 +16,16 @@ import java.util.Optional;
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT DISTINCT p FROM Post p " +
-            "LEFT JOIN FETCH p.comments " +
+            "LEFT JOIN FETCH p.comments c " +
             "LEFT JOIN FETCH p.likes " +
+            "LEFT JOIN FETCH c.likes " +
             "WHERE p.user = :user ")
     Page<Post> getAllPostsByUserWithCommentsAndLikes(@Param("user") User user, Pageable pageable);
 
     @Query("SELECT p FROM Post p " +
-            "LEFT JOIN FETCH p.comments " +
+            "LEFT JOIN FETCH p.comments c " +
             "LEFT JOIN FETCH p.likes " +
+            "LEFT JOIN FETCH c.likes " +
             "WHERE p.id = :postId")
     Optional<Post> findByIdWithCommentsAndLikes(@Param("postId") Long postId);
 }

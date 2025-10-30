@@ -17,6 +17,10 @@ public class CacheEventPublisherService {
         publishEvent(eventFactory.createLikedPostEvent(source, target, postId, likerId, likeId));
     }
 
+    public void publishLikedComment(Object source, Object target, Long commentId, Long likerId, Long likeId) {
+        publishEvent(eventFactory.createLikedPostEvent(source, target, commentId, likerId, likeId));
+    }
+
     public void publishLikeDeleted(Object source, Object target, Long postId, Long likeId) {
         publishEvent(eventFactory.createLikeDeletedEvent(source, target, postId, likeId));
     }
@@ -24,6 +28,7 @@ public class CacheEventPublisherService {
     public void publishCommentCreated(Object source, Object target, Long postId, Long commenterId, Long commentId) {
         publishEvent(eventFactory.createCommentCreatedEvent(source, target, postId, commenterId, commentId));
     }
+
 
     public void publishCommentEdit(Object source, Object target, Long postId, Long commentId) {
         publishEvent(eventFactory.createCommentEditEvent(source, target, postId, commentId));

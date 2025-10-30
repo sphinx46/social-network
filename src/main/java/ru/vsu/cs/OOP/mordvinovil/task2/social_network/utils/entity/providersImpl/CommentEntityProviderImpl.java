@@ -18,7 +18,7 @@ public class CommentEntityProviderImpl implements CommentEntityProvider {
 
     @Override
     public Comment getById(Long id) {
-        return commentRepository.findById(id)
+        return commentRepository.findByIdWithLikes(id)
                 .orElseThrow(() -> new CommentNotFoundException(ResponseMessageConstants.FAILURE_COMMENT_NOT_FOUND));
     }
 

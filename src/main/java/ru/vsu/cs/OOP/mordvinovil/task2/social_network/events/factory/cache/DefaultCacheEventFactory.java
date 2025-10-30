@@ -17,6 +17,14 @@ public class DefaultCacheEventFactory extends AbstractCacheEventFactory {
     }
 
     @Override
+    public GenericCacheEvent createLikedCommentEvent(Object source, Object target, Long commentId, Long likerId, Long likeId) {
+        Map<String, Object> data = Map.of("commentId", commentId,
+                "likerId", likerId,
+                "likeId", likeId);
+        return createEvent(source, target, data);
+    }
+
+    @Override
     public GenericCacheEvent createLikeDeletedEvent(Object source, Object target, Long postId, Long likeId) {
         Map<String, Object> data = Map.of("postId", postId,
                 "likeId", likeId);

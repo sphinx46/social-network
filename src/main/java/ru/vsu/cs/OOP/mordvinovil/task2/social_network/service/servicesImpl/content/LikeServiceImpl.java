@@ -2,6 +2,7 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.cont
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.LikeCommentRequest;
@@ -26,6 +27,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.LikeFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.LikeValidator;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class LikeServiceImpl implements LikeService {
     private final LikeRepository likeRepository;
@@ -43,6 +45,7 @@ public class LikeServiceImpl implements LikeService {
      * @param request запрос на лайк комментария
      * @return ответ с информацией о лайке
      */
+
     @Transactional
     @Override
     public LikeCommentResponse likeComment(User currentUser, LikeCommentRequest request) {
@@ -55,8 +58,10 @@ public class LikeServiceImpl implements LikeService {
         Like savedLike = likeRepository.save(like);
 
         notificationEventPublisherService.publishCommentLiked(this, commentOwnerId, like.getComment().getId(), currentUser.getId());
+        cacheEventPublisherService.publishLikedComment(this, savedLike, comment.getId(), currentUser.getId(), savedLike.getId());
         return entityMapper.map(savedLike, LikeCommentResponse.class);
     }
+
 
     /**
      * Ставит лайк посту

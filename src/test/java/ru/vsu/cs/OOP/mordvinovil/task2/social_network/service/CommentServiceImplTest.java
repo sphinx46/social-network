@@ -75,7 +75,7 @@ public class CommentServiceImplTest {
         when(entityUtils.getPost(post.getId())).thenReturn(post);
         when(contentFactory.createComment(currentUser, post, request.getContent(), request.getImageUrl())).thenReturn(comment);
         when(commentRepository.save(any(Comment.class))).thenReturn(savedComment);
-        when(entityMapper.map(savedComment, CommentResponse.class)).thenReturn(expectedResponse);
+        when(entityMapper.mapWithName(savedComment, CommentResponse.class, "withLikes")).thenReturn(expectedResponse);
 
         CommentResponse result = commentServiceImpl.create(request, currentUser);
 
@@ -88,7 +88,7 @@ public class CommentServiceImplTest {
         verify(commentRepository).save(any(Comment.class));
         verify(notificationEventPublisherService).publishCommentAdded(any(), eq(post.getUser().getId()), eq(post.getId()), eq(savedComment.getId()));
         verify(cacheEventPublisherService).publishCommentCreated(any(), eq(savedComment), eq(post.getId()), eq(currentUser.getId()), eq(savedComment.getId()));
-        verify(entityMapper).map(savedComment, CommentResponse.class);
+        verify(entityMapper).mapWithName(savedComment, CommentResponse.class, "withLikes");
     }
 
     @Test
@@ -117,7 +117,7 @@ public class CommentServiceImplTest {
 
         when(entityUtils.getComment(1L)).thenReturn(comment);
         when(commentRepository.save(any(Comment.class))).thenReturn(updatedComment);
-        when(entityMapper.map(updatedComment, CommentResponse.class)).thenReturn(expectedResponse);
+        when(entityMapper.mapWithName(updatedComment, CommentResponse.class, "withLikes")).thenReturn(expectedResponse);
 
         CommentResponse result = commentServiceImpl.editComment(1L, request, currentUser);
 
@@ -129,7 +129,7 @@ public class CommentServiceImplTest {
         verify(entityUtils).getComment(1L);
         verify(commentRepository).save(any(Comment.class));
         verify(cacheEventPublisherService).publishCommentEdit(any(), eq(updatedComment), eq(post.getId()), eq(updatedComment.getId()));
-        verify(entityMapper).map(updatedComment, CommentResponse.class);
+        verify(entityMapper).mapWithName(updatedComment, CommentResponse.class, "withLikes");
     }
 
     @Test
@@ -159,7 +159,7 @@ public class CommentServiceImplTest {
         CommentResponse expectedResponse = createTestCommentResponse(comment);
 
         when(entityUtils.getComment(1L)).thenReturn(comment);
-        when(entityMapper.map(comment, CommentResponse.class)).thenReturn(expectedResponse);
+        when(entityMapper.mapWithName(comment, CommentResponse.class, "withLikes")).thenReturn(expectedResponse);
 
         CommentResponse result = commentServiceImpl.getCommentById(1L);
 
@@ -167,7 +167,7 @@ public class CommentServiceImplTest {
         assertEquals(expectedResponse.getId(), result.getId());
 
         verify(entityUtils).getComment(1L);
-        verify(entityMapper).map(comment, CommentResponse.class);
+        verify(entityMapper).mapWithName(comment, CommentResponse.class, "withLikes");
     }
 
     @Test
@@ -198,9 +198,9 @@ public class CommentServiceImplTest {
         CommentResponse response2 = createTestCommentResponse(comment2);
 
         when(entityUtils.getPost(postId)).thenReturn(post);
-        when(commentRepository.findByPostId(eq(postId), any(PageRequest.class))).thenReturn(commentPage);
-        when(entityMapper.map(comment1, CommentResponse.class)).thenReturn(response1);
-        when(entityMapper.map(comment2, CommentResponse.class)).thenReturn(response2);
+        when(commentRepository.findByPostIdWithLikes(eq(postId), any(org.springframework.data.domain.PageRequest.class))).thenReturn(commentPage);
+        when(entityMapper.mapWithName(comment1, CommentResponse.class, "withLikes")).thenReturn(response1);
+        when(entityMapper.mapWithName(comment2, CommentResponse.class, "withLikes")).thenReturn(response2);
 
         PageResponse<CommentResponse> result = commentServiceImpl.getAllCommentsOnPost(postId,
                 ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest.builder()
@@ -215,7 +215,7 @@ public class CommentServiceImplTest {
         assertEquals(0, result.getCurrentPage());
 
         verify(entityUtils).getPost(postId);
-        verify(commentRepository).findByPostId(eq(postId), any(PageRequest.class));
-        verify(entityMapper, times(2)).map(any(Comment.class), eq(CommentResponse.class));
+        verify(commentRepository).findByPostIdWithLikes(eq(postId), any(org.springframework.data.domain.PageRequest.class));
+        verify(entityMapper, times(2)).mapWithName(any(Comment.class), eq(CommentResponse.class), eq("withLikes"));
     }
 }

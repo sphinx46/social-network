@@ -76,6 +76,29 @@ public class ModelMapperConfig {
     }
 
     private void configureCommentMappings(ModelMapper modelMapper) {
+        Converter<Set<Like>, List<LikeCommentResponse>> commentLikesConverter = context -> {
+            Set<Like> likes = context.getSource();
+
+            List<LikeCommentResponse> result = likes == null ? List.of() : likes.stream()
+                    .map(like -> {
+                        LikeCommentResponse likeResponse = modelMapper.map(like, LikeCommentResponse.class);
+                        return likeResponse;
+                    })
+                    .collect(Collectors.toList());
+
+            return result;
+        };
+
+        modelMapper.createTypeMap(Comment.class, CommentResponse.class, "withLikes")
+                .addMappings(mapper -> {
+                    mapper.map(Comment::getId, CommentResponse::setId);
+                    mapper.map(src -> src.getCreator().getUsername(), CommentResponse::setUsername);
+                    mapper.map(Comment::getContent, CommentResponse::setContent);
+                    mapper.map(Comment::getImageUrl, CommentResponse::setImageUrl);
+                    mapper.map(Comment::getCreatedAt, CommentResponse::setTime);
+                    mapper.using(commentLikesConverter).map(Comment::getLikes, CommentResponse::setLikeCommentResponseList);
+                });
+
         modelMapper.addMappings(new PropertyMap<Comment, CommentResponse>() {
             @Override
             protected void configure() {
@@ -146,7 +169,7 @@ public class ModelMapperConfig {
 
             if (post.getComments() != null) {
                 List<CommentResponse> commentResponses = post.getComments().stream()
-                        .map(comment -> modelMapper.map(comment, CommentResponse.class))
+                        .map(comment -> modelMapper.map(comment, CommentResponse.class, "withLikes"))
                         .collect(Collectors.toList());
                 postResponse.setCommentResponseList(commentResponses);
             } else {
@@ -172,7 +195,6 @@ public class ModelMapperConfig {
                     mapper.using(postToPostResponseConverter).map(source -> source, NewsFeedResponse::setPostResponse);
                 });
     }
-
 
     private void configurePostMappings(ModelMapper modelMapper) {
         modelMapper.addMappings(new PropertyMap<Post, PostResponse>() {
@@ -207,7 +229,7 @@ public class ModelMapperConfig {
         Converter<Set<Comment>, List<CommentResponse>> commentsConverter = context -> {
             Set<Comment> comments = context.getSource();
             return comments == null ? List.of() : comments.stream()
-                    .map(comment -> modelMapper.map(comment, CommentResponse.class))
+                    .map(comment -> modelMapper.map(comment, CommentResponse.class, "withLikes"))
                     .collect(Collectors.toList());
         };
 
@@ -242,7 +264,7 @@ public class ModelMapperConfig {
 
                     if (source.getComments() != null) {
                         List<CommentResponse> commentResponses = source.getComments().stream()
-                                .map(comment -> modelMapper.map(comment, CommentResponse.class))
+                                .map(comment -> modelMapper.map(comment, CommentResponse.class, "withLikes"))
                                 .collect(Collectors.toList());
                         destination.setCommentResponseList(commentResponses);
                     } else {
@@ -264,7 +286,7 @@ public class ModelMapperConfig {
 
     private Converter<Set<Comment>, List<CommentResponse>> createCommentsSetConverter(ModelMapper modelMapper) {
         return ctx -> ctx.getSource() == null ? List.of() : ctx.getSource().stream()
-                .map(comment -> modelMapper.map(comment, CommentResponse.class))
+                .map(comment -> modelMapper.map(comment, CommentResponse.class, "withLikes"))
                 .collect(Collectors.toList());
     }
 
@@ -274,4 +296,3 @@ public class ModelMapperConfig {
                 .collect(Collectors.toList());
     }
 }
-

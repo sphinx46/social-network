@@ -15,6 +15,8 @@ public interface NewsFeedRepository extends JpaRepository<Post, Long> {
             "JOIN FETCH p.user " +
             "LEFT JOIN FETCH p.comments c " +
             "LEFT JOIN FETCH c.creator " +
+            "LEFT JOIN FETCH c.likes cl " +
+            "LEFT JOIN FETCH cl.user " +
             "LEFT JOIN FETCH p.likes l " +
             "LEFT JOIN FETCH l.user " +
             "WHERE p.user.id IN (" +
