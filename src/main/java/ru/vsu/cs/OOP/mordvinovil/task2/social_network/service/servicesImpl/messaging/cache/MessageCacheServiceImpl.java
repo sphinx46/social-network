@@ -1,4 +1,4 @@
-package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.feed.cache;
+package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.messaging.cache;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
