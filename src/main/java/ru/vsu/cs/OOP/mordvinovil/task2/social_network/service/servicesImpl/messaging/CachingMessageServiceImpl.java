@@ -2,7 +2,6 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.mess
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
@@ -15,6 +14,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.MessageStatus;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.NotificationEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.MessageRepository;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.messaging.MessageCacheService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.messaging.MessageService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
@@ -34,17 +34,10 @@ public class CachingMessageServiceImpl implements MessageService {
     private final MessageValidator messageValidator;
     private final EntityUtils entityUtils;
     private final NotificationEventPublisherService notificationEventPublisherService;
+    private final MessageCacheService messageCacheService;
 
-    /**
-     * Создает новое сообщение с инвалидацией кеша
-     *
-     * @param request запрос на создание сообщения
-     * @param currentUser текущий пользователь-отправитель
-     * @return ответ с созданным сообщением
-     */
     @Transactional
     @Override
-    @CacheEvict(value = "conversation", allEntries = true)
     public MessageResponse create(MessageRequest request, User currentUser) {
         messageValidator.validateMessageCreation(request, currentUser);
 
@@ -52,19 +45,14 @@ public class CachingMessageServiceImpl implements MessageService {
         Message message = messageFactory.createMessage(currentUser, receiver, request);
         Message savedMessage = messageRepository.save(message);
 
+        messageCacheService.evictConversationCache(currentUser.getId(), receiver.getId());
+
         notificationEventPublisherService.publishMessageReceived(this, request.getReceiverUserId(),
                 currentUser.getId(), message.getContent());
 
         return entityMapper.map(savedMessage, MessageResponse.class);
     }
 
-    /**
-     * Получает сообщение по идентификатору
-     *
-     * @param messageId идентификатор сообщения
-     * @param currentUser текущий пользователь
-     * @return ответ с данными сообщения
-     */
     @Override
     public MessageResponse getMessageById(Long messageId, User currentUser) {
         Message message = entityUtils.getMessage(messageId);
@@ -72,14 +60,6 @@ public class CachingMessageServiceImpl implements MessageService {
         return entityMapper.map(message, MessageResponse.class);
     }
 
-    /**
-     * Получает переписку между текущим пользователем и другим пользователем с кешированием
-     *
-     * @param otherUserId идентификатор другого пользователя
-     * @param currentUser текущий пользователь
-     * @param pageRequest параметры пагинации
-     * @return страница с сообщениями переписки (кешированная)
-     */
     @Override
     @Cacheable(
             value = "conversation",
@@ -96,13 +76,6 @@ public class CachingMessageServiceImpl implements MessageService {
         );
     }
 
-    /**
-     * Получает отправленные сообщения пользователя
-     *
-     * @param currentUser текущий пользователь
-     * @param pageRequest параметры пагинации
-     * @return страница с отправленными сообщениями
-     */
     @Override
     public PageResponse<MessageResponse> getSentMessages(User currentUser, PageRequest pageRequest) {
         Page<Message> messages = messageRepository.findBySenderId(currentUser.getId(),
@@ -113,69 +86,40 @@ public class CachingMessageServiceImpl implements MessageService {
         );
     }
 
-    /**
-     * Получает полученные сообщения пользователя
-     *
-     * @param currentUser текущий пользователь
-     * @param pageRequest параметры пагинации
-     * @return страница с полученными сообщениями
-     */
     @Override
     public PageResponse<MessageResponse> getReceivedMessages(User currentUser, PageRequest pageRequest) {
         return getMessagesByStatus(currentUser, MessageStatus.RECEIVED, pageRequest);
     }
 
-    /**
-     * Получает прочитанные сообщения пользователя
-     *
-     * @param currentUser текущий пользователь
-     * @param pageRequest параметры пагинации
-     * @return страница с прочитанными сообщениями
-     */
     @Override
     public PageResponse<MessageResponse> getReadMessages(User currentUser, PageRequest pageRequest) {
         return getMessagesByStatus(currentUser, MessageStatus.READ, pageRequest);
     }
 
-    /**
-     * Помечает сообщение как полученное с инвалидацией кеша
-     *
-     * @param messageId идентификатор сообщения
-     * @param currentUser текущий пользователь
-     * @return ответ с обновленным сообщением
-     */
     @Transactional
     @Override
-    @CacheEvict(value = "conversation", allEntries = true)
     public MessageResponse markAsReceived(Long messageId, User currentUser) {
-        return updateMessageStatus(messageId, currentUser, MessageStatus.RECEIVED, MessageStatus.SENT);
+        Message message = entityUtils.getMessage(messageId);
+        MessageResponse response = updateMessageStatus(messageId, currentUser, MessageStatus.RECEIVED, MessageStatus.SENT);
+
+        messageCacheService.evictConversationCache(currentUser.getId(), message.getSender().getId());
+
+        return response;
     }
 
-    /**
-     * Помечает сообщение как прочитанное с инвалидацией кеша
-     *
-     * @param messageId идентификатор сообщения
-     * @param currentUser текущий пользователь
-     * @return ответ с обновленным сообщением
-     */
     @Transactional
     @Override
-    @CacheEvict(value = "conversation", allEntries = true)
     public MessageResponse markAsRead(Long messageId, User currentUser) {
-        return updateMessageStatus(messageId, currentUser, MessageStatus.READ, MessageStatus.RECEIVED, MessageStatus.SENT);
+        Message message = entityUtils.getMessage(messageId);
+        MessageResponse response = updateMessageStatus(messageId, currentUser, MessageStatus.READ, MessageStatus.RECEIVED, MessageStatus.SENT);
+
+        messageCacheService.evictConversationCache(currentUser.getId(), message.getSender().getId());
+
+        return response;
     }
 
-    /**
-     * Редактирует существующее сообщение с инвалидацией кеша
-     *
-     * @param messageId идентификатор сообщения
-     * @param request запрос на редактирование
-     * @param currentUser текущий пользователь
-     * @return ответ с отредактированным сообщением
-     */
     @Transactional
     @Override
-    @CacheEvict(value = "conversation", allEntries = true)
     public MessageResponse editMessage(Long messageId, MessageRequest request, User currentUser) {
         messageValidator.validateMessageUpdate(request, currentUser);
 
@@ -187,34 +131,28 @@ public class CachingMessageServiceImpl implements MessageService {
         message.setUpdatedAt(LocalDateTime.now());
         Message updatedMessage = messageRepository.save(message);
 
+        messageCacheService.evictConversationCache(currentUser.getId(), message.getReceiver().getId());
+
         return entityMapper.map(updatedMessage, MessageResponse.class);
     }
 
-    /**
-     * Удаляет сообщение с инвалидацией кеша
-     *
-     * @param messageId идентификатор сообщения
-     * @param currentUser текущий пользователь
-     */
     @Transactional
     @Override
-    @CacheEvict(value = "conversation", allEntries = true)
     public void deleteMessage(Long messageId, User currentUser) {
         Message message = entityUtils.getMessage(messageId);
         messageValidator.validateMessageOwnership(currentUser, message);
+
+        Long receiverId = message.getReceiver().getId();
+        Long senderId = message.getSender().getId();
+
         messageRepository.delete(message);
 
-        notificationEventPublisherService.publishMessageDeleted(this, message.getReceiver().getId(), currentUser.getId());
+        messageCacheService.evictConversationCache(currentUser.getId(),
+                currentUser.getId().equals(senderId) ? receiverId : senderId);
+
+        notificationEventPublisherService.publishMessageDeleted(this, receiverId, currentUser.getId());
     }
 
-    /**
-     * Получает сообщения по статусу для пользователя
-     *
-     * @param currentUser текущий пользователь
-     * @param status статус сообщений
-     * @param pageRequest параметры пагинации
-     * @return страница с сообщениями указанного статуса
-     */
     private PageResponse<MessageResponse> getMessagesByStatus(User currentUser, MessageStatus status, PageRequest pageRequest) {
         Page<Message> messages = messageRepository.findByReceiverIdAndStatus(currentUser.getId(), status,
                         pageRequest.toPageable())
@@ -224,15 +162,6 @@ public class CachingMessageServiceImpl implements MessageService {
         );
     }
 
-    /**
-     * Обновляет статус сообщения
-     *
-     * @param messageId идентификатор сообщения
-     * @param currentUser текущий пользователь
-     * @param newStatus новый статус сообщения
-     * @param allowedCurrentStatuses разрешенные текущие статусы для изменения
-     * @return ответ с обновленным сообщением
-     */
     private MessageResponse updateMessageStatus(Long messageId, User currentUser, MessageStatus newStatus, MessageStatus... allowedCurrentStatuses) {
         Message message = entityUtils.getMessage(messageId);
         messageValidator.validateMessageReceiver(currentUser, message);
@@ -246,3 +175,6 @@ public class CachingMessageServiceImpl implements MessageService {
         return entityMapper.map(message, MessageResponse.class);
     }
 }
+
+feat: оптимизировать кеширование сообщений:
+        |         - Реализован MessageCacheServiceImpl для более детальной ручной инвалидации кеша

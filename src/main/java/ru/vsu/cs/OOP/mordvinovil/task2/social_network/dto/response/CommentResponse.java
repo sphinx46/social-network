@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -25,6 +26,9 @@ public class CommentResponse {
 
     @Schema(description = "Фото")
     private String imageUrl;
+
+    @Schema(description = "Данные о лайках на комментарий")
+    private List<LikeCommentResponse> likeCommentResponseList;
 
     @Schema(description = "Дата публикации", example = "2000-01-01")
     private LocalDateTime time;
