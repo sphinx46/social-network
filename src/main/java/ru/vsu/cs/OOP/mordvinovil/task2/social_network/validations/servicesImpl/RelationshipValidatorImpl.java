@@ -5,9 +5,10 @@ import org.springframework.stereotype.Component;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.RelationshipRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.FriendshipStatus;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.DuplicateRelationshipException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.SelfRelationshipException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.UserNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.DuplicateRelationshipException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.RelationshipNoPendingRequestsException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.RelationshipToSelfException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.user.UserNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.RelationshipRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
@@ -29,7 +30,7 @@ public class RelationshipValidatorImpl implements RelationshipValidator {
     @Override
     public void validateFriendRequest(RelationshipRequest request, User currentUser) {
         User targetUser = userRepository.findById(request.getTargetUserId())
-                .orElseThrow(() -> new UserNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new UserNotFoundException(ResponseMessageConstants.FAILURE_USER_NOT_FOUND));
 
         validateNotSelfOperation(currentUser, targetUser);
         validateNoExistingRelationship(currentUser, targetUser);
@@ -38,7 +39,7 @@ public class RelationshipValidatorImpl implements RelationshipValidator {
     @Override
     public void validateBlockUser(RelationshipRequest request, User currentUser) {
         User targetUser = userRepository.findById(request.getTargetUserId())
-                .orElseThrow(() -> new UserNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new UserNotFoundException(ResponseMessageConstants.FAILURE_USER_NOT_FOUND));
 
         validateNotSelfOperation(currentUser, targetUser);
     }
@@ -46,7 +47,7 @@ public class RelationshipValidatorImpl implements RelationshipValidator {
     @Override
     public void validateStatusChange(RelationshipRequest request, User currentUser) {
         User targetUser = userRepository.findById(request.getTargetUserId())
-                .orElseThrow(() -> new UserNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new UserNotFoundException(ResponseMessageConstants.FAILURE_USER_NOT_FOUND));
 
         validateNotSelfOperation(currentUser, targetUser);
 
@@ -55,13 +56,13 @@ public class RelationshipValidatorImpl implements RelationshipValidator {
                 .isPresent();
 
         if (!hasPendingRequest) {
-            throw new IllegalArgumentException("No pending friend request found");
+            throw new RelationshipNoPendingRequestsException(ResponseMessageConstants.FAILURE_RELATIONSHIP_PENDING_REQUESTS_NOT_FOUND);
         }
     }
 
     private void validateNotSelfOperation(User currentUser, User targetUser) {
         if (currentUser.getId().equals(targetUser.getId())) {
-            throw new SelfRelationshipException("Cannot perform operation on yourself");
+            throw new RelationshipToSelfException(ResponseMessageConstants.FAILURE_RELATIONSHIP_TO_SELF_OPERATION );
         }
     }
 
@@ -70,7 +71,7 @@ public class RelationshipValidatorImpl implements RelationshipValidator {
                 .findRelationshipBetweenUsers(currentUser.getId(), targetUser.getId());
 
         if (existingRelationship.isPresent()) {
-            throw new DuplicateRelationshipException("Relationship already exists between users");
+            throw new DuplicateRelationshipException(ResponseMessageConstants.FAILURE_RELATIONSHIP_ALREADY_EXISTS );
         }
     }
 }

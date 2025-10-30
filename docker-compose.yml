@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis-social-network
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+
+  app:
+    build: .
+    container_name: social-network-app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+      - SPRING_DATASOURCE_URL=jdbc:h2:mem:security-security
+    depends_on:
+      - redis
+
+volumes:
+  redis_data:

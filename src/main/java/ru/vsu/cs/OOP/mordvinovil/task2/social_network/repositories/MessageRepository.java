@@ -1,5 +1,7 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -14,10 +16,6 @@ import java.util.Optional;
 
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
-    @Query("SELECT m FROM Message m WHERE (m.sender.id = :senderId AND m.receiver.id = :receiverId) OR (m.sender.id = :receiverId AND m.receiver.id = :senderId)")
-    Optional<List<Message>> findMessagesBetweenUsers(@Param("senderId") Long senderId,
-                                           @Param("receiverId") Long receiverId);
-
     @Modifying
     @Query("UPDATE Message m SET m.status = :status, m.updatedAt = :updatedAt WHERE m.id = :messageId")
     void updateMessageStatus(@Param("messageId") Long messageId,
@@ -34,7 +32,12 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
                                @Param("status") MessageStatus status);
 
 
-    Optional<List<Message>> findBySenderId(Long senderId);
-    Optional<List<Message>> findByReceiverIdAndStatus(Long receiverId, MessageStatus status);
-    Optional<List<Message>> findByReceiverId(Long receiverId);
+    @Query("SELECT m FROM Message m WHERE (m.sender.id = :senderId AND m.receiver.id = :receiverId) " +
+            "OR (m.sender.id = :receiverId AND m.receiver.id = :senderId)")
+    Optional<Page<Message>> findMessagesBetweenUsers(@Param("senderId") Long senderId,
+                                                     @Param("receiverId") Long receiverId,
+                                                     Pageable pageable);
+
+    Optional<Page<Message>> findBySenderId(Long senderId, Pageable pageable);
+    Optional<Page<Message>> findByReceiverIdAndStatus(Long receiverId, MessageStatus status, Pageable pageable);
 }

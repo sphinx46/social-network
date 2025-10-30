@@ -3,7 +3,7 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.providersImp
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.PostNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.post.PostNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.providers.PostEntityProvider;
@@ -18,8 +18,8 @@ public class PostEntityProviderImpl implements PostEntityProvider {
 
     @Override
     public Post getById(Long id) {
-        return postRepository.findById(id)
-                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.NOT_FOUND));
+        return postRepository.findByIdWithCommentsAndLikes(id)
+                .orElseThrow(() -> new PostNotFoundException(ResponseMessageConstants.FAILURE_POST_NOT_FOUND));
     }
 
     @Override

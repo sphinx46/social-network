@@ -6,7 +6,10 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.MessageRequest
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Message;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.UserNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.message.MessageContentEmptyException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.message.MessageContentTooLongException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.message.SelfMessageException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.user.UserNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.MessageValidator;
@@ -24,18 +27,18 @@ public class MessageValidatorImpl implements MessageValidator {
     @Override
     public void validateMessageCreation(MessageRequest request, User currentUser) {
         User receiver = userRepository.findById(request.getReceiverUserId())
-                .orElseThrow(() -> new UserNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new UserNotFoundException(ResponseMessageConstants.FAILURE_USER_NOT_FOUND));
 
         if (currentUser.getId().equals(receiver.getId())) {
-            throw new IllegalArgumentException("Cannot send message to yourself");
+            throw new SelfMessageException(ResponseMessageConstants.FAILURE_CREATE_SELF_MESSAGE);
         }
 
         if (request.getContent() == null || request.getContent().trim().isEmpty()) {
-            throw new IllegalArgumentException("Message content cannot be empty");
+            throw new MessageContentEmptyException(ResponseMessageConstants.FAILURE_MESSAGE_CONTENT_CANNOT_BE_EMPTY);
         }
 
         if (request.getContent().length() > 2000) {
-            throw new IllegalArgumentException("Message content too long");
+            throw new MessageContentTooLongException(ResponseMessageConstants.FAILURE_MESSAGE_CONTENT_TOO_LONG);
         }
     }
 
@@ -64,7 +67,7 @@ public class MessageValidatorImpl implements MessageValidator {
     @Override
     public void validateMessageUpdate(MessageRequest request, User currentUser) {
         if (request.getContent() != null && request.getContent().length() > 2000) {
-            throw new IllegalArgumentException("Message content too long");
+            throw new MessageContentTooLongException(ResponseMessageConstants.FAILURE_MESSAGE_CONTENT_TOO_LONG);
         }
     }
 }

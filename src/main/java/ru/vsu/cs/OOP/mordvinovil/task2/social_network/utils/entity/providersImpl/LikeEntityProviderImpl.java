@@ -3,7 +3,7 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.providersImp
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Like;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.LikeNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.like.LikeNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.LikeRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.providers.LikeEntityProvider;
@@ -19,7 +19,7 @@ public class LikeEntityProviderImpl implements LikeEntityProvider {
     @Override
     public Like getById(Long id) {
         return likeRepository.findById(id)
-                .orElseThrow(() -> new LikeNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new LikeNotFoundException(ResponseMessageConstants.FAILURE_LIKE_NOT_FOUND));
     }
 
     @Override

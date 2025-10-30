@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Notification;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.EntityNotFoundException;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.NotificationNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.notification.NotificationNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.NotificationRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.providers.NotificationEntityProvider;
@@ -19,7 +19,7 @@ public class NotificationEntityProviderImpl implements NotificationEntityProvide
     @Override
     public Notification getById(Long id) throws EntityNotFoundException {
         return notificationRepository.findById(id)
-                .orElseThrow(() -> new NotificationNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new NotificationNotFoundException(ResponseMessageConstants.FAILURE_NOTIFICATION_NOT_FOUND));
     }
 
     @Override

@@ -3,7 +3,7 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.providersImp
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Relationship;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.RelationshipNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.RelationshipNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.RelationshipRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.providers.RelationshipEntityProvider;
@@ -19,7 +19,7 @@ public class RelationshipEntityProviderImpl implements RelationshipEntityProvide
     @Override
     public Relationship getById(Long id) {
         return relationshipRepository.findById(id)
-                .orElseThrow(() -> new RelationshipNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new RelationshipNotFoundException(ResponseMessageConstants.FAILURE_RELATIONSHIP_NOT_FOUND));
     }
 
     @Override

@@ -14,8 +14,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.JwtService;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.UserService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.JwtService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.UserService;
 
 import java.io.IOException;
 

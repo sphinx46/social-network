@@ -3,7 +3,7 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.providersImp
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Message;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.MessageNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.message.MessageNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.MessageRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.providers.MessageEntityProvider;
@@ -19,7 +19,7 @@ public class MessageEntityProviderImpl implements MessageEntityProvider {
     @Override
     public Message getById(Long id) {
         return messageRepository.findById(id)
-                .orElseThrow(() -> new MessageNotFoundException(ResponseMessageConstants.NOT_FOUND));
+                .orElseThrow(() -> new MessageNotFoundException(ResponseMessageConstants.FAILURE_MESSAGE_NOT_FOUND));
     }
 
     @Override

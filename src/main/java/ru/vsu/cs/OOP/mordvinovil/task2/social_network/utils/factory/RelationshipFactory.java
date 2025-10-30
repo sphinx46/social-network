@@ -14,7 +14,6 @@ public class RelationshipFactory {
         return Relationship.builder()
                 .sender(sender)
                 .receiver(receiver)
-                .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .status(FriendshipStatus.PENDING)
                 .build();
@@ -25,7 +24,6 @@ public class RelationshipFactory {
                 .sender(sender)
                 .receiver(receiver)
                 .status(FriendshipStatus.BLOCKED)
-                .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
     }

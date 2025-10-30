@@ -33,9 +33,6 @@ public class Message extends BaseEntity {
     @Column(name = "status", nullable = false)
     private MessageStatus status;
 
-    @Column(name = "time_create", nullable = false)
-    private LocalDateTime createdAt;
-
     @Column(name = "time_update", nullable = false)
     private LocalDateTime updatedAt;
 }

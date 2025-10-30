@@ -33,9 +33,6 @@ public class Notification extends BaseEntity {
     @Convert(converter = MapToJsonConverter.class)
     private Map<String, Object> additionalData;
 
-    @Column(name = "time_create", nullable = false)
-    private LocalDateTime createdAt;
-
     @Column(name = "time_update", nullable = false)
     private LocalDateTime updatedAt;
 }
