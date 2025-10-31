@@ -6,7 +6,9 @@ import org.springframework.stereotype.Service;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.RelationshipRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.ProfileResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.RelationshipResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Profile;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Relationship;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.FriendshipStatus;
@@ -39,6 +41,7 @@ public class RelationshipServiceImpl  implements RelationshipService {
      * @param currentUser текущий пользователь, отправляющий запрос
      * @return ответ с информацией о созданных отношениях
      */
+    @Override
     public RelationshipResponse sendFriendRequest(RelationshipRequest request, User currentUser) {
         relationshipValidator.validate(request, currentUser);
 
@@ -59,6 +62,7 @@ public class RelationshipServiceImpl  implements RelationshipService {
      * @param pageRequest параметры пагинации
      * @return страница с списком друзей
      */
+    @Override
     public PageResponse<RelationshipResponse> getFriendList(User currentUser, PageRequest pageRequest) {
         return getRelationshipsByStatus(currentUser, FriendshipStatus.ACCEPTED, pageRequest);
     }
@@ -70,6 +74,7 @@ public class RelationshipServiceImpl  implements RelationshipService {
      * @param pageRequest параметры пагинации
      * @return страница с черным списком
      */
+    @Override
     public PageResponse<RelationshipResponse> getBlackList(User currentUser, PageRequest pageRequest) {
         return getRelationshipsByStatus(currentUser, FriendshipStatus.BLOCKED, pageRequest);
     }
@@ -81,6 +86,7 @@ public class RelationshipServiceImpl  implements RelationshipService {
      * @param pageRequest параметры пагинации
      * @return страница с отклоненными запросами
      */
+    @Override
     public PageResponse<RelationshipResponse> getDeclinedList(User currentUser, PageRequest pageRequest) {
         return getRelationshipsByStatus(currentUser, FriendshipStatus.DECLINED, pageRequest);
     }
@@ -92,6 +98,7 @@ public class RelationshipServiceImpl  implements RelationshipService {
      * @param currentUser текущий пользователь
      * @return ответ с информацией о заблокированных отношениях
      */
+    @Override
     public RelationshipResponse blockUser(RelationshipRequest request, User currentUser) {
         relationshipValidator.validateBlockUser(request, currentUser);
 
@@ -113,6 +120,7 @@ public class RelationshipServiceImpl  implements RelationshipService {
      * @param currentUser текущий пользователь
      * @return ответ с информацией о принятых отношениях
      */
+    @Override
     public RelationshipResponse acceptFriendRequest(RelationshipRequest request, User currentUser) {
         relationshipValidator.validateStatusChange(request, currentUser);
 
@@ -128,10 +136,22 @@ public class RelationshipServiceImpl  implements RelationshipService {
      * @param currentUser текущий пользователь
      * @return ответ с информацией об отклоненных отношениях
      */
+    @Override
     public RelationshipResponse declineFriendRequest(RelationshipRequest request, User currentUser) {
         relationshipValidator.validateStatusChange(request, currentUser);
 
         return changeRelationshipStatus(request, FriendshipStatus.DECLINED, currentUser);
+    }
+
+
+    @Override
+    public PageResponse<ProfileResponse> findFriendsCandidates(User currentUser, PageRequest pageRequest) {
+        Page<Profile> friendsCandidates = relationshipRepository.findFriendsCandidates(currentUser.getId(),
+                currentUser.getCity(), pageRequest.toPageable());
+        return PageResponse.of(friendsCandidates.map(
+                friendsCandidate -> entityMapper.map(friendsCandidate, ProfileResponse.class)
+        ));
+
     }
 
     /**

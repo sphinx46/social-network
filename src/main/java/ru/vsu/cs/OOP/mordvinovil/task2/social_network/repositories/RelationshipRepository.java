@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Profile;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Relationship;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.FriendshipStatus;
 
@@ -65,4 +66,17 @@ public interface RelationshipRepository extends JpaRepository<Relationship, Long
     @Query("SELECT CASE WHEN r.receiver.id = :userId THEN r.sender.id ELSE r.receiver.id END " +
             "FROM Relationship r WHERE (r.receiver.id = :userId OR r.sender.id = :userId) AND r.status = :status")
     Set<Long> findFriendIdsByUserId(@Param("userId") Long userId, @Param("status") FriendshipStatus status);
+
+    @Query("SELECT p FROM Profile p " +
+            "JOIN User u ON p.user = u " +
+            "WHERE u.city = :city " +
+            "AND u.id != :currentUserId " +
+            "AND NOT EXISTS (" +
+            "    SELECT r FROM Relationship r " +
+            "    WHERE (r.sender.id = :currentUserId AND r.receiver.id = u.id) " +
+            "    OR (r.sender.id = u.id AND r.receiver.id = :currentUserId)" +
+            ")")
+    Page<Profile> findFriendsCandidates(@Param("currentUserId") Long currentUserId,
+                                        @Param("city") String city,
+                                        Pageable pageable);
 }

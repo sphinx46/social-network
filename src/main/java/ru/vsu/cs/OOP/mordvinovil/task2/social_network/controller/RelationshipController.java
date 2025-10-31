@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.RelationshipRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.ProfileResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.RelationshipResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.relationship.RelationshipService;
@@ -58,6 +59,27 @@ public class RelationshipController {
                 .build();
         PageResponse<RelationshipResponse> pageResponse = relationshipService.getFriendList(user, pageRequest);
         log.info("Получено {} друзей для пользователя {}", pageResponse.getContent().size(), user.getId());
+        return ResponseEntity.ok(pageResponse);
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Получение списка кандидатов в друзья")
+    @GetMapping("/friendsCandidates")
+    public ResponseEntity<PageResponse<ProfileResponse>> getFriendsCandidatesList(
+            @RequestParam(defaultValue = "1", required = false) @Min(1) Integer size,
+            @RequestParam(defaultValue = "0", required = false) @Min(0) Integer pageNumber,
+            @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
+            @RequestParam(defaultValue = "DESC", required = false) String direction
+    ) {
+        User user = userService.getCurrentUser();
+        log.info("Пользователь {} запрашивает список кандидатов в друзья, страница {}, размер {}", user.getId(), pageNumber, size);
+        var pageRequest = PageRequest.builder()
+                .pageNumber(pageNumber)
+                .size(size)
+                .sortBy(sortedBy)
+                .direction(Sort.Direction.fromString(direction))
+                .build();
+        PageResponse<ProfileResponse> pageResponse = relationshipService.findFriendsCandidates(user, pageRequest);
         return ResponseEntity.ok(pageResponse);
     }
 

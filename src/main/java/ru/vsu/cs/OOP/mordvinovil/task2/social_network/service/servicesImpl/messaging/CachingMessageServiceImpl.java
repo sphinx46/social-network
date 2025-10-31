@@ -176,5 +176,3 @@ public class CachingMessageServiceImpl implements MessageService {
     }
 }
 
-feat: оптимизировать кеширование сообщений:
-        |         - Реализован MessageCacheServiceImpl для более детальной ручной инвалидации кеша

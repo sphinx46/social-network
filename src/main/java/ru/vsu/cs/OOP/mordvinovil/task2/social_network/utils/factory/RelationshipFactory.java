@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 
 @Component
 public class RelationshipFactory {
-
     public Relationship createPendingRelationship(User sender, User receiver) {
         return Relationship.builder()
                 .sender(sender)
