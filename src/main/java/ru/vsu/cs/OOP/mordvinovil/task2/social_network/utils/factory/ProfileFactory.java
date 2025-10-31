@@ -14,6 +14,7 @@ public class ProfileFactory {
                 .bio(request.getBio() != null ? request.getBio() : "")
                 .city(request.getCity() != null ? request.getCity() : user.getCity())
                 .dateOfBirth(request.getDateOfBirth())
+
                 .imageUrl(request.getImageUrl())
                 .build();
     }

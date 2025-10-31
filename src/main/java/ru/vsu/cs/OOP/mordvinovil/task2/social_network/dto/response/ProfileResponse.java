@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -27,7 +28,7 @@ public class ProfileResponse {
     private String imageUrl;
 
     @Schema(description = "Дата рождения", example = "2000-01-01")
-    private LocalDateTime dateOfBirth;
+    private LocalDate dateOfBirth;
 
     @Schema(description = "Дата создания профиля", example = "2024-01-15")
     private LocalDateTime createdAt;

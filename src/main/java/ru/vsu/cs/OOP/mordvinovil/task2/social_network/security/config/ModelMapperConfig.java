@@ -8,6 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.*;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.*;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -111,19 +113,25 @@ public class ModelMapperConfig {
         });
     }
 
-    private void configureProfileMappings(ModelMapper modelMapper) {
-        modelMapper.addMappings(new PropertyMap<Profile, ProfileResponse>() {
-            @Override
-            protected void configure() {
-                map().setUsername(source.getUser().getUsername());
-                map().setCity(source.getCity());
-                map().setBio(source.getBio());
-                map().setImageUrl(source.getImageUrl());
-                map().setDateOfBirth(source.getDateOfBirth());
-                map().setCreatedAt(source.getUser().getCreatedAt());
-                map().setIsOnline(source.getUser().isOnline());
-            }
-        });
+   private void configureProfileMappings(ModelMapper modelMapper) {
+        Converter<Profile, Integer> ageConverter = context -> {
+            Profile profile = context.getSource();
+            LocalDate dateOfBirth = profile.getDateOfBirth();
+            return dateOfBirth != null ?
+                    Period.between(dateOfBirth, LocalDate.now()).getYears() : null;
+        };
+
+        modelMapper.typeMap(Profile.class, ProfileResponse.class)
+                .addMappings(mapper -> {
+                    mapper.map(src -> src.getUser().getUsername(), ProfileResponse::setUsername);
+                    mapper.map(Profile::getCity, ProfileResponse::setCity);
+                    mapper.map(Profile::getBio, ProfileResponse::setBio);
+                    mapper.using(ageConverter).map(src -> src, ProfileResponse::setAge);
+                    mapper.map(Profile::getImageUrl, ProfileResponse::setImageUrl);
+                    mapper.map(Profile::getDateOfBirth, ProfileResponse::setDateOfBirth);
+                    mapper.map(src -> src.getUser().getCreatedAt(), ProfileResponse::setCreatedAt);
+                    mapper.map(src -> src.getUser().isOnline(), ProfileResponse::setIsOnline);
+                });
     }
 
     private void configureMessagesMappings(ModelMapper modelMapper) {

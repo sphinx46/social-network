@@ -9,6 +9,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.Notificatio
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationType;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.GenericNotificationEvent;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -296,7 +297,7 @@ public class TestDataFactory {
         return ProfileRequest.builder()
                 .bio("Тестовое описание")
                 .city("Москва")
-                .dateOfBirth(LocalDateTime.now().minusYears(25))
+                .dateOfBirth(LocalDate.now().minusYears(25))
                 .imageUrl("http://example.com/image.jpg")
                 .build();
     }
@@ -307,7 +308,7 @@ public class TestDataFactory {
         response.setCity("Москва");
         response.setBio("Тестовое описание");
         response.setImageUrl("http://example.com/image.jpg");
-        response.setDateOfBirth(LocalDateTime.now().minusYears(25));
+        response.setDateOfBirth(LocalDate.now().minusYears(25));
         response.setAge(25);
         response.setIsOnline(true);
         response.setCreatedAt(LocalDateTime.now());

@@ -22,7 +22,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.ProfileFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.ProfileValidator;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -102,7 +102,7 @@ public class ProfileServiceImplTest {
         User user = createTestUser(1L, "user", "user@example.com");
         Profile profile = new Profile();
         profile.setUser(user);
-        profile.setDateOfBirth(LocalDateTime.now().minusYears(25));
+        profile.setDateOfBirth(LocalDate.now().minusYears(25));
         ProfileResponse response = createProfileResponse();
         response.setAge(25);
 
@@ -125,7 +125,7 @@ public class ProfileServiceImplTest {
         User user = createTestUser(1L, "user", "user@example.com");
         Profile profile = new Profile();
         profile.setUser(user);
-        profile.setDateOfBirth(LocalDateTime.now().minusYears(30));
+        profile.setDateOfBirth(LocalDate.now().minusYears(30));
         ProfileResponse response = createProfileResponse();
         response.setAge(30);
 

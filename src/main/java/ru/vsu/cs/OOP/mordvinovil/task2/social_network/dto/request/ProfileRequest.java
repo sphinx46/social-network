@@ -5,7 +5,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Builder
 @Data
@@ -16,7 +16,7 @@ public class ProfileRequest {
     private String bio;
 
     @Schema(description = "Дата рождения", example = "2000-01-01")
-    private LocalDateTime dateOfBirth;
+    private LocalDate dateOfBirth;
 
     @Schema(description = "Город проживания", example = "Москва")
     private String city;

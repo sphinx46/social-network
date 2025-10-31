@@ -69,7 +69,7 @@ public interface RelationshipRepository extends JpaRepository<Relationship, Long
 
     @Query("SELECT p FROM Profile p " +
             "JOIN User u ON p.user = u " +
-            "WHERE u.city = :city " +
+            "WHERE p.city = :city " +
             "AND u.id != :currentUserId " +
             "AND NOT EXISTS (" +
             "    SELECT r FROM Relationship r " +
