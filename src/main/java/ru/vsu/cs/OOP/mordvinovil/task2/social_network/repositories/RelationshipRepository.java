@@ -79,4 +79,9 @@ public interface RelationshipRepository extends JpaRepository<Relationship, Long
     Page<Profile> findFriendsCandidates(@Param("currentUserId") Long currentUserId,
                                         @Param("city") String city,
                                         Pageable pageable);
+
+    @Query("SELECT DISTINCT r FROM Relationship r WHERE (r.sender.id = :userId OR r.receiver.id = :userId) " +
+            "AND r.status = :status")
+    Set<Relationship> findSetRelationshipByUserAndStatus(@Param("userId") Long userId,
+                                           @Param("status") FriendshipStatus status);
 }

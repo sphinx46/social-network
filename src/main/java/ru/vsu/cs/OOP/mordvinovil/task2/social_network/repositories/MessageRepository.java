@@ -27,7 +27,8 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
                                                              @Param("receiverId") Long receiverId,
                                                              @Param("status") MessageStatus status);
 
-    @Query("SELECT COUNT(m) FROM Message m WHERE (m.sender.id = :userId OR m.receiver.id = :userId) AND m.status = :status")
+    @Query("SELECT COUNT(m) FROM Message m WHERE (m.sender.id = :userId OR m.receiver.id = :userId) " +
+            "AND m.status = :status")
     Long countMessagesByStatus(@Param("userId") Long userId,
                                @Param("status") MessageStatus status);
 
