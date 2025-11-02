@@ -28,11 +28,19 @@ public interface RelationshipRepository extends JpaRepository<Relationship, Long
     List<Relationship> findByUserAndStatus(@Param("userId") Long userId,
                                            @Param("status") FriendshipStatus status);
 
-    @Query("SELECT r FROM Relationship r WHERE (r.sender.id = :userId OR r.receiver.id = :userId) " +
+//    @Query("SELECT r FROM Relationship r WHERE (r.sender.id = :userId OR r.receiver.id = :userId) " +
+//            "AND r.status = :status")
+//    Page<Relationship> findByUserAndStatus(@Param("userId") Long userId,
+//                                           @Param("status") FriendshipStatus status,
+//                                           Pageable pageable);
+
+    @Query("SELECT r FROM Relationship r WHERE " +
+            "((r.sender.id = :userId AND r.receiver.id != :userId) OR " +
+            "(r.receiver.id = :userId AND r.sender.id != :userId)) " +
             "AND r.status = :status")
     Page<Relationship> findByUserAndStatus(@Param("userId") Long userId,
-                                           @Param("status") FriendshipStatus status,
-                                           Pageable pageable);
+                                         @Param("status") FriendshipStatus status,
+                                         Pageable pageable);
 
     @Query("SELECT r FROM Relationship r WHERE r.sender.id = :userId AND r.status = :status")
     List<Relationship> findSentRequestsByUserAndStatus(@Param("userId") Long userId,

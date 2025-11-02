@@ -28,4 +28,14 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             "WHERE c.id = :commentId")
     @Transactional(readOnly = true)
     Optional<Comment> findByIdWithLikes(@Param("commentId") Long commentId);
+
+
+    @Query("SELECT COUNT(DISTINCT c1.post.id) FROM Comment c1 " +
+            "WHERE c1.creator.id = :user1 " +
+            "AND EXISTS (" +
+            "    SELECT 1 FROM Comment c2 " +
+            "    WHERE c2.creator.id = :user2 " +
+            "    AND c2.post.id = c1.post.id" +
+            ")")
+    int countCommonComments(@Param("user1") Long user1, @Param("user2") Long user2);
 }

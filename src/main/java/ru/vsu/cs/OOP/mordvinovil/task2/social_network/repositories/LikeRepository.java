@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Like;
 
 import java.util.Optional;
-import java.util.Set;
 
 @Repository
 public interface LikeRepository extends JpaRepository<Like, Long> {
@@ -30,9 +29,14 @@ public interface LikeRepository extends JpaRepository<Like, Long> {
                                Pageable pageable);
 
 
-    @Query("SELECT l FROM Like l JOIN l.post p " +
-            "WHERE (p.user.id = :userId AND l.user.id = :targetUserId) " +
-            "OR (p.user.id = :targetUserId AND l.user.id = :userId)")
-    Set<Like> getMutualLikes(@Param("userId") Long userId,
-                             @Param("targetUserId") Long targetUserId);
+    @Query("SELECT COUNT(DISTINCT l1.post) FROM Like l1 " +
+            "WHERE l1.user.id = :user1 " +
+            "AND l1.post IS NOT NULL " +
+            "AND EXISTS (" +
+            "    SELECT 1 FROM Like l2 " +
+            "    WHERE l2.user.id = :user2 " +
+            "    AND l2.post.id = l1.post.id " +
+            "    AND l2.post IS NOT NULL" +
+            ")")
+    int countCommonLikes(@Param("user1") Long user1, @Param("user2") Long user2);
 }

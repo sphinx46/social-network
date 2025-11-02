@@ -23,28 +23,31 @@ public class DijkstraFriendRecommendationSearchServiceImpl implements DijkstraFr
 
         while (!pq.isEmpty()) {
             SocialNode current = pq.poll();
+            Long currentUserId = current.getUserId();
 
-            if (visited.contains(current.getUserId())) continue;
-            visited.add(current.getUserId());
+            if (visited.contains(currentUserId)) continue;
+            visited.add(currentUserId);
 
-            if (current.getDistance() > maxDepth) continue;
+            if (current.getDistance() >= maxDepth) continue;
 
             Set<Long> friends = relationshipRepository
-                    .findFriendIdsByUserId(current.getUserId(), FriendshipStatus.ACCEPTED);
+                    .findFriendIdsByUserId(currentUserId, FriendshipStatus.ACCEPTED);
 
             for (Long friendId : friends) {
                 if (visited.contains(friendId)) continue;
 
-                double strength = strengthCalculator.calculateConnectionStrength(current.getUserId(), friendId);
-                double newDistance = current.getDistance() + (1.0 - strength);
+                double strength = Math.max(0.1, strengthCalculator.calculateConnectionStrength(currentUserId, friendId));
+                double edgeWeight = 1.0 - (strength * 0.3);
+                double newDistance = current.getDistance() + edgeWeight;
 
-                if (!distances.containsKey(friendId) || newDistance < distances.get(friendId)) {
+                if (newDistance < distances.getOrDefault(friendId, Double.MAX_VALUE)) {
                     distances.put(friendId, newDistance);
                     pq.offer(new SocialNode(friendId, newDistance));
                 }
             }
         }
 
+        distances.remove(startUserId);
         return distances;
     }
 }
