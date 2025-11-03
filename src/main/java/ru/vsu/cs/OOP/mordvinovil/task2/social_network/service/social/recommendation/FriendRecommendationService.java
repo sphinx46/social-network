@@ -1,9 +1,9 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.social.recommendation;
 
+import org.springframework.data.domain.PageRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.common.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.recommendation.RecommendationFriendResponse;
 
-import java.util.List;
-
 public interface FriendRecommendationService {
-    List<RecommendationFriendResponse> getFriendRecommendations(Long targetUserId);
+    PageResponse<RecommendationFriendResponse> getFriendRecommendations(Long targetUserId, PageRequest pageRequest);
 }

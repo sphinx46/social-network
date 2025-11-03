@@ -15,6 +15,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.messaging.MessageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.feed.NewsFeedResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.common.PageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.recommendation.RecommendationFriendResponse;
 
 import java.time.Duration;
 
@@ -79,6 +80,24 @@ public class CacheConfig {
     }
 
     @Bean
+    public RedisTemplate<String, PageResponse<RecommendationFriendResponse>> redisRecommendationTemplate(
+            RedisConnectionFactory redisConnectionFactory,
+            ObjectMapper objectMapper
+    ) {
+        RedisTemplate<String, PageResponse<RecommendationFriendResponse>> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+
+        var serializer = new Jackson2JsonRedisSerializer<>(objectMapper,
+                objectMapper.getTypeFactory().constructParametricType(PageResponse.class, RecommendationFriendResponse.class));
+        redisTemplate.setValueSerializer(serializer);
+
+        redisTemplate.afterPropertiesSet();
+        return redisTemplate;
+    }
+
+    @Bean
     public CacheManager cacheManager(
             RedisConnectionFactory connectionFactory,
             ObjectMapper objectMapper
@@ -88,6 +107,10 @@ public class CacheConfig {
 
         var messageSerializer = new Jackson2JsonRedisSerializer<>(objectMapper,
                 objectMapper.getTypeFactory().constructParametricType(PageResponse.class, MessageResponse.class));
+
+        var recommendationSerializer = new Jackson2JsonRedisSerializer<>(objectMapper,
+                objectMapper.getTypeFactory().constructParametricType(PageResponse.class, RecommendationFriendResponse.class));
+
 
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofHours(1))
@@ -105,11 +128,17 @@ public class CacheConfig {
                 .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
                 .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(messageSerializer));
 
+        RedisCacheConfiguration recommendationConfig = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofDays(1))
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(recommendationSerializer));
+
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig)
                 .withCacheConfiguration("newsFeed", newsCacheConfig)
                 .withCacheConfiguration("conversation", messageConfig)
+                .withCacheConfiguration("friendRecommendation", recommendationConfig)
                 .transactionAware()
                 .build();
     }
