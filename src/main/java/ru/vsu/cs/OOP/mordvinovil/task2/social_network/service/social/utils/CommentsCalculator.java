@@ -13,7 +13,7 @@ public class CommentsCalculator {
 
     public int calculateCommonCommentsCount(Long user1, Long user2) {
         if (user1.equals(user2)) return 0;
-        int count = commentRepository.countCommonComments(user1, user2);
+        int count = commentRepository.countCommonCommentLikes(user1, user2);
         log.debug("Common comment between user {} and user {}: {}", user1, user2, count);
         return count;
     }

@@ -29,13 +29,14 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Transactional(readOnly = true)
     Optional<Comment> findByIdWithLikes(@Param("commentId") Long commentId);
 
-
-    @Query("SELECT COUNT(DISTINCT c1.post.id) FROM Comment c1 " +
-            "WHERE c1.creator.id = :user1 " +
+    @Query("SELECT COUNT(DISTINCT l1.comment) FROM Like l1 " +
+            "WHERE l1.user.id = :user1 " +
+            "AND l1.comment IS NOT NULL " +
             "AND EXISTS (" +
-            "    SELECT 1 FROM Comment c2 " +
-            "    WHERE c2.creator.id = :user2 " +
-            "    AND c2.post.id = c1.post.id" +
+            "    SELECT 1 FROM Like l2 " +
+            "    WHERE l2.user.id = :user2 " +
+            "    AND l2.comment.id = l1.comment.id " +
+            "    AND l2.comment IS NOT NULL" +
             ")")
-    int countCommonComments(@Param("user1") Long user1, @Param("user2") Long user2);
+    int countCommonCommentLikes(@Param("user1") Long user1, @Param("user2") Long user2);
 }

@@ -29,10 +29,10 @@ public class ConnectionStrengthCalculatorImpl implements ConnectionStrengthCalcu
         result.put("commonLikes", commonLikesScore);
         log.debug("Common likes score: {} (count: {})", commonLikesScore, commonLikes);
 
-        int commonComments = likesCalculator.calculateCommonLikesCount(userId, targetUserId);
-        double commonCommentsScore = Math.min(commonComments / 10.0, 1.0) * 0.25;
-        result.put("commonLikes", commonCommentsScore);
-        log.debug("Common likes score: {} (count: {})", commonCommentsScore, commonCommentsScore);
+        int commonComments = commentsCalculator.calculateCommonCommentsCount(userId, targetUserId);
+        double commonCommentsScore = Math.min(commonComments / 10.0, 1.0) * 0.18;
+        result.put("commonComments", commonCommentsScore);
+        log.debug("Common comments score: {} (count: {})", commonCommentsScore, commonCommentsScore);
 
         int commonFriends = mutualFriendsCalculator.calculateMutualFriendsCount(userId, targetUserId);
         double friendsScore = Math.min(commonFriends / 5.0, 1.0) * 0.6;
