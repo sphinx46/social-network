@@ -1,7 +1,6 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.social;
 
 import lombok.Data;
-
 import java.util.Objects;
 
 @Data

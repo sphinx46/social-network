@@ -22,7 +22,7 @@ public class RecommendationFriendResponse {
     private Double score;
 
     @Schema(description = "Факторы, повлиявшие на рекомендации")
-    private Map<String, Double> mapFactorScore;
+    private Map<String, Double> factorScores;
 
     @Schema(description = "Время генерации рекомендации")
     private LocalDateTime createdAt;

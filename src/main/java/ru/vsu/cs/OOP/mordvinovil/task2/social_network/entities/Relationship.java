@@ -24,6 +24,7 @@ public class Relationship extends BaseEntity {
     @JoinColumn(name = "user_receiver_id", referencedColumnName = "id" )
     private User receiver;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private FriendshipStatus status;
 

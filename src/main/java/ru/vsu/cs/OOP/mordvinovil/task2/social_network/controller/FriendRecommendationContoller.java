@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.RecommendationFriendResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.social.FriendRecommendationService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.social.recommendation.FriendRecommendationService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.UserService;
 
 import java.util.List;

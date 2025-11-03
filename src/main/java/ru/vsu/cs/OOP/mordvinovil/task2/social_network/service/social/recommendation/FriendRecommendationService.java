@@ -1,4 +1,4 @@
-package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.social;
+package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.social.recommendation;
 
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.RecommendationFriendResponse;
 

@@ -30,6 +30,7 @@ public class Message extends BaseEntity {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private MessageStatus status;
 

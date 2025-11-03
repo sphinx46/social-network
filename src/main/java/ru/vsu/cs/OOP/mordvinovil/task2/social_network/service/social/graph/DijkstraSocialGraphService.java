@@ -1,18 +1,23 @@
-package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.social;
+package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.social.graph;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.FriendshipStatus;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.RelationshipRepository;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.social.SocialNode;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.social.strength.ConnectionStrengthCalculator;
 
 import java.util.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-public class DijkstraFriendRecommendationSearchServiceImpl implements DijkstraFriendRecommendationSearchService {
+public final class DijkstraSocialGraphService implements SocialGraphService {
     private final RelationshipRepository relationshipRepository;
     private final ConnectionStrengthCalculator strengthCalculator;
 
+    @Override
     public Map<Long, Double> findSocialDistances(Long startUserId, int maxDepth) {
         Map<Long, Double> distances = new HashMap<>();
         Set<Long> visited = new HashSet<>();
@@ -36,7 +41,7 @@ public class DijkstraFriendRecommendationSearchServiceImpl implements DijkstraFr
             for (Long friendId : friends) {
                 if (visited.contains(friendId)) continue;
 
-                double strength = Math.max(0.1, strengthCalculator.calculateConnectionStrength(currentUserId, friendId));
+                double strength = Math.max(0.1, strengthCalculator.calculateOverallStrength(currentUserId, friendId));
                 double edgeWeight = 1.0 - (strength * 0.3);
                 double newDistance = current.getDistance() + edgeWeight;
 
