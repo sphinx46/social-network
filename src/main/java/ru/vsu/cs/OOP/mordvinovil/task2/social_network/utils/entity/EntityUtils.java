@@ -33,6 +33,10 @@ public class EntityUtils {
         return profileProvider.getByUser(user);
     }
 
+    public Profile getProfileByUserId(Long userId) {
+        return profileProvider.getByUserId(userId);
+    }
+
     public Post getPost(Long id) {
         return postProvider.getById(id);
     }

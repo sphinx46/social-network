@@ -39,6 +39,12 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
                                                      @Param("receiverId") Long receiverId,
                                                      Pageable pageable);
 
+    @Query("SELECT CASE WHEN COUNT(m) > 0 THEN true ELSE false END FROM Message m " +
+            "WHERE (m.sender.id = :user1 AND m.receiver.id = :user2) " +
+            "OR (m.sender.id = :user2 AND m.receiver.id = :user1)")
+    boolean existsConversationBetweenUsers(@Param("user1") Long user1, @Param("user2") Long user2);
+
+
     Optional<Page<Message>> findBySenderId(Long senderId, Pageable pageable);
     Optional<Page<Message>> findByReceiverIdAndStatus(Long receiverId, MessageStatus status, Pageable pageable);
 }

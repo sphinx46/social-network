@@ -7,4 +7,5 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 @Component
 public interface ProfileEntityProvider extends EntityProvider<Profile, Long> {
     Profile getByUser(User user);
+    Profile getByUserId(Long id);
 }
