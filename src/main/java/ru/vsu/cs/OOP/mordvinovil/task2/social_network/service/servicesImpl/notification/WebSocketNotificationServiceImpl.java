@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.NotificationResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.notification.NotificationResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.websocket.WebSocketMessage;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Notification;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.notification.WebSocketNotificationService;

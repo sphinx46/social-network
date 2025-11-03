@@ -2,7 +2,7 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.servicesImpl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.CommentRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.post.CommentRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;

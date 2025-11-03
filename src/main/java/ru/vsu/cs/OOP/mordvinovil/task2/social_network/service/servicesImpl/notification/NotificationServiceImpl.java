@@ -3,11 +3,11 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.noti
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.common.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.NotificationResponse;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.notification.NotificationResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.common.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Notification;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationStatus;

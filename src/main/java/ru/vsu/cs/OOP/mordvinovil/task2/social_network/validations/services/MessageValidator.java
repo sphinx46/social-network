@@ -1,6 +1,6 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services;
 
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.MessageRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.messaging.MessageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Message;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 

@@ -1,6 +1,6 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services;
 
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PostRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.post.PostRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 
 public interface PostValidator extends Validator<PostRequest, User> {

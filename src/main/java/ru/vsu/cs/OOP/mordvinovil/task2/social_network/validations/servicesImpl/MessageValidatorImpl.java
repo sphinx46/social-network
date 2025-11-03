@@ -2,7 +2,7 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.servicesImpl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.MessageRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.messaging.MessageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Message;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;

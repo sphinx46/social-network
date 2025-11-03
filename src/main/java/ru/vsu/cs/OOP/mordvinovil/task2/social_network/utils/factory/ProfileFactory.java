@@ -1,7 +1,7 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory;
 
 import org.springframework.stereotype.Component;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.ProfileRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.profile.ProfileRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Profile;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 

@@ -1,7 +1,7 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.social.recommendation.strategy;
 
 import lombok.RequiredArgsConstructor;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.RecommendationFriendResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.recommendation.RecommendationFriendResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.social.strength.ConnectionStrengthCalculator;
 
 import java.time.LocalDateTime;

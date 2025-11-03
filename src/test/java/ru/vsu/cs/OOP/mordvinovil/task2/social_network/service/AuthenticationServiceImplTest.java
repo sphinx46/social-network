@@ -10,9 +10,9 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.SignInRequest;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.SignUpRequest;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.JwtAuthenticationResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.auth.SignInRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.auth.SignUpRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.auth.JwtAuthenticationResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Role;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.security.filters.UserDetailsImpl;

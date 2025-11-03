@@ -9,9 +9,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.CommentRequest;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.CommentResponse;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.post.CommentRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.post.CommentResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.common.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
@@ -203,7 +203,7 @@ public class CommentServiceImplTest {
         when(entityMapper.mapWithName(comment2, CommentResponse.class, "withLikes")).thenReturn(response2);
 
         PageResponse<CommentResponse> result = commentServiceImpl.getAllCommentsOnPost(postId,
-                ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest.builder()
+                ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.common.PageRequest.builder()
                         .pageNumber(0)
                         .size(10)
                         .sortBy("createdAt")

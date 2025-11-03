@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.ExceptionResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.exception.ExceptionResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.comment.CommentContentTooLongException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.comment.CommentEmptyContentException;

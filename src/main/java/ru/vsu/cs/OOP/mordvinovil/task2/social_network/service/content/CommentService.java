@@ -1,9 +1,9 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.content;
 
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.CommentRequest;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.PageRequest;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.CommentResponse;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.PageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.post.CommentRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.common.PageRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.post.CommentResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.common.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.Service;
 

@@ -3,7 +3,7 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.social.recommenda
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.RecommendationFriendResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.recommendation.RecommendationFriendResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.social.strength.ConnectionStrengthCalculator;
 
 import java.time.LocalDateTime;

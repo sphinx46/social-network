@@ -1,7 +1,24 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils;
 
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.*;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.*;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.messaging.MessageRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.profile.ProfileRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.auth.SignInRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.auth.SignUpRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.post.CommentRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.post.LikeCommentRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.post.LikePostRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.post.PostRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.relationship.RelationshipRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.auth.JwtAuthenticationResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.feed.NewsFeedResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.messaging.MessageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.notification.NotificationResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.post.CommentResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.post.LikeCommentResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.post.LikePostResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.post.PostResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.profile.ProfileResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.relationship.RelationshipResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.*;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.FriendshipStatus;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.MessageStatus;

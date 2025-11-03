@@ -2,8 +2,8 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.servicesImpl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.LikeCommentRequest;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.LikePostRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.post.LikeCommentRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.post.LikePostRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Like;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;

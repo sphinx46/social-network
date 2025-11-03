@@ -27,4 +27,3 @@ public final class ConnectionStrengthFactorRegistry {
         return getFactorMap().get(name);
     }
 }
-feat:

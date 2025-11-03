@@ -6,7 +6,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.ProfileController;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.profile.ProfileController;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.ProfileService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.BaseControllerTest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;

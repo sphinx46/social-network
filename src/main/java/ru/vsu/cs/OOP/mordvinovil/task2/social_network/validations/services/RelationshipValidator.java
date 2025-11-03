@@ -1,6 +1,6 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services;
 
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.RelationshipRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.relationship.RelationshipRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 
 public interface RelationshipValidator extends Validator<RelationshipRequest, User> {

@@ -5,7 +5,15 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.*;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.feed.NewsFeedResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.messaging.MessageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.notification.NotificationResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.post.CommentResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.post.LikeCommentResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.post.LikePostResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.post.PostResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.profile.ProfileResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.relationship.RelationshipResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.*;
 
 import java.time.LocalDate;

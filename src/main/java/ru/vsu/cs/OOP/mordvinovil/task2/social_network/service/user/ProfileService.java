@@ -1,8 +1,8 @@
 package ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user;
 
 import org.springframework.web.multipart.MultipartFile;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.ProfileRequest;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.ProfileResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.profile.ProfileRequest;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.profile.ProfileResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Profile;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.Service;
