@@ -18,6 +18,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.Notificatio
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationType;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.notification.NotificationNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.NotificationRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.notification.NotificationServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
@@ -35,6 +36,8 @@ import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFacto
 
 @ExtendWith(MockitoExtension.class)
 class NotificationServiceImplTest {
+    @Mock
+    private CentralLogger centralLogger;
 
     @Mock
     private NotificationRepository notificationRepository;

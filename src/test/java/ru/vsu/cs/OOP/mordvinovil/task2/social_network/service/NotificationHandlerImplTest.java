@@ -15,6 +15,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.NotificationR
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.eventhandler.notification.NotificationEventHandlerImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.notification.WebSocketNotificationService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.NotificationFactory;
 
 import java.util.Map;
 import java.util.Optional;
@@ -27,6 +28,8 @@ import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFacto
 
 @ExtendWith(MockitoExtension.class)
 class NotificationHandlerImplTest {
+    @Mock
+    private NotificationFactory factory;
 
     @Mock
     private UserRepository userRepository;
@@ -58,13 +61,15 @@ class NotificationHandlerImplTest {
         );
 
         when(userRepository.findById(currentUser.getId())).thenReturn(Optional.of(currentUser));
+        when(factory.createNotificationFromEvent(event, currentUser)).thenReturn(notification);
         when(notificationRepository.save(any(Notification.class))).thenReturn(notification);
 
         notificationEventHandler.handleNotificationEvent(event);
 
         verify(userRepository).findById(currentUser.getId());
-        verify(notificationRepository).save(any(Notification.class));
-        verify(webSocketNotificationService).sendNotification(eq(currentUser.getId()), any(Notification.class));
+        verify(factory).createNotificationFromEvent(event, currentUser);
+        verify(notificationRepository).save(notification);
+        verify(webSocketNotificationService).sendNotification(eq(currentUser.getId()), eq(notification));
     }
 
     @Test
@@ -80,6 +85,7 @@ class NotificationHandlerImplTest {
         notificationEventHandler.handleNotificationEvent(event);
 
         verify(userRepository).findById(999L);
+        verify(factory, never()).createNotificationFromEvent(any(), any());
         verify(notificationRepository, never()).save(any(Notification.class));
         verify(webSocketNotificationService, never()).sendNotification(anyLong(), any(Notification.class));
     }
@@ -97,6 +103,7 @@ class NotificationHandlerImplTest {
         assertDoesNotThrow(() -> notificationEventHandler.handleNotificationEvent(event));
 
         verify(userRepository).findById(currentUser.getId());
+        verify(factory, never()).createNotificationFromEvent(any(), any());
         verify(notificationRepository, never()).save(any(Notification.class));
         verify(webSocketNotificationService, never()).sendNotification(anyLong(), any(Notification.class));
     }

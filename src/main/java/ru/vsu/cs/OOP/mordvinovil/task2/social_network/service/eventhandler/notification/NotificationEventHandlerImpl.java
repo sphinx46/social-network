@@ -7,12 +7,12 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Notification;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.NotificationStatus;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.GenericNotificationEvent;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.NotificationRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.UserRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.notification.WebSocketNotificationService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.NotificationFactory;
 
 @Slf4j
 @Service
@@ -21,6 +21,7 @@ public class NotificationEventHandlerImpl implements NotificationEventHandler {
     private final UserRepository userRepository;
     private final NotificationRepository notificationRepository;
     private final WebSocketNotificationService webSocketNotificationService;
+    private final NotificationFactory factory;
 
     @EventListener
     @Async("notificationTaskExecutor")
@@ -30,7 +31,7 @@ public class NotificationEventHandlerImpl implements NotificationEventHandler {
             User targetUser = userRepository.findById(event.getTargetUserId())
                     .orElseThrow(() -> new RuntimeException(ResponseMessageConstants.FAILURE_USER_NOT_FOUND));
 
-            Notification notification = createNotificationFromEvent(event, targetUser);
+            Notification notification = factory.createNotificationFromEvent(event, targetUser);
             notificationRepository.save(notification);
 
             webSocketNotificationService.sendNotification(targetUser.getId(), notification);
@@ -41,15 +42,5 @@ public class NotificationEventHandlerImpl implements NotificationEventHandler {
             log.error("Error processing notification event: {} for user: {}",
                     event.getNotificationType(), event.getTargetUserId(), e);
         }
-    }
-
-    private Notification createNotificationFromEvent(GenericNotificationEvent event, User targetUser) {
-        return Notification.builder()
-                .userAction(targetUser)
-                .type(event.getNotificationType())
-                .status(NotificationStatus.UNREAD)
-                .additionalData(event.getAdditionalData())
-                .updatedAt(event.getTimeCreated())
-                .build();
     }
 }
