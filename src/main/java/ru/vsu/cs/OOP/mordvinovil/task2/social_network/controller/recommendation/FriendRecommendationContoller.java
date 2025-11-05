@@ -16,6 +16,10 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.recommendatio
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.social.recommendation.FriendRecommendationService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.UserService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/friendRecommendations")
@@ -23,6 +27,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.UserService;
 public class FriendRecommendationContoller {
     private final FriendRecommendationService friendRecommendationService;
     private final UserService userService;
+    private final CentralLogger centralLogger;
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Получение рекомендации друзей для текущего пользователя")
@@ -33,18 +38,41 @@ public class FriendRecommendationContoller {
             @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
             @RequestParam(defaultValue = "DESC", required = false) String direction
     ) {
-        User currentUser = userService.getCurrentUser();
+        Map<String, Object> context = new HashMap<>();
+        context.put("size", size);
+        context.put("pageNumber", pageNumber);
+        context.put("sortedBy", sortedBy);
+        context.put("direction", direction);
 
-        var pageRequest = PageRequest.builder()
-                .pageNumber(pageNumber)
-                .size(size)
-                .sortBy(sortedBy)
-                .direction(Sort.Direction.fromString(direction))
-                .build();
+        centralLogger.logInfo("РЕКОМЕНДАЦИИ_ДРУЗЕЙ_ЗАПРОС",
+                "Запрос рекомендаций друзей для текущего пользователя", context);
 
-        PageResponse<RecommendationFriendResponse> recommendationList =
-                friendRecommendationService.getFriendRecommendations(currentUser.getId(), pageRequest.toPageable());
+        try {
+            User currentUser = userService.getCurrentUser();
+            context.put("userId", currentUser.getId());
 
-        return ResponseEntity.ok(recommendationList);
+            var pageRequest = PageRequest.builder()
+                    .pageNumber(pageNumber)
+                    .size(size)
+                    .sortBy(sortedBy)
+                    .direction(Sort.Direction.fromString(direction))
+                    .build();
+
+            PageResponse<RecommendationFriendResponse> recommendationList =
+                    friendRecommendationService.getFriendRecommendations(currentUser.getId(), pageRequest.toPageable());
+
+            Map<String, Object> successContext = new HashMap<>(context);
+            successContext.put("contentSize", recommendationList.getContent().size());
+            successContext.put("totalElements", recommendationList.getTotalElements());
+
+            centralLogger.logInfo("РЕКОМЕНДАЦИИ_ДРУЗЕЙ_ПОЛУЧЕНЫ",
+                    "Рекомендации друзей успешно получены", successContext);
+
+            return ResponseEntity.ok(recommendationList);
+        } catch (Exception e) {
+            centralLogger.logError("РЕКОМЕНДАЦИИ_ДРУЗЕЙ_ОШИБКА",
+                    "Ошибка при получении рекомендаций друзей", context, e);
+            throw e;
+        }
     }
 }
