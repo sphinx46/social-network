@@ -18,6 +18,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.cache.CacheEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.custom.AccessDeniedException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.PostRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.storage.FileStorageServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.content.PostServiceImpl;
@@ -37,6 +38,8 @@ import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFacto
 
 @ExtendWith(MockitoExtension.class)
 class PostServiceImplTest {
+    @Mock
+    private CentralLogger centralLogger;
 
     @Mock
     private FileStorageServiceImpl fileStorageServiceImpl;
