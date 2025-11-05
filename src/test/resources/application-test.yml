@@ -32,7 +32,6 @@ spring:
       - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
       - org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration
 
-# Явно отключаем Redis
 redis:
   enabled: false
 
@@ -46,6 +45,8 @@ management:
         include: health
 
 logging:
+  logging:
+    config: classpath:logback-test.xml
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
