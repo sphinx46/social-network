@@ -4,8 +4,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,6 +17,10 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.CacheMode;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.factory.MessageServiceFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.messaging.MessageService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.UserService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/messages")
@@ -26,33 +28,67 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.UserService;
 public class MessageController {
     private final UserService userService;
     private final MessageServiceFactory messageServiceFactory;
-    private static final Logger log = LoggerFactory.getLogger(MessageController.class);
+    private final CentralLogger centralLogger;
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Создание нового сообщения")
     @PostMapping("/create")
     public ResponseEntity<MessageResponse> createMessage(@Valid @RequestBody MessageRequest request,
                                                          @RequestParam(value = "cacheMode", defaultValue = "CACHE") CacheMode cacheMode) {
-        User user = userService.getCurrentUser();
-        log.info("Пользователь {} создает сообщение для пользователя {}", user.getId(), request.getReceiverUserId());
-        MessageService messageService = messageServiceFactory.getService(cacheMode);
-        MessageResponse response = messageService.create(request, user);
-        log.info("Сообщение {} успешно создано пользователем {}", response.getId(), user.getId());
-        return ResponseEntity.ok(response);
+        Map<String, Object> context = new HashMap<>();
+        context.put("receiverUserId", request.getReceiverUserId());
+        context.put("cacheMode", cacheMode);
+
+        centralLogger.logInfo("СООБЩЕНИЕ_СОЗДАНИЕ_ЗАПРОС",
+                "Запрос на создание сообщения", context);
+
+        try {
+            User user = userService.getCurrentUser();
+            context.put("senderUserId", user.getId());
+
+            MessageService messageService = messageServiceFactory.getService(cacheMode);
+            MessageResponse response = messageService.create(request, user);
+
+            Map<String, Object> successContext = new HashMap<>(context);
+            successContext.put("messageId", response.getId());
+
+            centralLogger.logInfo("СООБЩЕНИЕ_СОЗДАНО",
+                    "Сообщение успешно создано", successContext);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            centralLogger.logError("СООБЩЕНИЕ_ОШИБКА_СОЗДАНИЯ",
+                    "Ошибка при создании сообщения", context, e);
+            throw e;
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Получить сообщение по ID")
     @GetMapping("/{messageId}")
     public ResponseEntity<MessageResponse> getMessage(@PathVariable Long messageId) {
-        User user = userService.getCurrentUser();
-        log.info("Пользователь {} запрашивает сообщение {}", user.getId(), messageId);
+        Map<String, Object> context = new HashMap<>();
+        context.put("messageId", messageId);
 
-        MessageService service = messageServiceFactory.getService(CacheMode.NONE_CACHE);
-        MessageResponse response = service.getMessageById(messageId, user);
+        centralLogger.logInfo("СООБЩЕНИЕ_ПОЛУЧЕНИЕ_ЗАПРОС",
+                "Запрос на получение сообщения по ID", context);
 
-        log.info("Сообщение {} успешно получено пользователем {}", messageId, user.getId());
-        return ResponseEntity.ok(response);
+        try {
+            User user = userService.getCurrentUser();
+            context.put("userId", user.getId());
+
+            MessageService service = messageServiceFactory.getService(CacheMode.NONE_CACHE);
+            MessageResponse response = service.getMessageById(messageId, user);
+
+            centralLogger.logInfo("СООБЩЕНИЕ_ПОЛУЧЕНО",
+                    "Сообщение успешно получено", context);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            centralLogger.logError("СООБЩЕНИЕ_ОШИБКА_ПОЛУЧЕНИЯ",
+                    "Ошибка при получении сообщения", context, e);
+            throw e;
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -65,20 +101,44 @@ public class MessageController {
             @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
             @RequestParam(defaultValue = "DESC", required = false) String direction,
             @RequestParam(value = "cacheMode", defaultValue = "NONE_CACHE") CacheMode cacheMode) {
-        User user = userService.getCurrentUser();
-        log.info("Пользователь {} запрашивает переписку с пользователем {}, страница {}, размер {}", user.getId(), userId, pageNumber, size);
+        Map<String, Object> context = new HashMap<>();
+        context.put("targetUserId", userId);
+        context.put("size", size);
+        context.put("pageNumber", pageNumber);
+        context.put("sortedBy", sortedBy);
+        context.put("direction", direction);
+        context.put("cacheMode", cacheMode);
 
-        var pageRequest = PageRequest.builder()
-                .pageNumber(pageNumber)
-                .size(size)
-                .sortBy(sortedBy)
-                .direction(Sort.Direction.fromString(direction))
-                .build();
+        centralLogger.logInfo("ПЕРЕПИСКА_ЗАПРОС",
+                "Запрос переписки с пользователем", context);
 
-        MessageService messageService = messageServiceFactory.getService(cacheMode);
-        PageResponse<MessageResponse> response = messageService.getConversation(userId, user, pageRequest);
-        log.info("Получено {} сообщений в переписке пользователя {} с пользователем {}", response.getContent().size(), user.getId(), userId);
-        return ResponseEntity.ok(response);
+        try {
+            User user = userService.getCurrentUser();
+            context.put("userId", user.getId());
+
+            var pageRequest = PageRequest.builder()
+                    .pageNumber(pageNumber)
+                    .size(size)
+                    .sortBy(sortedBy)
+                    .direction(Sort.Direction.fromString(direction))
+                    .build();
+
+            MessageService messageService = messageServiceFactory.getService(cacheMode);
+            PageResponse<MessageResponse> response = messageService.getConversation(userId, user, pageRequest);
+
+            Map<String, Object> successContext = new HashMap<>(context);
+            successContext.put("contentSize", response.getContent().size());
+            successContext.put("totalElements", response.getTotalElements());
+
+            centralLogger.logInfo("ПЕРЕПИСКА_ПОЛУЧЕНА",
+                    "Переписка успешно получена", successContext);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            centralLogger.logError("ПЕРЕПИСКА_ОШИБКА",
+                    "Ошибка при получении переписки", context, e);
+            throw e;
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -90,20 +150,42 @@ public class MessageController {
             @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
             @RequestParam(defaultValue = "DESC", required = false) String direction
     ) {
-        User user = userService.getCurrentUser();
-        log.info("Пользователь {} запрашивает отправленные сообщения, страница {}, размер {}", user.getId(), pageNumber, size);
+        Map<String, Object> context = new HashMap<>();
+        context.put("size", size);
+        context.put("pageNumber", pageNumber);
+        context.put("sortedBy", sortedBy);
+        context.put("direction", direction);
 
-        var pageRequest = PageRequest.builder()
-                .pageNumber(pageNumber)
-                .size(size)
-                .sortBy(sortedBy)
-                .direction(Sort.Direction.fromString(direction))
-                .build();
+        centralLogger.logInfo("ОТПРАВЛЕННЫЕ_СООБЩЕНИЯ_ЗАПРОС",
+                "Запрос отправленных сообщений", context);
 
-        MessageService service = messageServiceFactory.getService(CacheMode.NONE_CACHE);
-        PageResponse<MessageResponse> response = service.getSentMessages(user, pageRequest);
-        log.info("Получено {} отправленных сообщений пользователя {}", response.getContent().size(), user.getId());
-        return ResponseEntity.ok(response);
+        try {
+            User user = userService.getCurrentUser();
+            context.put("userId", user.getId());
+
+            var pageRequest = PageRequest.builder()
+                    .pageNumber(pageNumber)
+                    .size(size)
+                    .sortBy(sortedBy)
+                    .direction(Sort.Direction.fromString(direction))
+                    .build();
+
+            MessageService service = messageServiceFactory.getService(CacheMode.NONE_CACHE);
+            PageResponse<MessageResponse> response = service.getSentMessages(user, pageRequest);
+
+            Map<String, Object> successContext = new HashMap<>(context);
+            successContext.put("contentSize", response.getContent().size());
+            successContext.put("totalElements", response.getTotalElements());
+
+            centralLogger.logInfo("ОТПРАВЛЕННЫЕ_СООБЩЕНИЯ_ПОЛУЧЕНЫ",
+                    "Отправленные сообщения успешно получены", successContext);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            centralLogger.logError("ОТПРАВЛЕННЫЕ_СООБЩЕНИЯ_ОШИБКА",
+                    "Ошибка при получении отправленных сообщений", context, e);
+            throw e;
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -115,20 +197,42 @@ public class MessageController {
             @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
             @RequestParam(defaultValue = "DESC", required = false) String direction
     ) {
-        User user = userService.getCurrentUser();
-        log.info("Пользователь {} запрашивает полученные сообщения, страница {}, размер {}", user.getId(), pageNumber, size);
+        Map<String, Object> context = new HashMap<>();
+        context.put("size", size);
+        context.put("pageNumber", pageNumber);
+        context.put("sortedBy", sortedBy);
+        context.put("direction", direction);
 
-        var pageRequest = PageRequest.builder()
-                .pageNumber(pageNumber)
-                .size(size)
-                .sortBy(sortedBy)
-                .direction(Sort.Direction.fromString(direction))
-                .build();
+        centralLogger.logInfo("ПОЛУЧЕННЫЕ_СООБЩЕНИЯ_ЗАПРОС",
+                "Запрос полученных сообщений", context);
 
-        MessageService service = messageServiceFactory.getService(CacheMode.NONE_CACHE);
-        PageResponse<MessageResponse> response = service.getReceivedMessages(user, pageRequest);
-        log.info("Получено {} полученных сообщений пользователя {}", response.getContent().size(), user.getId());
-        return ResponseEntity.ok(response);
+        try {
+            User user = userService.getCurrentUser();
+            context.put("userId", user.getId());
+
+            var pageRequest = PageRequest.builder()
+                    .pageNumber(pageNumber)
+                    .size(size)
+                    .sortBy(sortedBy)
+                    .direction(Sort.Direction.fromString(direction))
+                    .build();
+
+            MessageService service = messageServiceFactory.getService(CacheMode.NONE_CACHE);
+            PageResponse<MessageResponse> response = service.getReceivedMessages(user, pageRequest);
+
+            Map<String, Object> successContext = new HashMap<>(context);
+            successContext.put("contentSize", response.getContent().size());
+            successContext.put("totalElements", response.getTotalElements());
+
+            centralLogger.logInfo("ПОЛУЧЕННЫЕ_СООБЩЕНИЯ_ПОЛУЧЕНЫ",
+                    "Полученные сообщения успешно получены", successContext);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            centralLogger.logError("ПОЛУЧЕННЫЕ_СООБЩЕНИЯ_ОШИБКА",
+                    "Ошибка при получении полученных сообщений", context, e);
+            throw e;
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -140,20 +244,42 @@ public class MessageController {
             @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
             @RequestParam(defaultValue = "DESC", required = false) String direction
     ) {
-        User user = userService.getCurrentUser();
-        log.info("Пользователь {} запрашивает прочитанные сообщения, страница {}, размер {}", user.getId(), pageNumber, size);
+        Map<String, Object> context = new HashMap<>();
+        context.put("size", size);
+        context.put("pageNumber", pageNumber);
+        context.put("sortedBy", sortedBy);
+        context.put("direction", direction);
 
-        var pageRequest = PageRequest.builder()
-                .pageNumber(pageNumber)
-                .size(size)
-                .sortBy(sortedBy)
-                .direction(Sort.Direction.fromString(direction))
-                .build();
+        centralLogger.logInfo("ПРОЧИТАННЫЕ_СООБЩЕНИЯ_ЗАПРОС",
+                "Запрос прочитанных сообщений", context);
 
-        MessageService service = messageServiceFactory.getService(CacheMode.NONE_CACHE);
-        PageResponse<MessageResponse> response = service.getReadMessages(user, pageRequest);
-        log.info("Получено {} прочитанных сообщений пользователя {}", response.getContent().size(), user.getId());
-        return ResponseEntity.ok(response);
+        try {
+            User user = userService.getCurrentUser();
+            context.put("userId", user.getId());
+
+            var pageRequest = PageRequest.builder()
+                    .pageNumber(pageNumber)
+                    .size(size)
+                    .sortBy(sortedBy)
+                    .direction(Sort.Direction.fromString(direction))
+                    .build();
+
+            MessageService service = messageServiceFactory.getService(CacheMode.NONE_CACHE);
+            PageResponse<MessageResponse> response = service.getReadMessages(user, pageRequest);
+
+            Map<String, Object> successContext = new HashMap<>(context);
+            successContext.put("contentSize", response.getContent().size());
+            successContext.put("totalElements", response.getTotalElements());
+
+            centralLogger.logInfo("ПРОЧИТАННЫЕ_СООБЩЕНИЯ_ПОЛУЧЕНЫ",
+                    "Прочитанные сообщения успешно получены", successContext);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            centralLogger.logError("ПРОЧИТАННЫЕ_СООБЩЕНИЯ_ОШИБКА",
+                    "Ошибка при получении прочитанных сообщений", context, e);
+            throw e;
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -162,12 +288,29 @@ public class MessageController {
     public ResponseEntity<MessageResponse> editMessage(@PathVariable Long messageId,
                                                        @Valid @RequestBody MessageRequest request,
                                                        @RequestParam(value = "cacheMode", defaultValue = "CACHE") CacheMode cacheMode) {
-        User user = userService.getCurrentUser();
-        log.info("Пользователь {} редактирует сообщение {}", user.getId(), messageId);
-        MessageService messageService = messageServiceFactory.getService(cacheMode);
-        MessageResponse response = messageService.editMessage(messageId, request, user);
-        log.info("Сообщение {} успешно отредактировано пользователем {}", messageId, user.getId());
-        return ResponseEntity.ok(response);
+        Map<String, Object> context = new HashMap<>();
+        context.put("messageId", messageId);
+        context.put("cacheMode", cacheMode);
+
+        centralLogger.logInfo("СООБЩЕНИЕ_РЕДАКТИРОВАНИЕ_ЗАПРОС",
+                "Запрос на редактирование сообщения", context);
+
+        try {
+            User user = userService.getCurrentUser();
+            context.put("userId", user.getId());
+
+            MessageService messageService = messageServiceFactory.getService(cacheMode);
+            MessageResponse response = messageService.editMessage(messageId, request, user);
+
+            centralLogger.logInfo("СООБЩЕНИЕ_ОТРЕДАКТИРОВАНО",
+                    "Сообщение успешно отредактировано", context);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            centralLogger.logError("СООБЩЕНИЕ_ОШИБКА_РЕДАКТИРОВАНИЯ",
+                    "Ошибка при редактировании сообщения", context, e);
+            throw e;
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -175,12 +318,29 @@ public class MessageController {
     @PatchMapping("/{messageId}/receive")
     public ResponseEntity<MessageResponse> receiveMessage(@PathVariable Long messageId,
                                                           @RequestParam(value = "cacheMode", defaultValue = "CACHE") CacheMode cacheMode) {
-        User user = userService.getCurrentUser();
-        log.info("Пользователь {} отмечает сообщение {} как доставленное", user.getId(), messageId);
-        MessageService messageService = messageServiceFactory.getService(cacheMode);
-        MessageResponse response = messageService.markAsReceived(messageId, user);
-        log.info("Сообщение {} отмечено как доставленное пользователем {}", messageId, user.getId());
-        return ResponseEntity.ok(response);
+        Map<String, Object> context = new HashMap<>();
+        context.put("messageId", messageId);
+        context.put("cacheMode", cacheMode);
+
+        centralLogger.logInfo("СООБЩЕНИЕ_ДОСТАВКА_ЗАПРОС",
+                "Запрос на отметку сообщения как доставленного", context);
+
+        try {
+            User user = userService.getCurrentUser();
+            context.put("userId", user.getId());
+
+            MessageService messageService = messageServiceFactory.getService(cacheMode);
+            MessageResponse response = messageService.markAsReceived(messageId, user);
+
+            centralLogger.logInfo("СООБЩЕНИЕ_ДОСТАВЛЕНО",
+                    "Сообщение отмечено как доставленное", context);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            centralLogger.logError("СООБЩЕНИЕ_ОШИБКА_ДОСТАВКИ",
+                    "Ошибка при отметке сообщения как доставленного", context, e);
+            throw e;
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -188,12 +348,29 @@ public class MessageController {
     @PatchMapping("/{messageId}/read")
     public ResponseEntity<MessageResponse> readMessage(@PathVariable Long messageId,
                                                        @RequestParam(value = "cacheMode", defaultValue = "CACHE") CacheMode cacheMode) {
-        User user = userService.getCurrentUser();
-        log.info("Пользователь {} отмечает сообщение {} как прочитанное", user.getId(), messageId);
-        MessageService messageService = messageServiceFactory.getService(cacheMode);
-        MessageResponse response = messageService.markAsRead(messageId, user);
-        log.info("Сообщение {} отмечено как прочитанное пользователем {}", messageId, user.getId());
-        return ResponseEntity.ok(response);
+        Map<String, Object> context = new HashMap<>();
+        context.put("messageId", messageId);
+        context.put("cacheMode", cacheMode);
+
+        centralLogger.logInfo("СООБЩЕНИЕ_ПРОЧТЕНИЕ_ЗАПРОС",
+                "Запрос на отметку сообщения как прочитанного", context);
+
+        try {
+            User user = userService.getCurrentUser();
+            context.put("userId", user.getId());
+
+            MessageService messageService = messageServiceFactory.getService(cacheMode);
+            MessageResponse response = messageService.markAsRead(messageId, user);
+
+            centralLogger.logInfo("СООБЩЕНИЕ_ПРОЧИТАНО",
+                    "Сообщение отмечено как прочитанное", context);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            centralLogger.logError("СООБЩЕНИЕ_ОШИБКА_ПРОЧТЕНИЯ",
+                    "Ошибка при отметке сообщения как прочитанного", context, e);
+            throw e;
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -201,11 +378,28 @@ public class MessageController {
     @DeleteMapping("/{messageId}")
     public ResponseEntity<Void> deleteMessage(@PathVariable Long messageId,
                                               @RequestParam(value = "cacheMode", defaultValue = "CACHE") CacheMode cacheMode) {
-        User user = userService.getCurrentUser();
-        log.info("Пользователь {} удаляет сообщение {}", user.getId(), messageId);
-        MessageService messageService = messageServiceFactory.getService(cacheMode);
-        messageService.deleteMessage(messageId, user);
-        log.info("Сообщение {} успешно удалено пользователем {}", messageId, user.getId());
-        return ResponseEntity.noContent().build();
+        Map<String, Object> context = new HashMap<>();
+        context.put("messageId", messageId);
+        context.put("cacheMode", cacheMode);
+
+        centralLogger.logInfo("СООБЩЕНИЕ_УДАЛЕНИЕ_ЗАПРОС",
+                "Запрос на удаление сообщения", context);
+
+        try {
+            User user = userService.getCurrentUser();
+            context.put("userId", user.getId());
+
+            MessageService messageService = messageServiceFactory.getService(cacheMode);
+            messageService.deleteMessage(messageId, user);
+
+            centralLogger.logInfo("СООБЩЕНИЕ_УДАЛЕНО",
+                    "Сообщение успешно удалено", context);
+
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            centralLogger.logError("СООБЩЕНИЕ_ОШИБКА_УДАЛЕНИЯ",
+                    "Ошибка при удалении сообщения", context, e);
+            throw e;
+        }
     }
 }
