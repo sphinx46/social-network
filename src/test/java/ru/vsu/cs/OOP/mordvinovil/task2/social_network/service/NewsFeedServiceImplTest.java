@@ -13,6 +13,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.feed.NewsFeed
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.common.PageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.NewsFeedRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.feed.NewsFeedServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
@@ -29,6 +30,9 @@ import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFacto
 
 @ExtendWith(MockitoExtension.class)
 public class NewsFeedServiceImplTest {
+    @Mock
+    private CentralLogger centralLogger;
+
     @Mock
     private NewsFeedRepository newsFeedRepository;
 
