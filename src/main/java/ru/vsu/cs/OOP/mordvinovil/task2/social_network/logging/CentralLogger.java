@@ -11,11 +11,11 @@ import java.util.Map;
 
 @Component
 @Slf4j
-public class Logger {
+public class CentralLogger {
 
     private final ObjectMapper objectMapper;
 
-    public Logger(ObjectMapper objectMapper) {
+    public CentralLogger(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 

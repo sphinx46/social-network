@@ -18,6 +18,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.cache.CacheEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.NotificationEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.like.LikeNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.LikeRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.content.LikeService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
@@ -25,6 +26,9 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMe
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.entity.EntityUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.LikeFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.LikeValidator;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @Slf4j
@@ -37,6 +41,7 @@ public class LikeServiceImpl implements LikeService {
     private final LikeValidator likeValidator;
     private final NotificationEventPublisherService notificationEventPublisherService;
     private final CacheEventPublisherService cacheEventPublisherService;
+    private final CentralLogger centralLogger;
 
     /**
      * Ставит лайк комментарию
@@ -45,23 +50,41 @@ public class LikeServiceImpl implements LikeService {
      * @param request запрос на лайк комментария
      * @return ответ с информацией о лайке
      */
-
     @Transactional
     @Override
     public LikeCommentResponse likeComment(User currentUser, LikeCommentRequest request) {
-        likeValidator.validate(request, currentUser);
+        Map<String, Object> context = new HashMap<>();
+        context.put("userId", currentUser.getId());
+        context.put("commentId", request.getCommentId());
 
-        Comment comment = entityUtils.getComment(request.getCommentId());
-        Long commentOwnerId = comment.getCreator().getId();
+        centralLogger.logInfo("ЛАЙК_КОММЕНТАРИЙ_СОЗДАНИЕ",
+                "Создание лайка для комментария", context);
 
-        Like like = likeFactory.createCommentLike(currentUser, request.getCommentId());
-        Like savedLike = likeRepository.save(like);
+        try {
+            likeValidator.validate(request, currentUser);
 
-        notificationEventPublisherService.publishCommentLiked(this, commentOwnerId, like.getComment().getId(), currentUser.getId());
-        cacheEventPublisherService.publishLikedComment(this, savedLike, comment.getId(), currentUser.getId(), savedLike.getId());
-        return entityMapper.map(savedLike, LikeCommentResponse.class);
+            Comment comment = entityUtils.getComment(request.getCommentId());
+            Long commentOwnerId = comment.getCreator().getId();
+
+            Like like = likeFactory.createCommentLike(currentUser, request.getCommentId());
+            Like savedLike = likeRepository.save(like);
+
+            Map<String, Object> successContext = new HashMap<>(context);
+            successContext.put("likeId", savedLike.getId());
+            successContext.put("commentOwnerId", commentOwnerId);
+
+            centralLogger.logInfo("ЛАЙК_КОММЕНТАРИЙ_СОЗДАН",
+                    "Лайк для комментария успешно создан", successContext);
+
+            notificationEventPublisherService.publishCommentLiked(this, commentOwnerId, like.getComment().getId(), currentUser.getId());
+            cacheEventPublisherService.publishLikedComment(this, savedLike, comment.getId(), currentUser.getId(), savedLike.getId());
+            return entityMapper.map(savedLike, LikeCommentResponse.class);
+        } catch (Exception e) {
+            centralLogger.logError("ЛАЙК_КОММЕНТАРИЙ_ОШИБКА_СОЗДАНИЯ",
+                    "Ошибка при создании лайка для комментария", context, e);
+            throw e;
+        }
     }
-
 
     /**
      * Ставит лайк посту
@@ -73,17 +96,37 @@ public class LikeServiceImpl implements LikeService {
     @Transactional
     @Override
     public LikePostResponse likePost(User currentUser, LikePostRequest request) {
-        likeValidator.validate(request, currentUser);
+        Map<String, Object> context = new HashMap<>();
+        context.put("userId", currentUser.getId());
+        context.put("postId", request.getPostId());
 
-        Post post = entityUtils.getPost(request.getPostId());
-        Long postOwnerId = post.getUser().getId();
+        centralLogger.logInfo("ЛАЙК_ПОСТ_СОЗДАНИЕ",
+                "Создание лайка для поста", context);
 
-        Like like = likeFactory.createPostLike(currentUser, request.getPostId());
-        Like savedLike = likeRepository.save(like);
+        try {
+            likeValidator.validate(request, currentUser);
 
-        notificationEventPublisherService.publishPostLiked(this, postOwnerId, like.getPost().getId(), currentUser.getId());
-        cacheEventPublisherService.publishLikedPost(this, like, post.getId(), currentUser.getId(), savedLike.getId());
-        return entityMapper.map(savedLike, LikePostResponse.class);
+            Post post = entityUtils.getPost(request.getPostId());
+            Long postOwnerId = post.getUser().getId();
+
+            Like like = likeFactory.createPostLike(currentUser, request.getPostId());
+            Like savedLike = likeRepository.save(like);
+
+            Map<String, Object> successContext = new HashMap<>(context);
+            successContext.put("likeId", savedLike.getId());
+            successContext.put("postOwnerId", postOwnerId);
+
+            centralLogger.logInfo("ЛАЙК_ПОСТ_СОЗДАН",
+                    "Лайк для поста успешно создан", successContext);
+
+            notificationEventPublisherService.publishPostLiked(this, postOwnerId, like.getPost().getId(), currentUser.getId());
+            cacheEventPublisherService.publishLikedPost(this, like, post.getId(), currentUser.getId(), savedLike.getId());
+            return entityMapper.map(savedLike, LikePostResponse.class);
+        } catch (Exception e) {
+            centralLogger.logError("ЛАЙК_ПОСТ_ОШИБКА_СОЗДАНИЯ",
+                    "Ошибка при создании лайка для поста", context, e);
+            throw e;
+        }
     }
 
     /**
@@ -95,10 +138,31 @@ public class LikeServiceImpl implements LikeService {
      */
     @Override
     public PageResponse<LikePostResponse> getLikesByPost(Long postId, PageRequest pageRequest) {
-        Page<Like> likes = likeRepository.findByPostId(postId, pageRequest.toPageable());
-        return PageResponse.of(likes.map(
-                like -> entityMapper.map(like, LikePostResponse.class)
-        ));
+        Map<String, Object> context = new HashMap<>();
+        context.put("postId", postId);
+        context.put("page", pageRequest.getPageNumber());
+        context.put("size", pageRequest.getSize());
+
+        centralLogger.logInfo("ЛАЙКИ_ПОСТ_ПОЛУЧЕНИЕ",
+                "Получение лайков поста", context);
+
+        try {
+            Page<Like> likes = likeRepository.findByPostId(postId, pageRequest.toPageable());
+
+            Map<String, Object> resultContext = new HashMap<>(context);
+            resultContext.put("totalLikes", likes.getTotalElements());
+
+            centralLogger.logInfo("ЛАЙКИ_ПОСТ_ПОЛУЧЕНЫ",
+                    "Лайки поста успешно получены", resultContext);
+
+            return PageResponse.of(likes.map(
+                    like -> entityMapper.map(like, LikePostResponse.class)
+            ));
+        } catch (Exception e) {
+            centralLogger.logError("ЛАЙКИ_ПОСТ_ОШИБКА_ПОЛУЧЕНИЯ",
+                    "Ошибка при получении лайков поста", context, e);
+            throw e;
+        }
     }
 
     /**
@@ -110,10 +174,31 @@ public class LikeServiceImpl implements LikeService {
      */
     @Override
     public PageResponse<LikeCommentResponse> getLikesByComment(Long commentId, PageRequest pageRequest) {
-        Page<Like> likes = likeRepository.findByCommentId(commentId, pageRequest.toPageable());
-        return PageResponse.of(likes.map(
-                like -> entityMapper.map(like, LikeCommentResponse.class)
-        ));
+        Map<String, Object> context = new HashMap<>();
+        context.put("commentId", commentId);
+        context.put("page", pageRequest.getPageNumber());
+        context.put("size", pageRequest.getSize());
+
+        centralLogger.logInfo("ЛАЙКИ_КОММЕНТАРИЙ_ПОЛУЧЕНИЕ",
+                "Получение лайков комментария", context);
+
+        try {
+            Page<Like> likes = likeRepository.findByCommentId(commentId, pageRequest.toPageable());
+
+            Map<String, Object> resultContext = new HashMap<>(context);
+            resultContext.put("totalLikes", likes.getTotalElements());
+
+            centralLogger.logInfo("ЛАЙКИ_КОММЕНТАРИЙ_ПОЛУЧЕНЫ",
+                    "Лайки комментария успешно получены", resultContext);
+
+            return PageResponse.of(likes.map(
+                    like -> entityMapper.map(like, LikeCommentResponse.class)
+            ));
+        } catch (Exception e) {
+            centralLogger.logError("ЛАЙКИ_КОММЕНТАРИЙ_ОШИБКА_ПОЛУЧЕНИЯ",
+                    "Ошибка при получении лайков комментария", context, e);
+            throw e;
+        }
     }
 
     /**
@@ -126,14 +211,31 @@ public class LikeServiceImpl implements LikeService {
     @Transactional
     @Override
     public LikeCommentResponse deleteLikeByComment(User currentUser, Long commentId) {
-        likeValidator.validateLikeDeletion(commentId, "comment", currentUser);
+        Map<String, Object> context = new HashMap<>();
+        context.put("userId", currentUser.getId());
+        context.put("commentId", commentId);
 
-        Like like = likeRepository.findByUserIdAndCommentId(currentUser.getId(), commentId)
-                .orElseThrow(() -> new LikeNotFoundException(ResponseMessageConstants.FAILURE_LIKE_NOT_FOUND));
+        centralLogger.logInfo("ЛАЙК_КОММЕНТАРИЙ_УДАЛЕНИЕ",
+                "Удаление лайка с комментария", context);
 
-        LikeCommentResponse response = entityMapper.map(like, LikeCommentResponse.class);
-        likeRepository.delete(like);
-        return response;
+        try {
+            likeValidator.validateLikeDeletion(commentId, "comment", currentUser);
+
+            Like like = likeRepository.findByUserIdAndCommentId(currentUser.getId(), commentId)
+                    .orElseThrow(() -> new LikeNotFoundException(ResponseMessageConstants.FAILURE_LIKE_NOT_FOUND));
+
+            LikeCommentResponse response = entityMapper.map(like, LikeCommentResponse.class);
+            likeRepository.delete(like);
+
+            centralLogger.logInfo("ЛАЙК_КОММЕНТАРИЙ_УДАЛЕН",
+                    "Лайк с комментария успешно удален", context);
+
+            return response;
+        } catch (Exception e) {
+            centralLogger.logError("ЛАЙК_КОММЕНТАРИЙ_ОШИБКА_УДАЛЕНИЯ",
+                    "Ошибка при удалении лайка с комментария", context, e);
+            throw e;
+        }
     }
 
     /**
@@ -146,14 +248,31 @@ public class LikeServiceImpl implements LikeService {
     @Transactional
     @Override
     public LikePostResponse deleteLikeByPost(User currentUser, Long postId) {
-        likeValidator.validateLikeDeletion(postId, "post", currentUser);
+        Map<String, Object> context = new HashMap<>();
+        context.put("userId", currentUser.getId());
+        context.put("postId", postId);
 
-        Like like = likeRepository.findByUserIdAndPostId(currentUser.getId(), postId)
-                .orElseThrow(() -> new LikeNotFoundException(ResponseMessageConstants.FAILURE_LIKE_NOT_FOUND));
+        centralLogger.logInfo("ЛАЙК_ПОСТ_УДАЛЕНИЕ",
+                "Удаление лайка с поста", context);
 
-        LikePostResponse response = entityMapper.map(like, LikePostResponse.class);
-        likeRepository.delete(like);
-        cacheEventPublisherService.publishLikeDeleted(this, like, postId, like.getId());
-        return response;
+        try {
+            likeValidator.validateLikeDeletion(postId, "post", currentUser);
+
+            Like like = likeRepository.findByUserIdAndPostId(currentUser.getId(), postId)
+                    .orElseThrow(() -> new LikeNotFoundException(ResponseMessageConstants.FAILURE_LIKE_NOT_FOUND));
+
+            LikePostResponse response = entityMapper.map(like, LikePostResponse.class);
+            likeRepository.delete(like);
+
+            centralLogger.logInfo("ЛАЙК_ПОСТ_УДАЛЕН",
+                    "Лайк с поста успешно удален", context);
+
+            cacheEventPublisherService.publishLikeDeleted(this, like, postId, like.getId());
+            return response;
+        } catch (Exception e) {
+            centralLogger.logError("ЛАЙК_ПОСТ_ОШИБКА_УДАЛЕНИЯ",
+                    "Ошибка при удалении лайка с поста", context, e);
+            throw e;
+        }
     }
 }

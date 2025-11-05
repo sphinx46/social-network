@@ -10,8 +10,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.post.CommentRequest;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.post.CommentResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.common.PageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.post.CommentResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Comment;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Post;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
@@ -19,6 +19,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.cache.CacheEventPub
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.NotificationEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.comment.CommentNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.post.PostNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.CommentRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.content.CommentServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
@@ -38,6 +39,8 @@ import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFacto
 
 @ExtendWith(MockitoExtension.class)
 public class CommentServiceImplTest {
+   @Mock
+   private CentralLogger centralLogger;
 
     @Mock
     private CommentRepository commentRepository;
