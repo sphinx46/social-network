@@ -21,6 +21,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relation
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.RelationshipNotFoundException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.RelationshipToSelfException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.user.UserNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.RelationshipRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.relationship.RelationshipServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
@@ -39,6 +40,8 @@ import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFacto
 
 @ExtendWith(MockitoExtension.class)
 public class RelationshipServiceImplTest {
+    @Mock
+    private CentralLogger centralLogger;
 
     @Mock
     private RelationshipRepository relationshipRepository;

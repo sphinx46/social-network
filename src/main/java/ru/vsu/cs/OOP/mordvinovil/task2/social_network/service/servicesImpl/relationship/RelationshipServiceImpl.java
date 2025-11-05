@@ -6,14 +6,13 @@ import org.springframework.stereotype.Service;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.common.PageRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.relationship.RelationshipRequest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.common.PageResponse;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.profile.ProfileResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.relationship.RelationshipResponse;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Profile;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Relationship;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.FriendshipStatus;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.events.notification.NotificationEventPublisherService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.relationship.RelationshipNotFoundException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.RelationshipRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.relationship.RelationshipService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.EntityMapper;
@@ -23,6 +22,8 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.factory.Relationship
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.validations.services.RelationshipValidator;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +34,7 @@ public class RelationshipServiceImpl  implements RelationshipService {
     private final RelationshipFactory relationshipFactory;
     private final RelationshipValidator relationshipValidator;
     private final NotificationEventPublisherService notificationEventPublisherService;
+    private final CentralLogger centralLogger;
 
     /**
      * Отправляет запрос на дружбу другому пользователю
@@ -43,16 +45,36 @@ public class RelationshipServiceImpl  implements RelationshipService {
      */
     @Override
     public RelationshipResponse sendFriendRequest(RelationshipRequest request, User currentUser) {
-        relationshipValidator.validate(request, currentUser);
+        Map<String, Object> context = new HashMap<>();
+        context.put("senderId", currentUser.getId());
+        context.put("targetUserId", request.getTargetUserId());
 
-        User receiver = entityUtils.getUser(request.getTargetUserId());
+        centralLogger.logInfo("ЗАПРОС_ДРУЖБЫ_ОТПРАВКА",
+                "Отправка запроса на дружбу", context);
 
-        Relationship relationship = relationshipFactory.createPendingRelationship(currentUser, receiver);
-        Relationship savedRelationship = relationshipRepository.save(relationship);
+        try {
+            relationshipValidator.validate(request, currentUser);
 
-        notificationEventPublisherService.publishFriendRequest(this, request.getTargetUserId(), currentUser.getId());
+            User receiver = entityUtils.getUser(request.getTargetUserId());
 
-        return entityMapper.map(savedRelationship, RelationshipResponse.class);
+            Relationship relationship = relationshipFactory.createPendingRelationship(currentUser, receiver);
+            Relationship savedRelationship = relationshipRepository.save(relationship);
+
+            Map<String, Object> successContext = new HashMap<>(context);
+            successContext.put("relationshipId", savedRelationship.getId());
+            successContext.put("status", savedRelationship.getStatus());
+
+            centralLogger.logInfo("ЗАПРОС_ДРУЖБЫ_ОТПРАВЛЕН",
+                    "Запрос на дружбу успешно отправлен", successContext);
+
+            notificationEventPublisherService.publishFriendRequest(this, request.getTargetUserId(), currentUser.getId());
+
+            return entityMapper.map(savedRelationship, RelationshipResponse.class);
+        } catch (Exception e) {
+            centralLogger.logError("ЗАПРОС_ДРУЖБЫ_ОШИБКА_ОТПРАВКИ",
+                    "Ошибка при отправке запроса на дружбу", context, e);
+            throw e;
+        }
     }
 
     /**
@@ -64,7 +86,27 @@ public class RelationshipServiceImpl  implements RelationshipService {
      */
     @Override
     public PageResponse<RelationshipResponse> getFriendList(User currentUser, PageRequest pageRequest) {
-        return getRelationshipsByStatus(currentUser, FriendshipStatus.ACCEPTED, pageRequest);
+        Map<String, Object> context = new HashMap<>();
+        context.put("userId", currentUser.getId());
+        context.put("page", pageRequest.getPageNumber());
+        context.put("size", pageRequest.getSize());
+        context.put("status", FriendshipStatus.ACCEPTED);
+
+        centralLogger.logInfo("СПИСОК_ДРУЗЕЙ_ПОЛУЧЕНИЕ",
+                "Получение списка друзей", context);
+
+        try {
+            PageResponse<RelationshipResponse> response = getRelationshipsByStatus(currentUser, FriendshipStatus.ACCEPTED, pageRequest);
+
+            centralLogger.logInfo("СПИСОК_ДРУЗЕЙ_ПОЛУЧЕН",
+                    "Список друзей успешно получен", context);
+
+            return response;
+        } catch (Exception e) {
+            centralLogger.logError("СПИСОК_ДРУЗЕЙ_ОШИБКА_ПОЛУЧЕНИЯ",
+                    "Ошибка при получении списка друзей", context, e);
+            throw e;
+        }
     }
 
     /**
@@ -76,7 +118,27 @@ public class RelationshipServiceImpl  implements RelationshipService {
      */
     @Override
     public PageResponse<RelationshipResponse> getBlackList(User currentUser, PageRequest pageRequest) {
-        return getRelationshipsByStatus(currentUser, FriendshipStatus.BLOCKED, pageRequest);
+        Map<String, Object> context = new HashMap<>();
+        context.put("userId", currentUser.getId());
+        context.put("page", pageRequest.getPageNumber());
+        context.put("size", pageRequest.getSize());
+        context.put("status", FriendshipStatus.BLOCKED);
+
+        centralLogger.logInfo("ЧЕРНЫЙ_СПИСОК_ПОЛУЧЕНИЕ",
+                "Получение черного списка", context);
+
+        try {
+            PageResponse<RelationshipResponse> response = getRelationshipsByStatus(currentUser, FriendshipStatus.BLOCKED, pageRequest);
+
+            centralLogger.logInfo("ЧЕРНЫЙ_СПИСОК_ПОЛУЧЕН",
+                    "Черный список успешно получен", context);
+
+            return response;
+        } catch (Exception e) {
+            centralLogger.logError("ЧЕРНЫЙ_СПИСОК_ОШИБКА_ПОЛУЧЕНИЯ",
+                    "Ошибка при получении черного списка", context, e);
+            throw e;
+        }
     }
 
     /**
@@ -88,7 +150,27 @@ public class RelationshipServiceImpl  implements RelationshipService {
      */
     @Override
     public PageResponse<RelationshipResponse> getDeclinedList(User currentUser, PageRequest pageRequest) {
-        return getRelationshipsByStatus(currentUser, FriendshipStatus.DECLINED, pageRequest);
+        Map<String, Object> context = new HashMap<>();
+        context.put("userId", currentUser.getId());
+        context.put("page", pageRequest.getPageNumber());
+        context.put("size", pageRequest.getSize());
+        context.put("status", FriendshipStatus.DECLINED);
+
+        centralLogger.logInfo("ОТКЛОНЕННЫЕ_ЗАПРОСЫ_ПОЛУЧЕНИЕ",
+                "Получение списка отклоненных запросов", context);
+
+        try {
+            PageResponse<RelationshipResponse> response = getRelationshipsByStatus(currentUser, FriendshipStatus.DECLINED, pageRequest);
+
+            centralLogger.logInfo("ОТКЛОНЕННЫЕ_ЗАПРОСЫ_ПОЛУЧЕНЫ",
+                    "Список отклоненных запросов успешно получен", context);
+
+            return response;
+        } catch (Exception e) {
+            centralLogger.logError("ОТКЛОНЕННЫЕ_ЗАПРОСЫ_ОШИБКА_ПОЛУЧЕНИЯ",
+                    "Ошибка при получении списка отклоненных запросов", context, e);
+            throw e;
+        }
     }
 
     /**
@@ -100,17 +182,37 @@ public class RelationshipServiceImpl  implements RelationshipService {
      */
     @Override
     public RelationshipResponse blockUser(RelationshipRequest request, User currentUser) {
-        relationshipValidator.validateBlockUser(request, currentUser);
+        Map<String, Object> context = new HashMap<>();
+        context.put("userId", currentUser.getId());
+        context.put("targetUserId", request.getTargetUserId());
 
-        User targetUser = entityUtils.getUser(request.getTargetUserId());
+        centralLogger.logInfo("ПОЛЬЗОВАТЕЛЬ_БЛОКИРОВКА",
+                "Блокировка пользователя", context);
 
-        Relationship relationship = relationshipRepository
-                .findRelationshipBetweenUsers(currentUser.getId(), targetUser.getId())
-                .map(existing -> updateRelationshipStatus(existing, FriendshipStatus.BLOCKED))
-                .orElseGet(() -> relationshipFactory.createBlockedRelationship(currentUser, targetUser));
+        try {
+            relationshipValidator.validateBlockUser(request, currentUser);
 
-        Relationship savedRelationship = relationshipRepository.save(relationship);
-        return entityMapper.map(savedRelationship, RelationshipResponse.class);
+            User targetUser = entityUtils.getUser(request.getTargetUserId());
+
+            Relationship relationship = relationshipRepository
+                    .findRelationshipBetweenUsers(currentUser.getId(), targetUser.getId())
+                    .map(existing -> updateRelationshipStatus(existing, FriendshipStatus.BLOCKED))
+                    .orElseGet(() -> relationshipFactory.createBlockedRelationship(currentUser, targetUser));
+
+            Relationship savedRelationship = relationshipRepository.save(relationship);
+
+            Map<String, Object> successContext = new HashMap<>(context);
+            successContext.put("relationshipId", savedRelationship.getId());
+
+            centralLogger.logInfo("ПОЛЬЗОВАТЕЛЬ_ЗАБЛОКИРОВАН",
+                    "Пользователь успешно заблокирован", successContext);
+
+            return entityMapper.map(savedRelationship, RelationshipResponse.class);
+        } catch (Exception e) {
+            centralLogger.logError("ПОЛЬЗОВАТЕЛЬ_ОШИБКА_БЛОКИРОВКИ",
+                    "Ошибка при блокировке пользователя", context, e);
+            throw e;
+        }
     }
 
     /**
@@ -122,11 +224,29 @@ public class RelationshipServiceImpl  implements RelationshipService {
      */
     @Override
     public RelationshipResponse acceptFriendRequest(RelationshipRequest request, User currentUser) {
-        relationshipValidator.validateStatusChange(request, currentUser);
+        Map<String, Object> context = new HashMap<>();
+        context.put("userId", currentUser.getId());
+        context.put("targetUserId", request.getTargetUserId());
 
-        notificationEventPublisherService.publishFriendRequestAccepted(this, request.getTargetUserId(), currentUser.getId());
+        centralLogger.logInfo("ЗАПРОС_ДРУЖБЫ_ПРИНЯТИЕ",
+                "Принятие запроса на дружбу", context);
 
-        return changeRelationshipStatus(request, FriendshipStatus.ACCEPTED, currentUser);
+        try {
+            relationshipValidator.validateStatusChange(request, currentUser);
+
+            notificationEventPublisherService.publishFriendRequestAccepted(this, request.getTargetUserId(), currentUser.getId());
+
+            RelationshipResponse response = changeRelationshipStatus(request, FriendshipStatus.ACCEPTED, currentUser);
+
+            centralLogger.logInfo("ЗАПРОС_ДРУЖБЫ_ПРИНЯТ",
+                    "Запрос на дружбу успешно принят", context);
+
+            return response;
+        } catch (Exception e) {
+            centralLogger.logError("ЗАПРОС_ДРУЖБЫ_ОШИБКА_ПРИНЯТИЯ",
+                    "Ошибка при принятии запроса на дружбу", context, e);
+            throw e;
+        }
     }
 
     /**
@@ -138,21 +258,29 @@ public class RelationshipServiceImpl  implements RelationshipService {
      */
     @Override
     public RelationshipResponse declineFriendRequest(RelationshipRequest request, User currentUser) {
-        relationshipValidator.validateStatusChange(request, currentUser);
+        Map<String, Object> context = new HashMap<>();
+        context.put("userId", currentUser.getId());
+        context.put("targetUserId", request.getTargetUserId());
 
-        return changeRelationshipStatus(request, FriendshipStatus.DECLINED, currentUser);
+        centralLogger.logInfo("ЗАПРОС_ДРУЖБЫ_ОТКЛОНЕНИЕ",
+                "Отклонение запроса на дружбу", context);
+
+        try {
+            relationshipValidator.validateStatusChange(request, currentUser);
+
+            RelationshipResponse response = changeRelationshipStatus(request, FriendshipStatus.DECLINED, currentUser);
+
+            centralLogger.logInfo("ЗАПРОС_ДРУЖБЫ_ОТКЛОНЕН",
+                    "Запрос на дружбу успешно отклонен", context);
+
+            return response;
+        } catch (Exception e) {
+            centralLogger.logError("ЗАПРОС_ДРУЖБЫ_ОШИБКА_ОТКЛОНЕНИЯ",
+                    "Ошибка при отклонении запроса на дружбу", context, e);
+            throw e;
+        }
     }
 
-
-    @Override
-    public PageResponse<ProfileResponse> findFriendsCandidates(User currentUser, PageRequest pageRequest) {
-        Page<Profile> friendsCandidates = relationshipRepository.findFriendsCandidates(currentUser.getId(),
-                currentUser.getCity(), pageRequest.toPageable());
-        return PageResponse.of(friendsCandidates.map(
-                friendsCandidate -> entityMapper.map(friendsCandidate, ProfileResponse.class)
-        ));
-
-    }
 
     /**
      * Получает отношения по статусу для пользователя
