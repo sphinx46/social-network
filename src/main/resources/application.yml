@@ -1,10 +1,19 @@
+token:
+  signing:
+    key: 53A73E5F1C4E0A2D3B5F2D784E6A1B423D6F247D1F6E5C3A596D635A75327855
+
+rate-limit:
+  enabled: ${RATE_LIMIT_ENABLED:true}
+  limit: ${RATE_LIMIT_LIMIT:100000}
+  window-size: ${RATE_LIMIT_WINDOW_SIZE:60s}
+
 spring:
   application:
     name: social-network
   datasource:
-    url: jdbc:postgresql://localhost:5432/social-network
-    username: postgres
-    password: 8906ilyAa
+    url: jdbc:postgresql://${SPRING_DATASOURCE_HOST:localhost}:${SPRING_DATASOURCE_PORT:5433}/social-network
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:8906ilyAa}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
@@ -15,7 +24,7 @@ spring:
       platform: postgres
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     show-sql: true
     properties:
       hibernate:
@@ -71,15 +80,6 @@ springdoc:
     display-request-duration: true
     filter: true
 
-token:
-  signing:
-    key: 53A73E5F1C4E0A2D3B5F2D784E6A1B423D6F247D1F6E5C3A596D635A75327855
-
-rate-limit:
-  enabled: ${RATE_LIMIT_ENABLED:true}
-  limit: ${RATE_LIMIT_LIMIT:100000}
-  window-size: ${RATE_LIMIT_WINDOW_SIZE:60s}
-
 logging:
   level:
     ru.vsu.cs.OOP.mordvinovil.task2.social_network: DEBUG
@@ -97,3 +97,4 @@ logging:
     org.hibernate.stat: DEBUG
     io.lettuce.core: WARN
     redis.clients.jedis: WARN
+    com.github.loki4j: DEBUG

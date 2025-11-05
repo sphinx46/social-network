@@ -7,7 +7,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
-    show-sql: false  # Отключаем SQL в логах для чистоты
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.H2Dialect

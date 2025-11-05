@@ -1,12 +1,26 @@
 version: '3.8'
+
 services:
+  postgres:
+    image: postgres:14
+    container_name: postgres-social-network
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: social-network
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 8906ilyAa
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d social-network"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   redis:
     image: redis:7-alpine
     container_name: redis-social-network
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
     command: redis-server --appendonly yes
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -14,22 +28,39 @@ services:
       timeout: 3s
       retries: 3
 
-  postgres:
-    image: postgres:14
-    container_name: postgres-social-network
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki-social-network
     ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: social-network
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 8906ilyAa
+      - "3100:3100"
+    command: -config.file=/etc/loki/loki-config.yaml
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U root -d social-network"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - ./loki-config.yaml:/etc/loki/loki-config.yaml
+
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail-social-network
+    volumes:
+      - ./promtail-config.yaml:/etc/promtail/config.yml
+      - /var/log/social-network/:/var/log/social-network/
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: grafana-social-network
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      loki:
+        condition: service_started
 
   app:
     build: .
@@ -37,17 +68,22 @@ services:
     ports:
       - "8080:8080"
     environment:
+      - SPRING_DATASOURCE_HOST=postgres
+      - SPRING_DATASOURCE_PORT=5432
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=8906ilyAa
       - SPRING_REDIS_HOST=redis
       - SPRING_REDIS_PORT=6379
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/social-network
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=root
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - ENVIRONMENT=development
+    volumes:
+      - /var/log/social-network/:/var/log/social-network/
     depends_on:
-      redis:
-        condition: service_healthy
       postgres:
         condition: service_healthy
-
-volumes:
-  redis_data:
-  postgres_data:
+      redis:
+        condition: service_healthy
+      loki:
+        condition: service_started
+      promtail:
+        condition: service_started

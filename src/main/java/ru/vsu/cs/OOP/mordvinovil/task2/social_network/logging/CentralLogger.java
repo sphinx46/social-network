@@ -3,6 +3,7 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -20,41 +21,53 @@ public class CentralLogger {
     }
 
     public void logInfo(String event, String message, Map<String, Object> context) {
-        Map<String, Object> logEntry = new HashMap<>();
-        logEntry.put("event", event);
-        logEntry.put("message", message);
-        logEntry.put("context", context);
-        logEntry.put("timestamp", Instant.now().toString());
+        MDC.put("event", event);
+        MDC.put("logger_type", "central");
+        MDC.put("service", "social-network");
 
         try {
-            log.info(objectMapper.writeValueAsString(logEntry));
+            String jsonLog = createJsonLog(event, "INFO", message, context, null);
+            log.info(jsonLog);
         } catch (JsonProcessingException e) {
-            log.info("Event: {}, Message: {}, Context: {}", event, message, context);
+            log.info("EVENT={} | MESSAGE={} | CONTEXT={}", event, message, context);
+        } finally {
+            MDC.clear();
         }
     }
 
     public void logError(String event, String message, Map<String, Object> context, Throwable error) {
-        Map<String, Object> logEntry = new HashMap<>();
-        logEntry.put("event", event);
-        logEntry.put("message", message);
-        logEntry.put("context", context);
-        logEntry.put("error", error.getMessage());
-        logEntry.put("stackTrace", getStackTrace(error));
-        logEntry.put("timestamp", Instant.now().toString());
+        MDC.put("event", event);
+        MDC.put("logger_type", "central");
+        MDC.put("service", "social-network");
+        MDC.put("error_type", error.getClass().getSimpleName());
 
         try {
-            log.error(objectMapper.writeValueAsString(logEntry));
+            String jsonLog = createJsonLog(event, "ERROR", message, context, error);
+            log.error(jsonLog);
         } catch (JsonProcessingException e) {
-            log.error("Event: {}, Message: {}, Context: {}, Error: {}",
+            log.error("EVENT={} | MESSAGE={} | CONTEXT={} | ERROR={}",
                     event, message, context, error.getMessage());
+        } finally {
+            MDC.clear();
         }
     }
 
-    private String getStackTrace(Throwable error) {
-        StringBuilder sb = new StringBuilder();
-        for (StackTraceElement element : error.getStackTrace()) {
-            sb.append(element.toString()).append("\n");
+    private String createJsonLog(String event, String level, String message,
+                                 Map<String, Object> context, Throwable error) throws JsonProcessingException {
+        Map<String, Object> logEntry = new HashMap<>();
+        logEntry.put("event", event);
+        logEntry.put("message", message);
+        logEntry.put("context", context != null ? context : Map.of());
+        logEntry.put("timestamp", Instant.now().toString());
+        logEntry.put("logger", "CentralLogger");
+        logEntry.put("service", "social-network");
+        logEntry.put("level", level);
+
+        if (error != null) {
+            logEntry.put("error", error.getMessage());
+            logEntry.put("error_type", error.getClass().getSimpleName());
         }
-        return sb.toString();
+
+        return objectMapper.writeValueAsString(logEntry);
     }
 }
