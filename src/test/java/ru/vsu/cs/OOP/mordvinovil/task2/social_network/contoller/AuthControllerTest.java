@@ -4,22 +4,30 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.auth.AuthController;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.AuthenticationService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.BaseControllerTest;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.MockMvcUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestSecurityConfig;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-class AuthControllerTest {
+@WebMvcTest(AuthController.class)
+@ActiveProfiles("test")
+@Import(TestSecurityConfig.class)
+class AuthControllerTest extends BaseControllerTest  {
 
     @Autowired
     private MockMvc mockMvc;
@@ -45,7 +53,11 @@ class AuthControllerTest {
 
         when(authenticationService.signUp(any())).thenReturn(response);
 
-        mockMvcUtils.performPost("/auth/sign-up", request)
+        mockMvc.perform(post("/auth/sign-up")
+                        .with(csrf())
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").value("test-jwt-token"));
     }
@@ -59,7 +71,11 @@ class AuthControllerTest {
         request.setCity("");
         request.setPassword("short");
 
-        mockMvcUtils.performPost("/auth/sign-up", request)
+        mockMvc.perform(post("/auth/sign-up")
+                        .with(csrf())
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
                 .andExpect(status().isBadRequest());
     }
 
@@ -71,7 +87,11 @@ class AuthControllerTest {
 
         when(authenticationService.signIn(any())).thenReturn(response);
 
-        mockMvcUtils.performPost("/auth/sign-in", request)
+        mockMvc.perform(post("/auth/sign-in")
+                        .with(csrf())
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.token").value("test-jwt-token"));
     }
@@ -83,7 +103,11 @@ class AuthControllerTest {
         request.setUsername("test");
         request.setPassword("short");
 
-        mockMvcUtils.performPost("/auth/sign-in", request)
+        mockMvc.perform(post("/auth/sign-in")
+                        .with(csrf())
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
                 .andExpect(status().isBadRequest());
     }
 
@@ -96,7 +120,11 @@ class AuthControllerTest {
         request.setCity("");
         request.setPassword("");
 
-        mockMvcUtils.performPost("/auth/sign-up", request)
+        mockMvc.perform(post("/auth/sign-up")
+                        .with(csrf())
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
                 .andExpect(status().isBadRequest());
     }
 
@@ -107,7 +135,11 @@ class AuthControllerTest {
         request.setUsername("");
         request.setPassword("");
 
-        mockMvcUtils.performPost("/auth/sign-in", request)
+        mockMvc.perform(post("/auth/sign-in")
+                        .with(csrf())
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andDo(print())
                 .andExpect(status().isBadRequest());
     }
 }
