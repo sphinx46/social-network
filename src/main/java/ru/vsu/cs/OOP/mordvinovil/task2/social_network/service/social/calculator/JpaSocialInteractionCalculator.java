@@ -19,6 +19,13 @@ public final class JpaSocialInteractionCalculator implements SocialInteractionCa
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
 
+    /**
+     * Вычисляет количество общих друзей между двумя пользователями
+     *
+     * @param user1 идентификатор первого пользователя
+     * @param user2 идентификатор второго пользователя
+     * @return количество общих друзей
+     */
     @Override
     public int calculateMutualFriendsCount(Long user1, Long user2) {
         if (user1.equals(user2)) return 0;
@@ -31,12 +38,26 @@ public final class JpaSocialInteractionCalculator implements SocialInteractionCa
         return mutual.size();
     }
 
+    /**
+     * Вычисляет количество общих лайков на постах между двумя пользователями
+     *
+     * @param user1 идентификатор первого пользователя
+     * @param user2 идентификатор второго пользователя
+     * @return количество общих лайков на постах
+     */
     @Override
     public int calculateCommonLikesOnPostCount(Long user1, Long user2) {
         if (user1.equals(user2)) return 0;
         return likeRepository.countCommonLikes(user1, user2);
     }
 
+    /**
+     * Вычисляет количество общих лайков на комментариях между двумя пользователями
+     *
+     * @param user1 идентификатор первого пользователя
+     * @param user2 идентификатор второго пользователя
+     * @return количество общих лайков на комментариях
+     */
     @Override
     public int calculateCommonLikesOnCommentCount(Long user1, Long user2) {
         if (user1.equals(user2)) return 0;

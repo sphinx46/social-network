@@ -17,6 +17,13 @@ public final class DijkstraSocialGraphService implements SocialGraphService {
     private final RelationshipRepository relationshipRepository;
     private final ConnectionStrengthCalculator strengthCalculator;
 
+    /**
+     * Находит социальные расстояния от пользователя до других пользователей с использованием алгоритма Дейкстры
+     *
+     * @param startUserId идентификатор начального пользователя
+     * @param maxDepth максимальная глубина поиска
+     * @return карта социальных расстояний (идентификатор пользователя -> расстояние)
+     */
     @Override
     public Map<Long, Double> findSocialDistances(Long startUserId, int maxDepth) {
         Map<Long, Double> distances = new HashMap<>();

@@ -14,6 +14,13 @@ import java.util.stream.Collectors;
 public final class CompositeConnectionStrengthCalculator implements ConnectionStrengthCalculator {
     private final ConnectionStrengthFactorRegistry factorRegistry;
 
+    /**
+     * Вычисляет детализированную силу связи между пользователями по всем факторам
+     *
+     * @param userId идентификатор первого пользователя
+     * @param targetUserId идентификатор второго пользователя
+     * @return карта силы связи по факторам (имя фактора -> значение силы)
+     */
     @Override
     public Map<String, Double> calculateDetailedStrength(Long userId, Long targetUserId) {
         return factorRegistry.getAllFactors().stream()
@@ -23,6 +30,13 @@ public final class CompositeConnectionStrengthCalculator implements ConnectionSt
                 ));
     }
 
+    /**
+     * Вычисляет общую силу связи между пользователями
+     *
+     * @param userId идентификатор первого пользователя
+     * @param targetUserId идентификатор второго пользователя
+     * @return общая сила связи (не менее 0.1)
+     */
     @Override
     public double calculateOverallStrength(Long userId, Long targetUserId) {
         double strength = factorRegistry.getAllFactors().stream()
