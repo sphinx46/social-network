@@ -15,6 +15,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.auth.SignUpReq
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.auth.JwtAuthenticationResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Role;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.security.filters.UserDetailsImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.user.AuthenticationServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.user.JwtServiceImpl;
@@ -32,6 +33,8 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class AuthenticationServiceImplTest {
+    @Mock
+    private CentralLogger centralLogger;
 
     @Mock
     private UserServiceImpl userServiceImpl;

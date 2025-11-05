@@ -11,6 +11,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.profile.Profi
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.Profile;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.profile.ProfileAlreadyExistsException;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.repositories.ProfileRepository;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.storage.FileStorageServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.user.ProfileServiceImpl;
@@ -32,6 +33,8 @@ import static ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFacto
 
 @ExtendWith(MockitoExtension.class)
 public class ProfileServiceImplTest {
+    @Mock
+    private CentralLogger centralLogger;
 
     @Mock
     private FileStorageServiceImpl fileStorageServiceImpl;

@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.JwtService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
 
 import java.security.Key;
 import java.util.Date;
@@ -23,6 +24,12 @@ public class JwtServiceImpl implements JwtService {
     @Value("${token.signing.key}")
     private String jwtSigningKey;
 
+    private final CentralLogger centralLogger;
+
+    public JwtServiceImpl(CentralLogger centralLogger) {
+        this.centralLogger = centralLogger;
+    }
+
     /**
      * Извлечение имени пользователя из токена
      *
@@ -31,7 +38,27 @@ public class JwtServiceImpl implements JwtService {
      */
     @Override
     public String extractUserName(String token) {
-        return extractClaim(token, Claims::getSubject);
+        Map<String, Object> context = new HashMap<>();
+        context.put("tokenLength", token != null ? token.length() : 0);
+
+        centralLogger.logInfo("JWT_ИЗВЛЕЧЕНИЕ_ИМЕНИ",
+                "Извлечение имени пользователя из токена", context);
+
+        try {
+            String username = extractClaim(token, Claims::getSubject);
+
+            Map<String, Object> successContext = new HashMap<>(context);
+            successContext.put("username", username);
+
+            centralLogger.logInfo("JWT_ИМЯ_ИЗВЛЕЧЕНО",
+                    "Имя пользователя успешно извлечено из токена", successContext);
+
+            return username;
+        } catch (Exception e) {
+            centralLogger.logError("JWT_ОШИБКА_ИЗВЛЕЧЕНИЯ_ИМЕНИ",
+                    "Ошибка при извлечении имени пользователя из токена", context, e);
+            throw e;
+        }
     }
 
     /**
@@ -42,13 +69,33 @@ public class JwtServiceImpl implements JwtService {
      */
     @Override
     public String generateToken(UserDetails userDetails) {
-        Map<String, Object> claims = new HashMap<>();
-        if (userDetails instanceof User customUserDetails) {
-            claims.put("id", customUserDetails.getId());
-            claims.put("email", customUserDetails.getEmail());
-            claims.put("role", customUserDetails.getRole());
+        Map<String, Object> context = new HashMap<>();
+        context.put("username", userDetails.getUsername());
+
+        centralLogger.logInfo("JWT_ГЕНЕРАЦИЯ_ТОКЕНА",
+                "Генерация JWT токена", context);
+
+        try {
+            Map<String, Object> claims = new HashMap<>();
+            if (userDetails instanceof User customUserDetails) {
+                claims.put("id", customUserDetails.getId());
+                claims.put("email", customUserDetails.getEmail());
+                claims.put("role", customUserDetails.getRole());
+            }
+            String token = generateToken(claims, userDetails);
+
+            Map<String, Object> successContext = new HashMap<>(context);
+            successContext.put("tokenLength", token.length());
+
+            centralLogger.logInfo("JWT_ТОКЕН_СГЕНЕРИРОВАН",
+                    "JWT токен успешно сгенерирован", successContext);
+
+            return token;
+        } catch (Exception e) {
+            centralLogger.logError("JWT_ОШИБКА_ГЕНЕРАЦИИ_ТОКЕНА",
+                    "Ошибка при генерации JWT токена", context, e);
+            throw e;
         }
-        return generateToken(claims, userDetails);
     }
 
     /**
@@ -60,8 +107,30 @@ public class JwtServiceImpl implements JwtService {
      */
     @Override
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String userName = extractUserName(token);
-        return (userName.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        Map<String, Object> context = new HashMap<>();
+        context.put("username", userDetails.getUsername());
+        context.put("tokenLength", token != null ? token.length() : 0);
+
+        centralLogger.logInfo("JWT_ПРОВЕРКА_ВАЛИДНОСТИ",
+                "Проверка валидности JWT токена", context);
+
+        try {
+            final String userName = extractUserName(token);
+            boolean isValid = (userName.equals(userDetails.getUsername())) && !isTokenExpired(token);
+
+            Map<String, Object> resultContext = new HashMap<>(context);
+            resultContext.put("isValid", isValid);
+            resultContext.put("extractedUsername", userName);
+
+            centralLogger.logInfo("JWT_ПРОВЕРКА_ЗАВЕРШЕНА",
+                    "Проверка валидности JWT токена завершена", resultContext);
+
+            return isValid;
+        } catch (Exception e) {
+            centralLogger.logError("JWT_ОШИБКА_ПРОВЕРКИ_ВАЛИДНОСТИ",
+                    "Ошибка при проверке валидности JWT токена", context, e);
+            throw e;
+        }
     }
 
     /**
