@@ -1,119 +1,25 @@
-#spring:
-#  application:
-#    name: security-security
-#  datasource:
-#    url: jdbc:h2:mem:security-security
-#    driver-class-name: org.h2.Driver
-#    username: root
-#    password: root
-#    hikari:
-#      maximum-pool-size: 20
-#  jpa:
-#    hibernate:
-#      ddl-auto: create-drop
-#    show-sql: true
-#    properties:
-#      hibernate:
-#        dialect: org.hibernate.dialect.H2Dialect
-#        format_sql: true
-#        jdbc:
-#          batch_size: 100
-#    open-in-view: false
-#  h2:
-#    console:
-#      enabled: true
-#      path: /h2-console
-#  data:
-#    redis:
-#      host: ${SPRING_REDIS_HOST:localhost}
-#      port: ${SPRING_REDIS_PORT:6379}
-#      password: ${SPRING_REDIS_PASSWORD:}
-#      username: ${SPRING_REDIS_USERNAME:}
-#      ssl:
-#        enabled: ${SPRING_REDIS_SSL_ENABLED:false}
-#  cache:
-#    type: redis
-#  servlet:
-#    multipart:
-#      enabled: true
-#      max-file-size: 10MB
-#      max-request-size: 10MB
-#      file-size-threshold: 2KB
-#
-#server:
-#  error:
-#    include-stacktrace: never
-#    include-message: always
-#
-#management:
-#  endpoints:
-#    web:
-#      exposure:
-#        include: health,metrics,prometheus,caches
-#  metrics:
-#    tags:
-#      application: security-social-network
-#
-#springdoc:
-#  api-docs:
-#    path: /api-docs
-#    enabled: true
-#  swagger-ui:
-#    path: /swagger-ui.html
-#    enabled: true
-#    operations-sorter: method
-#    tags-sorter: alpha
-#    display-request-duration: true
-#    filter: true
-#
-#token:
-#  signing:
-#    key: 53A73E5F1C4E0A2D3B5F2D784E6A1B423D6F247D1F6E5C3A596D635A75327855
-#
-#rate-limit:
-#  enabled: ${RATE_LIMIT_ENABLED:true}
-#  limit: ${RATE_LIMIT_LIMIT:100000}
-#  window-size: ${RATE_LIMIT_WINDOW_SIZE:60s}
-#
-#logging:
-#  level:
-#    ru.vsu.cs.OOP.mordvinovil.task2.social_network: DEBUG
-#    org.springframework.security: DEBUG
-#    org.springframework.cache: TRACE
-#    org.springframework.cache.interceptor: TRACE
-#    org.springframework.data.redis: DEBUG
-#    org.springframework.data.redis.cache: TRACE
-#    org.springframework.transaction: DEBUG
-#    org.springframework.transaction.interceptor: TRACE
-#    org.springframework.orm.jpa: DEBUG
-#    org.springframework.aop: DEBUG
-#    org.hibernate.SQL: DEBUG
-#    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-#    org.hibernate.stat: DEBUG
-#    io.lettuce.core: WARN
-#    redis.clients.jedis: WARN
 spring:
   application:
     name: security-security
   datasource:
-    url: jdbc:h2:mem:security-security
-    driver-class-name: org.h2.Driver
+    url: jdbc:postgresql://localhost:5432/social-network
     username: root
     password: root
+    driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 20
   sql:
     init:
       mode: always
       data-locations: classpath:data-test-recommendations.sql
-      platform: h2
+      platform: postgres
   jpa:
     hibernate:
       ddl-auto: create
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         jdbc:
           batch_size: 100
