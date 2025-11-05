@@ -6,10 +6,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.feed.NewsFeedController;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.feed.NewsFeedResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.common.PageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.feed.NewsFeedResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.CacheMode;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.factory.NewsFeedServiceFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.feed.NewsFeedService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.BaseControllerTest;
@@ -28,8 +27,6 @@ public class NewsFeedControllerTest extends BaseControllerTest {
     @MockitoBean
     private NewsFeedServiceFactory newsFeedServiceFactory;
 
-    @MockitoBean
-    private CentralLogger centralLogger;
 
     @Test
     @WithMockUser(username = "testUser", authorities = "USER")

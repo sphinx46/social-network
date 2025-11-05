@@ -7,10 +7,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.messaging.MessageController;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.common.PageRequest;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.messaging.MessageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.common.PageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.messaging.MessageResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.CacheMode;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.factory.MessageServiceFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.messaging.MessageService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.BaseControllerTest;
@@ -30,8 +29,6 @@ class MessageControllerTest extends BaseControllerTest {
     @MockitoBean
     private MessageServiceFactory messageServiceFactory;
 
-    @MockitoBean
-    private CentralLogger centralLogger;
 
     private final MessageService mockMessageService = mock(MessageService.class);
 

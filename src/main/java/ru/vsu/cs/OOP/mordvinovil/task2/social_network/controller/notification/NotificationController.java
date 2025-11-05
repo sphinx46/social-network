@@ -3,8 +3,6 @@ package ru.vsu.cs.OOP.mordvinovil.task2.social_network.controller.notification;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +13,10 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.common.PageRe
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.notification.NotificationService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.UserService;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/notifications")
@@ -22,17 +24,33 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.UserService;
 public class NotificationController {
     private final NotificationService notificationService;
     private final UserService userService;
-    private static final Logger log = LoggerFactory.getLogger(NotificationController.class);
+    private final CentralLogger centralLogger;
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Получение уведомления по Id")
     @GetMapping("/{id}")
     public ResponseEntity<NotificationResponse> getNotificationById(@PathVariable Long id) {
-        User currentUser = userService.getCurrentUser();
-        log.info("Пользователь {} запрашивает уведомление {}", currentUser.getId(), id);
-        NotificationResponse response = notificationService.getUserNotificationById(id, currentUser);
-        log.info("Уведомление {} успешно получено пользователем {}", id, currentUser.getId());
-        return ResponseEntity.ok(response);
+        Map<String, Object> context = new HashMap<>();
+        context.put("notificationId", id);
+
+        centralLogger.logInfo("УВЕДОМЛЕНИЕ_ПОЛУЧЕНИЕ_ЗАПРОС",
+                "Запрос на получение уведомления по ID", context);
+
+        try {
+            User currentUser = userService.getCurrentUser();
+            context.put("userId", currentUser.getId());
+
+            NotificationResponse response = notificationService.getUserNotificationById(id, currentUser);
+
+            centralLogger.logInfo("УВЕДОМЛЕНИЕ_ПОЛУЧЕНО",
+                    "Уведомление успешно получено", context);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            centralLogger.logError("УВЕДОМЛЕНИЕ_ОШИБКА_ПОЛУЧЕНИЯ",
+                    "Ошибка при получении уведомления", context, e);
+            throw e;
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -44,20 +62,42 @@ public class NotificationController {
             @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
             @RequestParam(defaultValue = "DESC", required = false) String direction
     ) {
-        User currentUser = userService.getCurrentUser();
-        log.info("Пользователь {} запрашивает все уведомления, страница {}, размер {}", currentUser.getId(), pageNumber, size);
+        Map<String, Object> context = new HashMap<>();
+        context.put("size", size);
+        context.put("pageNumber", pageNumber);
+        context.put("sortedBy", sortedBy);
+        context.put("direction", direction);
 
-        var pageRequest = PageRequest.builder()
-                .pageNumber(pageNumber)
-                .size(size)
-                .sortBy(sortedBy)
-                .direction(Sort.Direction.fromString(direction))
-                .build();
+        centralLogger.logInfo("ВСЕ_УВЕДОМЛЕНИЯ_ЗАПРОС",
+                "Запрос всех уведомлений пользователя", context);
 
-        PageResponse<NotificationResponse> responsePage =
-                notificationService.getUserNotifications(currentUser, pageRequest);
-        log.info("Получено {} уведомлений для пользователя {}", responsePage.getContent().size(), currentUser.getId());
-        return ResponseEntity.ok(responsePage);
+        try {
+            User currentUser = userService.getCurrentUser();
+            context.put("userId", currentUser.getId());
+
+            var pageRequest = PageRequest.builder()
+                    .pageNumber(pageNumber)
+                    .size(size)
+                    .sortBy(sortedBy)
+                    .direction(Sort.Direction.fromString(direction))
+                    .build();
+
+            PageResponse<NotificationResponse> responsePage =
+                    notificationService.getUserNotifications(currentUser, pageRequest);
+
+            Map<String, Object> successContext = new HashMap<>(context);
+            successContext.put("contentSize", responsePage.getContent().size());
+            successContext.put("totalElements", responsePage.getTotalElements());
+
+            centralLogger.logInfo("ВСЕ_УВЕДОМЛЕНИЯ_ПОЛУЧЕНЫ",
+                    "Все уведомления успешно получены", successContext);
+
+            return ResponseEntity.ok(responsePage);
+        } catch (Exception e) {
+            centralLogger.logError("ВСЕ_УВЕДОМЛЕНИЯ_ОШИБКА",
+                    "Ошибка при получении всех уведомлений", context, e);
+            throw e;
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
@@ -69,74 +109,176 @@ public class NotificationController {
             @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
             @RequestParam(defaultValue = "DESC", required = false) String direction
     ) {
-        User currentUser = userService.getCurrentUser();
-        log.info("Пользователь {} запрашивает непрочитанные уведомления, страница {}, размер {}", currentUser.getId(), pageNumber, size);
+        Map<String, Object> context = new HashMap<>();
+        context.put("size", size);
+        context.put("pageNumber", pageNumber);
+        context.put("sortedBy", sortedBy);
+        context.put("direction", direction);
 
-        var pageRequest = PageRequest.builder()
-                .pageNumber(pageNumber)
-                .size(size)
-                .sortBy(sortedBy)
-                .direction(Sort.Direction.fromString(direction))
-                .build();
+        centralLogger.logInfo("НЕПРОЧИТАННЫЕ_УВЕДОМЛЕНИЯ_ЗАПРОС",
+                "Запрос непрочитанных уведомлений", context);
 
-        PageResponse<NotificationResponse> responsePage =
-                notificationService.getUnreadNotifications(currentUser, pageRequest);
-        log.info("Получено {} непрочитанных уведомлений для пользователя {}", responsePage.getContent().size(), currentUser.getId());
-        return ResponseEntity.ok(responsePage);
+        try {
+            User currentUser = userService.getCurrentUser();
+            context.put("userId", currentUser.getId());
+
+            var pageRequest = PageRequest.builder()
+                    .pageNumber(pageNumber)
+                    .size(size)
+                    .sortBy(sortedBy)
+                    .direction(Sort.Direction.fromString(direction))
+                    .build();
+
+            PageResponse<NotificationResponse> responsePage =
+                    notificationService.getUnreadNotifications(currentUser, pageRequest);
+
+            Map<String, Object> successContext = new HashMap<>(context);
+            successContext.put("contentSize", responsePage.getContent().size());
+            successContext.put("totalElements", responsePage.getTotalElements());
+
+            centralLogger.logInfo("НЕПРОЧИТАННЫЕ_УВЕДОМЛЕНИЯ_ПОЛУЧЕНЫ",
+                    "Непрочитанные уведомления успешно получены", successContext);
+
+            return ResponseEntity.ok(responsePage);
+        } catch (Exception e) {
+            centralLogger.logError("НЕПРОЧИТАННЫЕ_УВЕДОМЛЕНИЯ_ОШИБКА",
+                    "Ошибка при получении непрочитанных уведомлений", context, e);
+            throw e;
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Получение количества непрочитанных уведомлений текущего пользователя")
     @GetMapping("/countUnread")
     public ResponseEntity<Long> getCountUnreadNotifications() {
-        User currentUser = userService.getCurrentUser();
-        log.info("Пользователь {} запрашивает количество непрочитанных уведомлений", currentUser.getId());
-        Long count = notificationService.getUnreadNotificationsCount(currentUser);
-        log.info("Пользователь {} имеет {} непрочитанных уведомлений", currentUser.getId(), count);
-        return ResponseEntity.ok(count);
+        Map<String, Object> context = new HashMap<>();
+
+        centralLogger.logInfo("КОЛИЧЕСТВО_НЕПРОЧИТАННЫХ_УВЕДОМЛЕНИЙ_ЗАПРОС",
+                "Запрос количества непрочитанных уведомлений", context);
+
+        try {
+            User currentUser = userService.getCurrentUser();
+            context.put("userId", currentUser.getId());
+
+            Long count = notificationService.getUnreadNotificationsCount(currentUser);
+
+            Map<String, Object> successContext = new HashMap<>(context);
+            successContext.put("count", count);
+
+            centralLogger.logInfo("КОЛИЧЕСТВО_НЕПРОЧИТАННЫХ_УВЕДОМЛЕНИЙ_ПОЛУЧЕНО",
+                    "Количество непрочитанных уведомлений получено", successContext);
+
+            return ResponseEntity.ok(count);
+        } catch (Exception e) {
+            centralLogger.logError("КОЛИЧЕСТВО_НЕПРОЧИТАННЫХ_УВЕДОМЛЕНИЙ_ОШИБКА",
+                    "Ошибка при получении количества непрочитанных уведомлений", context, e);
+            throw e;
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Пометить как прочитанное")
     @PatchMapping("/markAsRead/{id}")
     public ResponseEntity<NotificationResponse> markNotificationAsReadById(@PathVariable Long id) {
-        User currentUser = userService.getCurrentUser();
-        log.info("Пользователь {} помечает уведомление {} как прочитанное", currentUser.getId(), id);
-        NotificationResponse response = notificationService.markAsRead(id, currentUser);
-        log.info("Уведомление {} помечено как прочитанное пользователем {}", id, currentUser.getId());
-        return ResponseEntity.ok(response);
+        Map<String, Object> context = new HashMap<>();
+        context.put("notificationId", id);
+
+        centralLogger.logInfo("УВЕДОМЛЕНИЕ_ПРОЧТЕНИЕ_ЗАПРОС",
+                "Запрос на пометку уведомления как прочитанного", context);
+
+        try {
+            User currentUser = userService.getCurrentUser();
+            context.put("userId", currentUser.getId());
+
+            NotificationResponse response = notificationService.markAsRead(id, currentUser);
+
+            centralLogger.logInfo("УВЕДОМЛЕНИЕ_ПРОЧИТАНО",
+                    "Уведомление помечено как прочитанное", context);
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            centralLogger.logError("УВЕДОМЛЕНИЕ_ОШИБКА_ПРОЧТЕНИЯ",
+                    "Ошибка при пометке уведомления как прочитанного", context, e);
+            throw e;
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Пометить все уведомления как прочитанные")
     @PatchMapping("/markAllAsRead")
     public ResponseEntity<Void> markNotificationsAllAsRead() {
-        User currentUser = userService.getCurrentUser();
-        log.info("Пользователь {} помечает все уведомления как прочитанные", currentUser.getId());
-        notificationService.markAllAsRead(currentUser);
-        log.info("Все уведомления пользователя {} помечены как прочитанные", currentUser.getId());
-        return ResponseEntity.ok().build();
+        Map<String, Object> context = new HashMap<>();
+
+        centralLogger.logInfo("ВСЕ_УВЕДОМЛЕНИЯ_ПРОЧТЕНИЕ_ЗАПРОС",
+                "Запрос на пометку всех уведомлений как прочитанных", context);
+
+        try {
+            User currentUser = userService.getCurrentUser();
+            context.put("userId", currentUser.getId());
+
+            notificationService.markAllAsRead(currentUser);
+
+            centralLogger.logInfo("ВСЕ_УВЕДОМЛЕНИЯ_ПРОЧИТАНЫ",
+                    "Все уведомления помечены как прочитанные", context);
+
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            centralLogger.logError("ВСЕ_УВЕДОМЛЕНИЯ_ОШИБКА_ПРОЧТЕНИЯ",
+                    "Ошибка при пометке всех уведомлений как прочитанных", context, e);
+            throw e;
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Удалить уведомление по Id")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteNotificationById(@PathVariable Long id) {
-        User currentUser = userService.getCurrentUser();
-        log.info("Пользователь {} удаляет уведомление {}", currentUser.getId(), id);
-        notificationService.deleteNotification(id, currentUser);
-        log.info("Уведомление {} успешно удалено пользователем {}", id, currentUser.getId());
-        return ResponseEntity.ok().build();
+        Map<String, Object> context = new HashMap<>();
+        context.put("notificationId", id);
+
+        centralLogger.logInfo("УВЕДОМЛЕНИЕ_УДАЛЕНИЕ_ЗАПРОС",
+                "Запрос на удаление уведомления", context);
+
+        try {
+            User currentUser = userService.getCurrentUser();
+            context.put("userId", currentUser.getId());
+
+            notificationService.deleteNotification(id, currentUser);
+
+            centralLogger.logInfo("УВЕДОМЛЕНИЕ_УДАЛЕНО",
+                    "Уведомление успешно удалено", context);
+
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            centralLogger.logError("УВЕДОМЛЕНИЕ_ОШИБКА_УДАЛЕНИЯ",
+                    "Ошибка при удалении уведомления", context, e);
+            throw e;
+        }
     }
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Очистить все удаленные уведомления")
     @DeleteMapping("/clear")
     public ResponseEntity<Void> clearDeletedNotifications() {
-        User currentUser = userService.getCurrentUser();
-        log.info("Пользователь {} очищает удаленные уведомления", currentUser.getId());
-        notificationService.clearDeletedNotifications(currentUser);
-        log.info("Удаленные уведомления пользователя {} успешно очищены", currentUser.getId());
-        return ResponseEntity.ok().build();
+        Map<String, Object> context = new HashMap<>();
+
+        centralLogger.logInfo("ОЧИСТКА_УДАЛЕННЫХ_УВЕДОМЛЕНИЙ_ЗАПРОС",
+                "Запрос на очистку удаленных уведомлений", context);
+
+        try {
+            User currentUser = userService.getCurrentUser();
+            context.put("userId", currentUser.getId());
+
+            notificationService.clearDeletedNotifications(currentUser);
+
+            centralLogger.logInfo("УДАЛЕННЫЕ_УВЕДОМЛЕНИЙ_ОЧИЩЕНЫ",
+                    "Удаленные уведомления успешно очищены", context);
+
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            centralLogger.logError("ОЧИСТКА_УДАЛЕННЫХ_УВЕДОМЛЕНИЙ_ОШИБКА",
+                    "Ошибка при очистке удаленных уведомлений", context, e);
+            throw e;
+        }
     }
 }

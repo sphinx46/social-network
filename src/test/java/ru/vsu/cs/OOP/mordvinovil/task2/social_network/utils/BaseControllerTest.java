@@ -9,6 +9,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.UserService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.user.JwtServiceImpl;
 
@@ -26,6 +27,9 @@ public abstract class BaseControllerTest {
 
     @MockitoBean
     protected UserService userService;
+
+    @MockitoBean
+    protected CentralLogger centralLogger;
 
     @MockitoBean
     protected JwtServiceImpl jwtServiceImpl;

@@ -33,6 +33,7 @@ class NotificationControllerTest extends BaseControllerTest {
     @MockitoBean
     private NotificationService notificationService;
 
+
     @Test
     @DisplayName("Получение уведомления по ID без авторизации - должно вернуть 401")
     void getNotificationById_whenUnauthorized_shouldReturn401() throws Exception {
