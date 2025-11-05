@@ -28,6 +28,11 @@ public class NotificationEventHandlerImpl implements NotificationEventHandler {
     private final NotificationFactory factory;
     private final CentralLogger centralLogger;
 
+    /**
+     * Обрабатывает событие уведомления
+     *
+     * @param event событие уведомления
+     */
     @EventListener
     @Async("notificationTaskExecutor")
     @Override

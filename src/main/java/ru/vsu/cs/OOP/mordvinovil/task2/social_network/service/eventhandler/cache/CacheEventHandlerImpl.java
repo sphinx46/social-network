@@ -19,6 +19,11 @@ public class CacheEventHandlerImpl implements CacheEventHandler {
     private final NewsFeedCacheService cacheService;
     private final CentralLogger centralLogger;
 
+    /**
+     * Обрабатывает событие кеша
+     *
+     * @param event событие кеша
+     */
     @Async
     @EventListener
     public void handleCacheEvent(GenericCacheEvent event) {
