@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -11,6 +12,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.file.Fil
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.file.FileEmptyException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.file.FileOversizeException;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.exceptions.entity.file.FileUnsupportedFormat;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.servicesImpl.storage.FileStorageServiceImpl;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.constants.ResponseMessageConstants;
 
@@ -22,6 +24,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class FileStorageServiceImplTest {
+    @Mock
+    private CentralLogger centralLogger;
 
     @InjectMocks
     private FileStorageServiceImpl fileStorageServiceImpl;
@@ -150,10 +154,10 @@ public class FileStorageServiceImplTest {
 
         String fileUrl = "/uploads/../sensitive-file.jpg";
 
-        SecurityException securityException = assertThrows(SecurityException.class,
+        FileProcessingException fileProcessingException = assertThrows(FileProcessingException.class,
                 () -> fileStorageServiceImpl.deleteFile(fileUrl));
 
-        assertEquals(ResponseMessageConstants.FAILURE_INCORRECT_PATH_TO_FILE, securityException.getMessage());
+        assertEquals(ResponseMessageConstants.FAILURE_INCORRECT_PATH_TO_FILE, fileProcessingException.getMessage());
     }
 
     @Test
