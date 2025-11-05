@@ -8,6 +8,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.AuthenticationService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.MockMvcUtils;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.utils.TestDataFactory;
@@ -23,6 +24,9 @@ class AuthControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @MockitoBean
+    private CentralLogger centralLogger;
 
     @Autowired
     private ObjectMapper objectMapper;

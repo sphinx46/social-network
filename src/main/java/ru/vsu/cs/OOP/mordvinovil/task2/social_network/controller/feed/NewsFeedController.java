@@ -18,15 +18,18 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.CacheMode;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.feed.NewsFeedService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.UserService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.factory.NewsFeedServiceFactory;
-import lombok.extern.slf4j.Slf4j;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
 
-@Slf4j
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/newsfeed")
 @RequiredArgsConstructor
 public class NewsFeedController {
     private final NewsFeedServiceFactory newsFeedServiceFactory;
     private final UserService userService;
+    private final CentralLogger centralLogger;
 
     @PreAuthorize("isAuthenticated()")
     @Operation(summary = "Получение ленты новостей для текущего пользователя")
@@ -38,26 +41,43 @@ public class NewsFeedController {
             @RequestParam(defaultValue = "DESC", required = false) String direction,
             @RequestParam(value = "cacheMode", defaultValue = "NONE_CACHE") CacheMode cacheMode
     ) {
-        log.info("Получение ленты новостей для текущего пользователя. Параметры: size={}, pageNumber={}, sortedBy={}, direction={}, cacheMode={}",
-                size, pageNumber, sortedBy, direction, cacheMode);
+        Map<String, Object> context = new HashMap<>();
+        context.put("size", size);
+        context.put("pageNumber", pageNumber);
+        context.put("sortedBy", sortedBy);
+        context.put("direction", direction);
+        context.put("cacheMode", cacheMode);
 
-        User user = userService.getCurrentUser();
-        log.debug("Текущий пользователь: id={}, username={}", user.getId(), user.getUsername());
+        centralLogger.logInfo("ЛЕНТА_НОВОСТЕЙ_ЗАПРОС",
+                "Запрос ленты новостей для текущего пользователя", context);
 
-        var pageRequest = PageRequest.builder()
-                .pageNumber(pageNumber)
-                .size(size)
-                .sortBy(sortedBy)
-                .direction(Sort.Direction.fromString(direction))
-                .build();
+        try {
+            User user = userService.getCurrentUser();
+            context.put("userId", user.getId());
+            context.put("username", user.getUsername());
 
-        NewsFeedService service = newsFeedServiceFactory.getService(cacheMode);
-        log.debug("Выбран сервис для обработки: {}", service.getClass().getSimpleName());
+            var pageRequest = PageRequest.builder()
+                    .pageNumber(pageNumber)
+                    .size(size)
+                    .sortBy(sortedBy)
+                    .direction(Sort.Direction.fromString(direction))
+                    .build();
 
-        PageResponse<NewsFeedResponse> pageResponse = service.getPostsByFriends(user, pageRequest);
-        log.info("Успешно получена лента новостей для пользователя id={}. Количество элементов: {}",
-                user.getId(), pageResponse.getContent().size());
+            NewsFeedService service = newsFeedServiceFactory.getService(cacheMode);
+            PageResponse<NewsFeedResponse> pageResponse = service.getPostsByFriends(user, pageRequest);
 
-        return ResponseEntity.ok(pageResponse);
+            Map<String, Object> successContext = new HashMap<>(context);
+            successContext.put("contentSize", pageResponse.getContent().size());
+            successContext.put("totalElements", pageResponse.getTotalElements());
+
+            centralLogger.logInfo("ЛЕНТА_НОВОСТЕЙ_УСПЕХ",
+                    "Лента новостей успешно получена", successContext);
+
+            return ResponseEntity.ok(pageResponse);
+        } catch (Exception e) {
+            centralLogger.logError("ЛЕНТА_НОВОСТЕЙ_ОШИБКА",
+                    "Ошибка при получении ленты новостей", context, e);
+            throw e;
+        }
     }
 }
