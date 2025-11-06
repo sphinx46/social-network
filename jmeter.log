@@ -1,0 +1,307 @@
+2025-11-06 15:44:13,545 INFO o.a.j.u.JMeterUtils: Setting Locale to en_EN
+2025-11-06 15:44:13,567 INFO o.a.j.JMeter: Loading user properties from: /opt/homebrew/Cellar/jmeter/5.6.3/libexec/bin/user.properties
+2025-11-06 15:44:13,567 INFO o.a.j.JMeter: Loading system properties from: /opt/homebrew/Cellar/jmeter/5.6.3/libexec/bin/system.properties
+2025-11-06 15:44:13,576 INFO o.a.j.JMeter: Copyright (c) 1998-2024 The Apache Software Foundation
+2025-11-06 15:44:13,576 INFO o.a.j.JMeter: Version 5.6.3
+2025-11-06 15:44:13,576 INFO o.a.j.JMeter: java.version=21.0.9
+2025-11-06 15:44:13,576 INFO o.a.j.JMeter: java.vm.name=OpenJDK 64-Bit Server VM
+2025-11-06 15:44:13,576 INFO o.a.j.JMeter: os.name=Mac OS X
+2025-11-06 15:44:13,576 INFO o.a.j.JMeter: os.arch=aarch64
+2025-11-06 15:44:13,576 INFO o.a.j.JMeter: os.version=15.6.1
+2025-11-06 15:44:13,576 INFO o.a.j.JMeter: file.encoding=UTF-8
+2025-11-06 15:44:13,576 INFO o.a.j.JMeter: java.awt.headless=true
+2025-11-06 15:44:13,576 INFO o.a.j.JMeter: Max memory     =1073741824
+2025-11-06 15:44:13,576 INFO o.a.j.JMeter: Available Processors =8
+2025-11-06 15:44:13,586 INFO o.a.j.JMeter: Default Locale=English (EN)
+2025-11-06 15:44:13,586 INFO o.a.j.JMeter: JMeter  Locale=English (EN)
+2025-11-06 15:44:13,586 INFO o.a.j.JMeter: JMeterHome=/opt/homebrew/Cellar/jmeter/5.6.3/libexec
+2025-11-06 15:44:13,586 INFO o.a.j.JMeter: user.dir  =/Users/mordvinovila/Downloads/Communication-Network
+2025-11-06 15:44:13,586 INFO o.a.j.JMeter: PWD       =/Users/mordvinovila/Downloads/Communication-Network
+2025-11-06 15:44:13,588 INFO o.a.j.JMeter: IP: 127.0.0.1 Name: MacBook-Air-Mordvinov.local FullName: localhost
+2025-11-06 15:44:13,602 INFO o.a.j.s.FileServer: Default base='/Users/mordvinovila/Downloads/Communication-Network'
+2025-11-06 15:44:13,605 INFO o.a.j.s.FileServer: Set new base='/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth'
+2025-11-06 15:44:13,740 INFO o.a.j.s.SaveService: Testplan (JMX) version: 2.2. Testlog (JTL) version: 2.2
+2025-11-06 15:44:13,778 INFO o.a.j.s.SaveService: Using SaveService properties version 5.0
+2025-11-06 15:44:13,781 INFO o.a.j.s.SaveService: Using SaveService properties file encoding UTF-8
+2025-11-06 15:44:13,783 INFO o.a.j.s.SaveService: Loading file: /Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/auth-test.jmx
+2025-11-06 15:44:13,840 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/html is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2025-11-06 15:44:13,840 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xhtml+xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2025-11-06 15:44:13,840 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for application/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2025-11-06 15:44:13,841 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/xml is org.apache.jmeter.protocol.http.parser.LagartoBasedHtmlParser
+2025-11-06 15:44:13,841 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/vnd.wap.wml is org.apache.jmeter.protocol.http.parser.RegexpHTMLParser
+2025-11-06 15:44:13,841 INFO o.a.j.p.h.s.HTTPSamplerBase: Parser for text/css is org.apache.jmeter.protocol.http.parser.CssParser
+2025-11-06 15:44:13,869 INFO o.a.j.JMeter: Creating summariser <summary>
+2025-11-06 15:44:13,879 INFO o.a.j.e.StandardJMeterEngine: Running the test!
+2025-11-06 15:44:13,879 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2025-11-06 15:44:13,879 INFO o.a.j.s.SampleEvent: List of sample_variables: []
+2025-11-06 15:44:13,882 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must contain the string: '.functions.'
+2025-11-06 15:44:13,882 INFO o.a.j.e.u.CompoundVariable: Note: Function class names must not contain the string: '.gui.'
+2025-11-06 15:44:13,925 INFO o.a.j.r.ClassFinder: Will scan jar /opt/homebrew/Cellar/jmeter/5.6.3/libexec/lib/ext/jmeter-plugins-manager-1.9.jar with filter ExtendsClassFilter [parents=[interface org.apache.jmeter.functions.Function], inner=false, contains=null, notContains=null]. Consider exposing JMeter plugins via META-INF/services, and add JMeter-Skip-Class-Scanning=true manifest attribute so JMeter can skip classfile scanning
+2025-11-06 15:44:13,992 INFO o.a.j.JMeter: Running test (1762433053992)
+2025-11-06 15:44:14,005 INFO o.a.j.e.StandardJMeterEngine: Starting ThreadGroup: 1 : Auth Load Test
+2025-11-06 15:44:14,006 INFO o.a.j.e.StandardJMeterEngine: Starting 150 threads for group Auth Load Test.
+2025-11-06 15:44:14,006 INFO o.a.j.e.StandardJMeterEngine: Thread will continue on error
+2025-11-06 15:44:14,006 INFO o.a.j.t.ThreadGroup: Starting thread group... number=1 threads=150 ramp-up=40 delayedStart=false
+2025-11-06 15:44:14,075 INFO o.a.j.t.ThreadGroup: Started thread group number 1
+2025-11-06 15:44:14,075 INFO o.a.j.e.StandardJMeterEngine: All thread groups have been started
+2025-11-06 15:44:14,092 INFO o.a.j.s.SampleResult: Note: Sample TimeStamps are START times
+2025-11-06 15:44:14,092 INFO o.a.j.s.SampleResult: sampleresult.default.encoding is set to UTF-8
+2025-11-06 15:44:14,092 INFO o.a.j.s.SampleResult: sampleresult.useNanoTime=true
+2025-11-06 15:44:14,092 INFO o.a.j.s.SampleResult: sampleresult.nanoThreadSleep=5000
+2025-11-06 15:44:14,100 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-1
+2025-11-06 15:44:14,101 INFO o.a.j.s.FileServer: Stored: /Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv
+2025-11-06 15:44:14,125 INFO o.a.j.p.h.s.HTTPHCAbstractImpl: Local host = MacBook-Air-Mordvinov.local
+2025-11-06 15:44:14,129 INFO o.a.j.p.h.s.HTTPHC4Impl: HTTP request retry count = 0
+2025-11-06 15:44:14,364 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-2
+2025-11-06 15:44:14,633 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-3
+2025-11-06 15:44:14,895 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-4
+2025-11-06 15:44:15,166 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-5
+2025-11-06 15:44:15,427 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-6
+2025-11-06 15:44:15,696 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-7
+2025-11-06 15:44:15,892 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-5, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:15,893 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-5
+2025-11-06 15:44:15,959 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-8
+2025-11-06 15:44:15,960 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-8, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:15,960 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-8
+2025-11-06 15:44:16,144 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-6, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:16,144 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-6
+2025-11-06 15:44:16,226 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-9
+2025-11-06 15:44:16,226 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-9, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:16,227 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-9
+2025-11-06 15:44:16,359 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-4, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:16,359 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-4
+2025-11-06 15:44:16,376 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-7, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:16,376 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-7
+2025-11-06 15:44:16,439 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-1, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:16,439 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-1
+2025-11-06 15:44:16,462 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-2, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:16,462 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-2
+2025-11-06 15:44:16,494 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-10
+2025-11-06 15:44:16,495 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-10, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:16,495 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-10
+2025-11-06 15:44:16,497 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-3, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:16,497 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-3
+2025-11-06 15:44:16,759 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-11
+2025-11-06 15:44:16,760 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-11, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:16,760 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-11
+2025-11-06 15:44:17,030 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-12
+2025-11-06 15:44:17,031 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-12, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:17,031 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-12
+2025-11-06 15:44:17,297 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-13
+2025-11-06 15:44:17,302 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-13, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:17,302 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-13
+2025-11-06 15:44:17,565 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-14
+2025-11-06 15:44:17,565 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-14, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:17,566 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-14
+2025-11-06 15:44:17,825 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-15
+2025-11-06 15:44:17,826 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-15, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:17,826 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-15
+2025-11-06 15:44:18,094 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-16
+2025-11-06 15:44:18,095 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-16, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:18,096 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-16
+2025-11-06 15:44:18,363 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-17
+2025-11-06 15:44:18,364 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-17, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:18,364 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-17
+2025-11-06 15:44:18,633 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-18
+2025-11-06 15:44:18,634 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-18, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:18,634 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-18
+2025-11-06 15:44:18,893 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-19
+2025-11-06 15:44:18,894 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-19, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:18,894 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-19
+2025-11-06 15:44:19,160 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-20
+2025-11-06 15:44:19,161 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-20, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:19,161 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-20
+2025-11-06 15:44:19,426 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-21
+2025-11-06 15:44:19,426 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-21, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:19,426 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-21
+2025-11-06 15:44:19,690 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-22
+2025-11-06 15:44:19,692 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-22, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:19,692 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-22
+2025-11-06 15:44:19,953 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-23
+2025-11-06 15:44:19,954 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-23, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:19,955 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-23
+2025-11-06 15:44:20,228 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-24
+2025-11-06 15:44:20,230 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-24, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:20,230 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-24
+2025-11-06 15:44:20,495 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-25
+2025-11-06 15:44:20,496 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-25, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:20,496 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-25
+2025-11-06 15:44:20,763 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-26
+2025-11-06 15:44:20,763 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-26, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:20,763 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-26
+2025-11-06 15:44:21,031 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-27
+2025-11-06 15:44:21,031 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-27, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:21,032 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-27
+2025-11-06 15:44:21,294 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-28
+2025-11-06 15:44:21,295 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-28, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:21,295 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-28
+2025-11-06 15:44:21,561 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-29
+2025-11-06 15:44:21,562 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-29, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:21,562 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-29
+2025-11-06 15:44:21,826 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-30
+2025-11-06 15:44:21,827 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-30, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:21,827 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-30
+2025-11-06 15:44:22,100 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-31
+2025-11-06 15:44:22,101 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-31, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:22,101 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-31
+2025-11-06 15:44:22,362 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-32
+2025-11-06 15:44:22,363 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-32, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:22,363 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-32
+2025-11-06 15:44:22,626 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-33
+2025-11-06 15:44:22,628 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-33, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:22,628 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-33
+2025-11-06 15:44:22,895 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-34
+2025-11-06 15:44:22,896 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-34, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:22,896 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-34
+2025-11-06 15:44:23,155 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-35
+2025-11-06 15:44:23,157 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-35, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:23,158 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-35
+2025-11-06 15:44:23,430 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-36
+2025-11-06 15:44:23,431 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-36, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:23,431 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-36
+2025-11-06 15:44:23,694 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-37
+2025-11-06 15:44:23,695 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-37, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:23,695 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-37
+2025-11-06 15:44:23,962 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-38
+2025-11-06 15:44:23,964 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-38, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:23,964 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-38
+2025-11-06 15:44:24,234 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-39
+2025-11-06 15:44:24,234 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-39, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:24,234 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-39
+2025-11-06 15:44:24,502 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-40
+2025-11-06 15:44:24,503 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-40, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:24,503 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-40
+2025-11-06 15:44:24,767 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-41
+2025-11-06 15:44:24,768 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-41, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:24,768 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-41
+2025-11-06 15:44:25,034 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-42
+2025-11-06 15:44:25,035 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-42, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:25,036 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-42
+2025-11-06 15:44:25,291 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-43
+2025-11-06 15:44:25,292 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-43, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:25,292 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-43
+2025-11-06 15:44:25,566 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-44
+2025-11-06 15:44:25,566 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-44, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:25,567 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-44
+2025-11-06 15:44:25,833 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-45
+2025-11-06 15:44:25,835 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-45, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:25,836 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-45
+2025-11-06 15:44:26,089 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-46
+2025-11-06 15:44:26,090 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-46, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:26,090 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-46
+2025-11-06 15:44:26,358 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-47
+2025-11-06 15:44:26,359 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-47, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:26,359 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-47
+2025-11-06 15:44:26,627 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-48
+2025-11-06 15:44:26,628 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-48, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:26,629 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-48
+2025-11-06 15:44:26,890 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-49
+2025-11-06 15:44:26,891 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-49, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:26,891 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-49
+2025-11-06 15:44:27,158 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-50
+2025-11-06 15:44:27,159 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-50, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:27,159 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-50
+2025-11-06 15:44:27,427 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-51
+2025-11-06 15:44:27,428 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-51, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:27,428 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-51
+2025-11-06 15:44:27,699 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-52
+2025-11-06 15:44:27,701 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-52, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:27,701 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-52
+2025-11-06 15:44:27,959 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-53
+2025-11-06 15:44:27,960 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-53, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:27,961 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-53
+2025-11-06 15:44:28,226 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-54
+2025-11-06 15:44:28,227 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-54, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:28,227 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-54
+2025-11-06 15:44:28,494 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-55
+2025-11-06 15:44:28,495 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-55, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:28,495 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-55
+2025-11-06 15:44:28,759 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-56
+2025-11-06 15:44:28,759 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-56, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:28,759 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-56
+2025-11-06 15:44:29,031 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-57
+2025-11-06 15:44:29,033 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-57, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:29,033 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-57
+2025-11-06 15:44:29,296 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-58
+2025-11-06 15:44:29,296 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-58, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:29,296 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-58
+2025-11-06 15:44:29,555 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-59
+2025-11-06 15:44:29,557 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-59, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:29,557 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-59
+2025-11-06 15:44:29,831 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-60
+2025-11-06 15:44:29,833 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-60, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:29,833 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-60
+2025-11-06 15:44:30,096 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-61
+2025-11-06 15:44:30,097 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-61, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:30,098 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-61
+2025-11-06 15:44:30,361 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-62
+2025-11-06 15:44:30,363 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-62, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:30,363 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-62
+2025-11-06 15:44:30,626 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-63
+2025-11-06 15:44:30,629 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-63, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:30,629 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-63
+2025-11-06 15:44:30,896 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-64
+2025-11-06 15:44:30,897 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-64, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:30,898 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-64
+2025-11-06 15:44:31,164 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-65
+2025-11-06 15:44:31,165 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-65, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:31,165 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-65
+2025-11-06 15:44:31,428 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-66
+2025-11-06 15:44:31,429 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-66, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:31,429 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-66
+2025-11-06 15:44:31,695 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-67
+2025-11-06 15:44:31,696 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-67, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:31,696 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-67
+2025-11-06 15:44:31,967 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-68
+2025-11-06 15:44:31,968 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-68, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:31,969 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-68
+2025-11-06 15:44:32,225 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-69
+2025-11-06 15:44:32,227 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-69, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:32,227 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-69
+2025-11-06 15:44:32,495 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-70
+2025-11-06 15:44:32,497 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-70, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:32,497 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-70
+2025-11-06 15:44:32,761 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-71
+2025-11-06 15:44:32,763 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-71, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:32,763 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-71
+2025-11-06 15:44:33,027 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-72
+2025-11-06 15:44:33,029 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-72, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:33,029 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-72
+2025-11-06 15:44:33,296 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-73
+2025-11-06 15:44:33,298 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-73, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:33,298 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-73
+2025-11-06 15:44:33,565 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-74
+2025-11-06 15:44:33,566 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-74, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:33,566 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-74
+2025-11-06 15:44:33,830 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-75
+2025-11-06 15:44:33,831 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-75, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:33,832 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-75
+2025-11-06 15:44:34,097 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-76
+2025-11-06 15:44:34,099 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-76, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:34,099 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-76
+2025-11-06 15:44:34,361 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-77
+2025-11-06 15:44:34,362 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-77, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:34,362 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-77
+2025-11-06 15:44:34,627 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-78
+2025-11-06 15:44:34,628 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-78, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:34,628 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-78
+2025-11-06 15:44:34,900 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-79
+2025-11-06 15:44:34,902 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-79, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:34,903 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-79
+2025-11-06 15:44:35,164 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-80
+2025-11-06 15:44:35,166 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-80, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:35,166 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-80
+2025-11-06 15:44:35,434 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-81
+2025-11-06 15:44:35,435 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-81, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:35,435 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-81
+2025-11-06 15:44:35,701 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-82
+2025-11-06 15:44:35,702 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-82, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:35,702 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-82
+2025-11-06 15:44:35,961 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-83
+2025-11-06 15:44:35,961 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-83, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:35,961 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-83
+2025-11-06 15:44:36,232 INFO o.a.j.t.JMeterThread: Thread started: Auth Load Test 1-84
+2025-11-06 15:44:36,234 INFO o.a.j.t.JMeterThread: Stop Thread seen for thread Auth Load Test 1-84, reason: org.apache.jorphan.util.JMeterStopThreadException: End of file:/Users/mordvinovila/Downloads/Communication-Network/JMETER-TESTS/auth/users.csv detected for CSV DataSet:CSV Data Set Config configured with stopThread:true, recycle:false
+2025-11-06 15:44:36,235 INFO o.a.j.t.JMeterThread: Thread finished: Auth Load Test 1-84
+2025-11-06 15:44:36,325 INFO o.a.j.r.ResultCollector: Shutdown hook started
+2025-11-06 15:44:36,326 INFO o.a.j.r.ResultCollector: Shutdown hook ended
