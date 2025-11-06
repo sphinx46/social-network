@@ -11,14 +11,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.request.common.PageRequest;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.feed.NewsFeedResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.common.PageResponse;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.dto.response.feed.NewsFeedResponse;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.User;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.entities.enums.CacheMode;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
+import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.factory.NewsFeedServiceFactory;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.feed.NewsFeedService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.UserService;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.factory.NewsFeedServiceFactory;
-import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,7 +39,7 @@ public class NewsFeedController {
             @RequestParam(defaultValue = "0", required = false) @Min(0) Integer pageNumber,
             @RequestParam(defaultValue = "createdAt", required = false) String sortedBy,
             @RequestParam(defaultValue = "DESC", required = false) String direction,
-            @RequestParam(value = "cacheMode", defaultValue = "NONE_CACHE") CacheMode cacheMode
+            @RequestParam(value = "cacheMode", defaultValue = "CACHE") CacheMode cacheMode
     ) {
         Map<String, Object> context = new HashMap<>();
         context.put("size", size);
