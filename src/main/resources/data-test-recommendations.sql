@@ -1,3 +1,5 @@
+DELETE FROM users WHERE id BETWEEN 1 AND 10;
+
 -- ==================== ПОЛЬЗОВАТЕЛИ ====================
 INSERT INTO users (id, username, email, city, password, is_online, role, created_at, last_login) VALUES
 (1, 'ivanov', 'ivanov@test.com', 'Москва', '$2a$12$49OcWSQdgl5Sl7T/EEQ7Fut51D3uBIo9VE7UL7icMAJFKPhu5g/Oe', false, 'ROLE_USER', NOW(), NOW()),

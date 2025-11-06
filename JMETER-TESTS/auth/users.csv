@@ -1,0 +1,11 @@
+username,email,city,password
+testuser1,user1@test.com,Moscow,password123
+testuser2,user2@test.com,SPb,password123
+testuser3,user3@test.com,Kazan,password123
+testuser4,user4@test.com,Kursk,password123
+testuser5,user5@test.com,Kaliningrad,password123
+testuser6,user6@test.com,Volgograd,password123
+testuser7,user7@test.com,Kazan,password123
+testuser8,user8@test.com,Moscow,password123
+testuser9,user9@test.com,Vladimir,password123
+testuser10,user10@test.com,Vorkuta,password123
