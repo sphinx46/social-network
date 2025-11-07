@@ -16,6 +16,7 @@ import ru.vsu.cs.OOP.mordvinovil.task2.social_network.security.filters.UserDetai
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.service.user.AuthenticationService;
 import ru.vsu.cs.OOP.mordvinovil.task2.social_network.logging.CentralLogger;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -101,6 +102,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             var user = userServiceImpl
                     .userDetailsService()
                     .loadUserByUsername(request.getUsername());
+
+            var temp = userServiceImpl.getByUsername(request.getUsername());
+            temp.setLastLogin(LocalDateTime.now());
+            temp.setOnline(true);
+            userServiceImpl.save(temp);
 
             var jwt = jwtServiceImpl.generateToken(user);
 
