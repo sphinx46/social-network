@@ -5,7 +5,7 @@ loki.write "local" {
 }
 
 discovery.docker "containers" {
-  host = "unix:///var/run/docker.sock"
+  host             = "unix:///var/run/docker.sock"
   refresh_interval = "5s"
 }
 
@@ -14,48 +14,46 @@ discovery.relabel "containers" {
 
   rule {
     source_labels = ["__meta_docker_container_name"]
-    regex = "/(.*)"
-    target_label = "container"
+    regex         = "/(.*)"
+    target_label  = "container"
   }
 
   rule {
     target_label = "job"
-    replacement = "docker"
+    replacement  = "docker"
   }
 
   rule {
     target_label = "host"
-    replacement = "containers.hostname"
+    replacement  = constants.hostname
   }
 
   rule {
     source_labels = ["__meta_docker_container_name"]
-    regex = "/(.*)"
-    target_label = "service"
+    regex         = "/(.*)"
+    target_label  = "service"
   }
 
   rule {
     source_labels = ["__meta_docker_container_log_stream"]
-    target_label = "stream"
+    target_label  = "stream"
   }
 }
 
 loki.source.docker "containers" {
-  host = "unix:///var/run/docker.sock"
-  targets = discovery.docker.containers.targets
+  host          = "unix:///var/run/docker.sock"
+  targets       = discovery.docker.containers.targets
   relabel_rules = discovery.relabel.containers.rules
-  forward_to = [loki.write.local.receiver]
+  forward_to    = [loki.write.local.receiver]
 }
 
-otel.receiver.otlp "default" {
+otelcol.receiver.otlp "default" {
   grpc {
     endpoint = "0.0.0.0:4317"
   }
-
   http {
     endpoint = "0.0.0.0:4318"
   }
-
   output {
     traces = [otelcol.exporter.otlp.tempo.input]
     metrics = [otelcol.exporter.prometheus.default.input]
@@ -72,11 +70,5 @@ otelcol.exporter.otlp "tempo" {
 }
 
 otelcol.exporter.prometheus "default" {
-  forward_to = [prometheus.remote_write.default.receiver]
-}
-
-prometheus.remote_write "default" {
-  endpoint {
-    url = "http://prometheus:9090/api/v1/write"
-  }
+  forward_to = []
 }
