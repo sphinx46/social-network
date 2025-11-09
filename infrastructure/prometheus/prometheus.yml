@@ -1,0 +1,52 @@
+global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: prometheus
+    static_configs:
+      - targets: ["prometheus:9090"]
+    labels:
+      group: 'infrastructure'
+
+  - job_name: spring-boot-apps
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets:
+          - "api:8091"
+          - "user-api:8092"
+          - "relationship-api:8093"
+          - "content-api:8094"
+          - "notification-api:8095"
+          - "feed-api:8096"
+          - "messaging-api:8097"
+    labels:
+      group: 'microservices'
+      technology: 'spring-boot'
+
+  - job_name: infrastructure
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - "keycloak:9000"
+          - "grafana:3000"
+          - "alloy:9080"
+          - "loki:3100"
+          - "tempo:3200"
+    labels:
+      group: 'infrastructure'
+
+  - job_name: postgres-exporters
+    static_configs:
+      - targets:
+          - "user-postgres-exporter:9187"
+          - "keycloak-postgres-exporter:9187"
+          - "relationship-postgres-exporter:9187"
+          - "feed-postgres-exporter:9187"
+          - "messaging-postgres-exporter:9187"
+          - "notification-postgres-exporter:9187"
+          - "content-postgres-exporter:9187"
+    labels:
+      group: 'databases'
+      technology: 'postgresql'

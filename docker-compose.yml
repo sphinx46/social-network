@@ -1,89 +1,338 @@
 version: '3.8'
-
 services:
-  postgres:
-    image: postgres:14
-    container_name: postgres-social-network
+  redis:
+    image: redis:7-alpine
+    container_name: redis
     ports:
-      - "5433:5432"
-    environment:
-      POSTGRES_DB: social-network
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 8906ilyAa
+      - "6379:6379"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d social-network"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  redis:
-    image: redis:7-alpine
-    container_name: redis-social-network
+  user-postgres:
+    image: postgres:17
+    container_name: user-postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: user
+      POSTGRES_DB: user
+    volumes:
+      - ./infrastructure/databases/user:/docker-entrypoint-initdb.d:ro
     ports:
-      - "6379:6379"
-    command: redis-server --appendonly yes
+      - "5438:5432"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD-SHELL", "pg_isready -U user -d user" ]
       interval: 10s
-      timeout: 3s
-      retries: 3
+      timeout: 5s
+      retries: 5
+
+  relationship-postgres:
+    image: postgres:17
+    container_name: relationship-postgres
+    environment:
+      POSTGRES_USER: relationship
+      POSTGRES_PASSWORD: relationship
+      POSTGRES_DB: relationship
+    volumes:
+      - ./infrastructure/databases/relationship:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5437:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U relationship -d relationship" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  content-postgres:
+    image: postgres:17
+    container_name: content-postgres
+    environment:
+      POSTGRES_USER: content
+      POSTGRES_PASSWORD: content
+      POSTGRES_DB: content
+    volumes:
+      - ./infrastructure/databases/content:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5436:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U content -d content" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  feed-postgres:
+    image: postgres:17
+    container_name: feed-postgres
+    environment:
+      POSTGRES_USER: feed
+      POSTGRES_PASSWORD: feed
+      POSTGRES_DB: feed
+    volumes:
+      - ./infrastructure/databases/feed:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5435:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U feed -d feed" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  messaging-postgres:
+    image: postgres:17
+    container_name: messaging-postgres
+    environment:
+      POSTGRES_USER: messaging
+      POSTGRES_PASSWORD: messaging
+      POSTGRES_DB: messaging
+    volumes:
+      - ./infrastructure/databases/messaging:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5434:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U messaging -d messaging" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  notification-postgres:
+    image: postgres:17
+    container_name: notification-postgres
+    environment:
+      POSTGRES_USER: notification
+      POSTGRES_PASSWORD: notification
+      POSTGRES_DB: notification
+    volumes:
+      - ./infrastructure/databases/notification:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U notification -d notification" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak-postgres:
+    image: postgres:17
+    container_name: keycloak-postgres
+    environment:
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+      POSTGRES_DB: keycloak
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U keycloak -d keycloak" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  user-postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: user-postgres-exporter
+    depends_on:
+      user-postgres:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: "postgresql://user:user@user-postgres:5432/user?sslmode=disable"
+    ports:
+      - "9181:9187"
+
+  content-postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: content-postgres-exporter
+    depends_on:
+      content-postgres:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: "postgresql://content:content@content-postgres:5432/content?sslmode=disable"
+    ports:
+      - "9182:9187"
+
+  relationship-postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: relationship-postgres-exporter
+    depends_on:
+      relationship-postgres:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: "postgresql://relationship:relationship@relationship-postgres:5432/relationship?sslmode=disable"
+    ports:
+      - "9183:9187"
+
+  feed-postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: feed-postgres-exporter
+    depends_on:
+      feed-postgres:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: "postgresql://feed:feed@feed-postgres:5432/feed?sslmode=disable"
+    ports:
+      - "9184:9187"
+
+  messaging-postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: messaging-postgres-exporter
+    depends_on:
+      messaging-postgres:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: "postgresql://messaging:messaging@messaging-postgres:5432/messaging?sslmode=disable"
+    ports:
+      - "9185:9187"
+
+  notification-postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: notification-postgres-exporter
+    depends_on:
+      notification-postgres:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: "postgresql://notification:notification@notification-postgres:5432/notification?sslmode=disable"
+    ports:
+      - "9186:9187"
+
+  keycloak-postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: keycloak-postgres-exporter
+    depends_on:
+      keycloak-postgres:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: "postgresql://keycloak:keycloak@keycloak-postgres:5432/keycloak?sslmode=disable"
+    ports:
+      - "9187:9187"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2
+    container_name: individuals-keycloak
+    command:
+      - start-dev
+      - --import-realm
+      - --health-enabled=true
+    ports:
+      - "8080:8080"
+      - "9000:9000"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+    volumes:
+      - ./infrastructure/keycloak/realm-config.json:/opt/keycloak/data/import/realm-config.json
+    depends_on:
+      keycloak-postgres:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/health/ready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  nexus:
+    image: sonatype/nexus3:3.76.0
+    container_name: nexus
+    ports:
+      - "8081:8081"
+    environment:
+      NEXUS_SECURITY_RANDOMPASSWORD: "false"
+    volumes:
+      - nexus_data:/nexus-data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/service/rest/v1/status" ]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--web.enable-lifecycle'
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   loki:
-    image: grafana/loki:2.9.0
-    container_name: loki-social-network
+    image: grafana/loki:2.9.2
+    container_name: loki
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/loki-config.yaml
     volumes:
-      - ./loki-config.yaml:/etc/loki/loki-config.yaml
+      - ./infrastructure/loki/loki-config.yaml:/etc/loki/loki-config.yaml
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3100/ready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  promtail:
-    image: grafana/promtail:2.9.0
-    container_name: promtail-social-network
+  tempo:
+    image: grafana/tempo:2.4.1
+    container_name: tempo
+    command: [ "-config.file=/etc/tempo/tempo.yaml" ]
     volumes:
-      - ./promtail-config.yaml:/etc/promtail/config.yml
-      - /var/log/social-network/:/var/log/social-network/
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./infrastructure/tempo/tempo.yaml:/etc/tempo/tempo.yaml
+      - tempo_data:/tmp/tempo
+    ports:
+      - "3200:3200"
+      - "9411:9411"
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3200/ready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  alloy:
+    image: grafana/alloy:latest
+    container_name: alloy
+    ports:
+      - "9080:9080"
+      - "4317:4317"
+      - "4318:4318"
+    volumes:
+      - ./infrastructure/alloy/config.alloy:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock
-    command: -config.file=/etc/promtail/config.yml
-    depends_on:
-      - loki
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:9080
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:9080/ready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   grafana:
-    image: grafana/grafana:10.2.0
-    container_name: grafana-social-network
+    image: grafana/grafana:10.3.1
+    container_name: grafana
     ports:
       - "3000:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
-    depends_on:
-      loki:
-        condition: service_started
-
-  app:
-    build: .
-    container_name: social-network-app
-    ports:
-      - "8080:8080"
-    environment:
-      - SPRING_DATASOURCE_HOST=postgres
-      - SPRING_DATASOURCE_PORT=5432
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=8906ilyAa
-      - SPRING_REDIS_HOST=redis
-      - SPRING_REDIS_PORT=6379
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - ENVIRONMENT=development
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_FEATURE_TOGGLES_ENABLE: "publicDashboards"
     volumes:
-      - /var/log/social-network/:/var/log/social-network/
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      loki:
-        condition: service_started
-      promtail:
-        condition: service_started
+      - ./infrastructure/grafana/provisioning:/etc/grafana/provisioning
+      - ./infrastructure/grafana/dashboards:/var/lib/grafana/dashboards
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  nexus_data:
+  tempo_data:
