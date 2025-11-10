@@ -17,7 +17,7 @@ services:
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: user
-      POSTGRES_DB: user
+      POSTGRES_DB: user_db
     volumes:
       - ./infrastructure/databases/user:/docker-entrypoint-initdb.d:ro
     ports:
