@@ -1,0 +1,77 @@
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
+
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+  refresh_interval = "5s"
+}
+
+discovery.relabel "containers" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex = "/(.*)"
+    target_label = "container"
+  }
+
+  rule {
+    target_label = "job"
+    replacement = "docker"
+  }
+
+  rule {
+    target_label = "host"
+    replacement = constants.hostname
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex = "/(.*)"
+    target_label = "service"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_log_stream"]
+    target_label = "stream"
+  }
+}
+
+loki.source.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+  targets = discovery.docker.containers.targets
+  relabel_rules = discovery.relabel.containers.rules
+  forward_to = [loki.write.local.receiver]
+}
+
+prometheus.scrape "spring_boot" {
+targets = [
+{
+"__address__" = "monolith:8080",
+              "__metrics_path__" = "/actuator/prometheus",
+              "job" = "spring-boot-app",
+                                       "instance" = "monolith:8080",
+                                       },
+                                       ]
+                                       forward_to = [prometheus.remote_write.default.receiver]
+                                                    }
+
+loki.source.file "application_logs" {
+                                    targets = [
+                                    {
+                                    "__path__" = "/var/log/social-network/*.log",
+                                    "job" = "social-network-app",
+                                    "instance" = "monolith",
+                                    },
+                                     ]
+                                     forward_to = [loki.write.local.receiver]
+                                    }
+
+prometheus.remote_write "default" {
+                                  endpoint {
+                                           url = "http://prometheus:9090/api/v1/write"
+                                           }
+                                  }

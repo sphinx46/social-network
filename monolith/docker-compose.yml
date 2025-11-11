@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # База данных приложения
   postgres:
     image: postgres:15-alpine
     container_name: social-network-postgres
@@ -18,20 +17,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - social-network
-
-  # Мониторинг PostgreSQL
-  postgres-exporter:
-    image: prometheuscommunity/postgres-exporter:latest
-    container_name: social-network-postgres-exporter
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      DATA_SOURCE_NAME: "postgresql://postgres:postgres@postgres:5432/social-network?sslmode=disable"
-    ports:
-      - "9187:9187"
     networks:
       - social-network
 
@@ -80,7 +65,6 @@ services:
       timeout: 10s
       retries: 3
 
-  # Система мониторинга
   prometheus:
     image: prom/prometheus:latest
     container_name: social-network-prometheus
@@ -99,7 +83,6 @@ services:
     networks:
       - social-network
 
-  # Система логирования
   loki:
     image: grafana/loki:2.9.2
     container_name: social-network-loki
@@ -117,52 +100,15 @@ services:
     networks:
       - social-network
 
-  # Сбор логов
-  promtail:
-    image: grafana/promtail:2.9.2
-    container_name: social-network-promtail
-    volumes:
-      - ./infrastructure/promtail/promtail-config.yaml:/etc/promtail/config.yaml
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./logs:/var/log/social-network:ro
-    command: -config.file=/etc/promtail/config.yaml
-    depends_on:
-      loki:
-        condition: service_healthy
-    networks:
-      - social-network
-
-  # Трассировка
-  tempo:
-    image: grafana/tempo:2.4.1
-    container_name: social-network-tempo
-    command: [ "-config.file=/etc/tempo/tempo.yaml" ]
-    volumes:
-      - ./infrastructure/tempo/tempo.yaml:/etc/tempo/tempo.yaml
-      - tempo_data:/tmp/tempo
-    ports:
-      - "3200:3200"
-      - "9411:9411"
-    healthcheck:
-      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3200/ready" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - social-network
-
-  # Агент для сбора метрик и логов
   alloy:
     image: grafana/alloy:latest
     container_name: social-network-alloy
     ports:
       - "9080:9080"
-      - "4317:4317"
-      - "4318:4318"
     volumes:
       - ./infrastructure/alloy/config.alloy:/etc/alloy/config.alloy:ro
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./logs:/var/log/social-network:ro
     command:
       - run
       - --server.http.listen-addr=0.0.0.0:9080
@@ -176,7 +122,6 @@ services:
     networks:
       - social-network
 
-  # Визуализация
   grafana:
     image: grafana/grafana:10.3.1
     container_name: social-network-grafana
@@ -195,8 +140,6 @@ services:
         condition: service_healthy
       prometheus:
         condition: service_healthy
-      tempo:
-        condition: service_healthy
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health" ]
       interval: 10s
@@ -209,7 +152,6 @@ volumes:
   postgres_data:
   redis_data:
   loki_data:
-  tempo_data:
   grafana_data:
 
 networks:
