@@ -1,89 +1,409 @@
 version: '3.8'
-
 services:
-  # База данных приложения
-  postgres:
-    image: postgres:15-alpine
-    container_name: social-network-postgres
-    environment:
-      POSTGRES_DB: social-network
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d social-network" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - social-network
-
-  # Мониторинг PostgreSQL
-  postgres-exporter:
-    image: prometheuscommunity/postgres-exporter:latest
-    container_name: social-network-postgres-exporter
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      DATA_SOURCE_NAME: "postgresql://postgres:postgres@postgres:5432/social-network?sslmode=disable"
-    ports:
-      - "9187:9187"
-    networks:
-      - social-network
-
   redis:
     image: redis:7-alpine
-    container_name: social-network-redis
+    container_name: redis
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
+    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
     healthcheck:
       test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - social-network
 
-  monolith:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: social-network-monolith
+  user-postgres:
+    image: postgres:17-alpine
+    container_name: user-postgres
     environment:
-      SPRING_DATASOURCE_HOST: postgres
-      SPRING_DATASOURCE_PORT: 5432
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      SPRING_REDIS_HOST: redis
-      SPRING_REDIS_PORT: 6379
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: user
+      POSTGRES_DB: user_db
+      POSTGRES_SHARED_BUFFERS: 128MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 256MB
+    volumes:
+      - ./infrastructure/databases/user:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5438:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U user -d user" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  relationship-postgres:
+    image: postgres:17-alpine
+    container_name: relationship-postgres
+    environment:
+      POSTGRES_USER: relationship
+      POSTGRES_PASSWORD: relationship
+      POSTGRES_DB: relationship
+      POSTGRES_SHARED_BUFFERS: 64MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 128MB
+    volumes:
+      - ./infrastructure/databases/relationship:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5437:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U relationship -d relationship" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  content-postgres:
+    image: postgres:17-alpine
+    container_name: content-postgres
+    environment:
+      POSTGRES_USER: content
+      POSTGRES_PASSWORD: content
+      POSTGRES_DB: content
+      POSTGRES_SHARED_BUFFERS: 128MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 256MB
+    volumes:
+      - ./infrastructure/databases/content:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5436:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U content -d content" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  feed-postgres:
+    image: postgres:17-alpine
+    container_name: feed-postgres
+    environment:
+      POSTGRES_USER: feed
+      POSTGRES_PASSWORD: feed
+      POSTGRES_DB: feed
+      POSTGRES_SHARED_BUFFERS: 64MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 128MB
+    volumes:
+      - ./infrastructure/databases/feed:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5435:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U feed -d feed" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  messaging-postgres:
+    image: postgres:17-alpine
+    container_name: messaging-postgres
+    environment:
+      POSTGRES_USER: messaging
+      POSTGRES_PASSWORD: messaging
+      POSTGRES_DB: messaging
+      POSTGRES_SHARED_BUFFERS: 96MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 192MB
+    volumes:
+      - ./infrastructure/databases/messaging:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5434:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+          cpus: '0.75'
+        reservations:
+          memory: 192M
+          cpus: '0.375'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U messaging -d messaging" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  notification-postgres:
+    image: postgres:17-alpine
+    container_name: notification-postgres
+    environment:
+      POSTGRES_USER: notification
+      POSTGRES_PASSWORD: notification
+      POSTGRES_DB: notification
+      POSTGRES_SHARED_BUFFERS: 32MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 64MB
+    volumes:
+      - ./infrastructure/databases/notification:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5433:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
+        reservations:
+          memory: 64M
+          cpus: '0.125'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U notification -d notification" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak-postgres:
+    image: postgres:17-alpine
+    container_name: keycloak-postgres
+    environment:
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+      POSTGRES_DB: keycloak
+      POSTGRES_SHARED_BUFFERS: 128MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 256MB
+    ports:
+      - "5431:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U keycloak -d keycloak" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  user-postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: user-postgres-exporter
+    depends_on:
+      user-postgres:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: "postgresql://user:user@user-postgres:5432/user?sslmode=disable"
+    ports:
+      - "9181:9187"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+        reservations:
+          memory: 32M
+          cpus: '0.05'
+
+  content-postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: content-postgres-exporter
+    depends_on:
+      content-postgres:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: "postgresql://content:content@content-postgres:5432/content?sslmode=disable"
+    ports:
+      - "9182:9187"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+        reservations:
+          memory: 32M
+          cpus: '0.05'
+
+  relationship-postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: relationship-postgres-exporter
+    depends_on:
+      relationship-postgres:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: "postgresql://relationship:relationship@relationship-postgres:5432/relationship?sslmode=disable"
+    ports:
+      - "9183:9187"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+        reservations:
+          memory: 32M
+          cpus: '0.05'
+
+  feed-postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: feed-postgres-exporter
+    depends_on:
+      feed-postgres:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: "postgresql://feed:feed@feed-postgres:5432/feed?sslmode=disable"
+    ports:
+      - "9184:9187"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+        reservations:
+          memory: 32M
+          cpus: '0.05'
+
+  messaging-postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: messaging-postgres-exporter
+    depends_on:
+      messaging-postgres:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: "postgresql://messaging:messaging@messaging-postgres:5432/messaging?sslmode=disable"
+    ports:
+      - "9185:9187"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+        reservations:
+          memory: 32M
+          cpus: '0.05'
+
+  notification-postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: notification-postgres-exporter
+    depends_on:
+      notification-postgres:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: "postgresql://notification:notification@notification-postgres:5432/notification?sslmode=disable"
+    ports:
+      - "9186:9187"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+        reservations:
+          memory: 32M
+          cpus: '0.05'
+
+  keycloak-postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: keycloak-postgres-exporter
+    depends_on:
+      keycloak-postgres:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: "postgresql://keycloak:keycloak@keycloak-postgres:5432/keycloak?sslmode=disable"
+    ports:
+      - "9187:9187"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+        reservations:
+          memory: 32M
+          cpus: '0.05'
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.2
+    container_name: individuals-keycloak
+    command:
+      - start-dev
+      - --import-realm
+      - --health-enabled=true
     ports:
       - "8080:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - social-network
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_METRICS_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      JAVA_OPTS: "-Xms256m -Xmx512m -XX:MaxMetaspaceSize=256m"
     volumes:
-      - ./logs:/app/logs
+      - ./infrastructure/keycloak/realm-config.json:/opt/keycloak/data/import/realm-config.json
+    depends_on:
+      keycloak-postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+          cpus: '1.5'
+        reservations:
+          memory: 512M
+          cpus: '1.0'
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/health/ready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 30
 
-  # Система мониторинга
+  nexus:
+    image: sonatype/nexus3:3.76.0
+    container_name: nexus
+    ports:
+      - "8081:8081"
+    environment:
+      NEXUS_SECURITY_RANDOMPASSWORD: "false"
+    volumes:
+      - nexus_data:/nexus-data
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/service/rest/v1/status" ]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+
   prometheus:
     image: prom/prometheus:latest
-    container_name: social-network-prometheus
+    container_name: prometheus
     ports:
       - "9090:9090"
     volumes:
@@ -91,52 +411,47 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=7d'
+      - '--storage.tsdb.retention.size=2GB'
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost:9090/-/healthy" ]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - social-network
 
-  # Система логирования
   loki:
     image: grafana/loki:2.9.2
-    container_name: social-network-loki
+    container_name: loki
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/loki-config.yaml
     volumes:
       - ./infrastructure/loki/loki-config.yaml:/etc/loki/loki-config.yaml
-      - loki_data:/loki
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+          cpus: '0.75'
+        reservations:
+          memory: 192M
+          cpus: '0.375'
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3100/ready" ]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - social-network
 
-  # Сбор логов
-  promtail:
-    image: grafana/promtail:2.9.2
-    container_name: social-network-promtail
-    volumes:
-      - ./infrastructure/promtail/promtail-config.yaml:/etc/promtail/config.yaml
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./logs:/var/log/social-network:ro
-    command: -config.file=/etc/promtail/config.yaml
-    depends_on:
-      loki:
-        condition: service_healthy
-    networks:
-      - social-network
-
-  # Трассировка
   tempo:
     image: grafana/tempo:2.4.1
-    container_name: social-network-tempo
+    container_name: tempo
     command: [ "-config.file=/etc/tempo/tempo.yaml" ]
     volumes:
       - ./infrastructure/tempo/tempo.yaml:/etc/tempo/tempo.yaml
@@ -144,18 +459,23 @@ services:
     ports:
       - "3200:3200"
       - "9411:9411"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3200/ready" ]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - social-network
 
-  # Агент для сбора метрик и логов
   alloy:
     image: grafana/alloy:latest
-    container_name: social-network-alloy
+    container_name: alloy
     ports:
       - "9080:9080"
       - "4317:4317"
@@ -168,18 +488,23 @@ services:
       - --server.http.listen-addr=0.0.0.0:9080
       - --storage.path=/var/lib/alloy/data
       - /etc/alloy/config.alloy
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
+        reservations:
+          memory: 64M
+          cpus: '0.125'
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost:9080/ready" ]
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - social-network
 
-  # Визуализация
   grafana:
     image: grafana/grafana:10.3.1
-    container_name: social-network-grafana
+    container_name: grafana
     ports:
       - "3000:3000"
     environment:
@@ -189,29 +514,20 @@ services:
     volumes:
       - ./infrastructure/grafana/provisioning:/etc/grafana/provisioning
       - ./infrastructure/grafana/dashboards:/var/lib/grafana/dashboards
-      - grafana_data:/var/lib/grafana
-    depends_on:
-      loki:
-        condition: service_healthy
-      prometheus:
-        condition: service_healthy
-      tempo:
-        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.25'
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost:3000/api/health" ]
       interval: 10s
       timeout: 5s
       retries: 10
-    networks:
-      - social-network
 
 volumes:
-  postgres_data:
-  redis_data:
-  loki_data:
+  nexus_data:
   tempo_data:
-  grafana_data:
-
-networks:
-  social-network:
-    driver: bridge

@@ -8,12 +8,16 @@
 	<groupId>org.mordvinov.social-network</groupId>
 	<artifactId>social-network-microservices</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
+
 	<packaging>pom</packaging>
-	<name>Social Network Monolith</name>
-	<description>Monolith architecture for social network</description>
+
+	<name>Social Network Microservice </name>
+	<description>Microservice architecture for social network</description>
 
 	<modules>
 		<module>monolith</module>
+		<module>api-gateway</module>
+		<module>eureka-server</module>
 	</modules>
 
 	<properties>
