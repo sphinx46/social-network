@@ -340,6 +340,7 @@ services:
           memory: 32M
           cpus: '0.05'
 
+
   keycloak:
     image: quay.io/keycloak/keycloak:26.2
     container_name: individuals-keycloak
@@ -347,6 +348,7 @@ services:
       - start-dev
       - --import-realm
       - --health-enabled=true
+      - --spi-email-sender-default-provider=smtp
     ports:
       - "8080:8080"
     environment:
@@ -358,12 +360,28 @@ services:
       KC_DB_PASSWORD: keycloak
       KC_METRICS_ENABLED: "true"
       KC_HEALTH_ENABLED: "true"
+
+      KC_HOSTNAME: localhost
+      KC_SMTP_HOST: maildev
+      KC_SMTP_PORT: 1025
+      KC_SMTP_FROM: noreply@socialnetwork.com
+      KC_SMTP_FROM_DISPLAY_NAME: "Social Network"
+      KC_SMTP_AUTH: "false"
+      KC_SMTP_SSL: "false"
+      KC_SMTP_STARTTLS: "false"
+
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_HTTP_ENABLED: "true"
+
       JAVA_OPTS: "-Xms256m -Xmx512m -XX:MaxMetaspaceSize=256m"
     volumes:
       - ./infrastructure/keycloak/realm-config.json:/opt/keycloak/data/import/realm-config.json
     depends_on:
       keycloak-postgres:
         condition: service_healthy
+      maildev:
+        condition: service_started
     deploy:
       resources:
         limits:
@@ -377,29 +395,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 30
-
-  nexus:
-    image: sonatype/nexus3:3.76.0
-    container_name: nexus
-    ports:
-      - "8081:8081"
-    environment:
-      NEXUS_SECURITY_RANDOMPASSWORD: "false"
-    volumes:
-      - nexus_data:/nexus-data
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: '1.0'
-        reservations:
-          memory: 512M
-          cpus: '0.5'
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8081/service/rest/v1/status" ]
-      interval: 10s
-      timeout: 10s
-      retries: 20
 
   prometheus:
     image: prom/prometheus:latest
@@ -528,6 +523,26 @@ services:
       timeout: 5s
       retries: 10
 
+
+  maildev:
+    image: maildev/maildev
+    container_name: maildev
+    ports:
+      - "1080:1080"
+      - "1025:1025"
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
+        reservations:
+          memory: 64M
+          cpus: '0.125'
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:1080" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
-  nexus_data:
   tempo_data:
