@@ -18,6 +18,7 @@
 		<module>monolith</module>
 		<module>api-gateway</module>
 		<module>eureka-server</module>
+		<module>user-profile-service</module>
 	</modules>
 
 	<properties>

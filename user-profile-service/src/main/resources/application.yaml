@@ -1,0 +1,35 @@
+spring:
+  application:
+    name: user-profile-service
+  profiles:
+    active: dev
+  jpa:
+    open-in-view: false
+    show-sql: false
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api/user-profile
+
+eureka:
+  client:
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+
+logging:
+  level:
+    com.yourcompany.userprofile: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always

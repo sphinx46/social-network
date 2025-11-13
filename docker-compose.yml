@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   redis:
     image: redis:7-alpine
@@ -20,29 +19,41 @@ services:
       timeout: 5s
       retries: 5
 
-  user-postgres:
-    image: postgres:17-alpine
-    container_name: user-postgres
+  user-profile-service:
+    build:
+      context: ./user-profile-service
+      dockerfile: Dockerfile
+    container_name: user-profile-service
+    ports:
+      - "8081:8080"
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: user
-      POSTGRES_DB: user_db
-      POSTGRES_SHARED_BUFFERS: 128MB
-      POSTGRES_EFFECTIVE_CACHE_SIZE: 256MB
+      SPRING_PROFILES_ACTIVE: dev
+      JAVA_OPTS: "-Xms256m -Xmx512m"
+    depends_on:
+      user-profile-postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/api/user-profile/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  user-profile-postgres:
+    image: postgres:17-alpine
+    container_name: user-profile-postgres
+    environment:
+      POSTGRES_USER: user-profile
+      POSTGRES_PASSWORD: user-profile
+      POSTGRES_DB: user_profile
     volumes:
-      - ./infrastructure/databases/user:/docker-entrypoint-initdb.d:ro
+      - ./infrastructure/databases/user-profile:/docker-entrypoint-initdb.d:ro
     ports:
       - "5438:5432"
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '1.0'
-        reservations:
-          memory: 256M
-          cpus: '0.5'
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U user -d user_db" ]
+      test: [ "CMD-SHELL", "pg_isready -U user-profile -d user_profile" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -207,24 +218,21 @@ services:
       timeout: 5s
       retries: 5
 
-  user-postgres-exporter:
+  user-profile-postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
-    container_name: user-postgres-exporter
+    container_name: user-profile-postgres-exporter
     depends_on:
-      user-postgres:
+      user-profile-postgres:
         condition: service_healthy
     environment:
-      DATA_SOURCE_NAME: "postgresql://user:user@user-postgres:5432/user_db?sslmode=disable"
+      DATA_SOURCE_NAME: "postgresql://user-profile:user-profile@user-profile-postgres:5432/user_profile?sslmode=disable"
     ports:
       - "9181:9187"
-    deploy:
-      resources:
-        limits:
-          memory: 64M
-          cpus: '0.1'
-        reservations:
-          memory: 32M
-          cpus: '0.05'
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:9187/metrics" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   content-postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
