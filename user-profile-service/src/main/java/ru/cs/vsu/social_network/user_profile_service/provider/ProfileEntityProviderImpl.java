@@ -19,7 +19,7 @@ public class ProfileEntityProviderImpl implements ProfileEntityProvider {
     }
 
     /**
-     * Получает профиль по внутреннему идентификатору
+     * Получает профиль по внутреннему идентификатору.
      *
      * @param id внутренний идентификатор профиля
      * @return найденный профиль
@@ -40,7 +40,7 @@ public class ProfileEntityProviderImpl implements ProfileEntityProvider {
     }
 
     /**
-     * Получает профиль по идентификатору Keycloak
+     * Получает профиль по идентификатору Keycloak.
      *
      * @param keycloakUserId идентификатор пользователя из Keycloak
      * @return найденный профиль

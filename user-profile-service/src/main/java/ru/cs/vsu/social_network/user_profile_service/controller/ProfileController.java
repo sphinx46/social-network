@@ -2,6 +2,7 @@ package ru.cs.vsu.social_network.user_profile_service.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.cs.vsu.social_network.user_profile_service.dto.request.ProfileEditRequest;
@@ -10,37 +11,73 @@ import ru.cs.vsu.social_network.user_profile_service.service.ProfileService;
 
 import java.util.UUID;
 
+@Slf4j
 @RestController
 @RequestMapping("/profile")
 @RequiredArgsConstructor
 public class ProfileController {
     private final ProfileService profileService;
 
+    /**
+     * Создает профиль пользователя с настройками по умолчанию.
+     *
+     * @param keycloakUserId идентификатор пользователя из Keycloak (из заголовка X-User-Id)
+     * @param username имя пользователя (из заголовка X-Username)
+     * @return созданный профиль
+     */
     @PostMapping("/me")
     public ResponseEntity<ProfileResponse> createDefaultProfile(
             @RequestHeader("X-User-Id") UUID keycloakUserId,
             @RequestHeader("X-Username") String username) {
+        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_СОЗДАНИЕ_НАЧАЛО: создание профиля по умолчанию для keycloakUserId: {}, username: {}", keycloakUserId, username);
         ProfileResponse response = profileService.createDefaultProfile(keycloakUserId, username);
+        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_СОЗДАНИЕ_УСПЕХ: профиль создан для keycloakUserId: {}", keycloakUserId);
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Получает профиль текущего аутентифицированного пользователя.
+     *
+     * @param keycloakUserId идентификатор пользователя из Keycloak (из заголовка X-User-Id)
+     * @return профиль пользователя
+     */
     @GetMapping("/me")
     public ResponseEntity<ProfileResponse> getCurrentUserProfile(
             @RequestHeader("X-User-Id") UUID keycloakUserId) {
+        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_ПОЛУЧЕНИЕ_НАЧАЛО: получение текущего профиля для keycloakUserId: {}", keycloakUserId);
         ProfileResponse response = profileService.getProfileByUserId(keycloakUserId);
+        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_ПОЛУЧЕНИЕ_УСПЕХ: профиль получен для keycloakUserId: {}", keycloakUserId);
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Редактирует профиль текущего аутентифицированного пользователя.
+     *
+     * @param request данные для обновления профиля
+     * @param keycloakUserId идентификатор пользователя из Keycloak (из заголовка X-User-Id)
+     * @return обновленный профиль
+     */
     @PutMapping("/me")
     public ResponseEntity<ProfileResponse> editProfile(
             @Valid @RequestBody ProfileEditRequest request,
             @RequestHeader("X-User-Id") UUID keycloakUserId) {
+        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_РЕДАКТИРОВАНИЕ_НАЧАЛО: редактирование профиля для keycloakUserId: {}", keycloakUserId);
         ProfileResponse response = profileService.editProfile(keycloakUserId, request);
+        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_РЕДАКТИРОВАНИЕ_УСПЕХ: профиль отредактирован для keycloakUserId: {}", keycloakUserId);
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Получает профиль пользователя по его Keycloak UUID (публичный эндпоинт).
+     *
+     * @param keycloakUserId идентификатор пользователя из Keycloak
+     * @return профиль пользователя
+     */
     @GetMapping("/{keycloakUserId}")
-    public ResponseEntity<ProfileResponse> getProfileById(@PathVariable UUID keycloakUserId) {
-        return ResponseEntity.ok(profileService.getProfileByUserId(keycloakUserId));
+    public ResponseEntity<ProfileResponse> getProfileById(@PathVariable("keycloakUserId") UUID keycloakUserId) {
+        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_ПОЛУЧЕНИЕ_ПО_ID_НАЧАЛО: получение профиля по keycloakUserId: {}", keycloakUserId);
+        ProfileResponse response = profileService.getProfileByUserId(keycloakUserId);
+        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_ПОЛУЧЕНИЕ_ПО_ID_УСПЕХ: профиль получен для keycloakUserId: {}", keycloakUserId);
+        return ResponseEntity.ok(response);
     }
 }

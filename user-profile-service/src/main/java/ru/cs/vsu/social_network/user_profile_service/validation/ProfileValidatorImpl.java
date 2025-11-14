@@ -11,17 +11,19 @@ import ru.cs.vsu.social_network.user_profile_service.utils.constants.MessageCons
 
 import java.util.UUID;
 
-@Component
 @Slf4j
+@Component
 @RequiredArgsConstructor
 public class ProfileValidatorImpl implements ProfileValidator {
     private final ProfileEntityProvider provider;
 
     /**
-     * Валидирует данные для редактирования профиля
+     * Валидирует данные для редактирования профиля.
      *
      * @param keycloakUserId идентификатор пользователя из Keycloak
      * @param request запрос на редактирование
+     * @throws ProfileBioTooLongException если длина био превышает 500 символов
+     * @throws ProfileCityTooLongException если длина названия города превышает 100 символов
      */
     @Override
     public void validateProfileEdit(UUID keycloakUserId, ProfileEditRequest request) {

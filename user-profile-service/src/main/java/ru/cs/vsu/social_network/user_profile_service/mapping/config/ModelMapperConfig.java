@@ -1,5 +1,6 @@
 package ru.cs.vsu.social_network.user_profile_service.mapping.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
 import org.springframework.context.annotation.Bean;
@@ -10,11 +11,18 @@ import ru.cs.vsu.social_network.user_profile_service.entity.Profile;
 import java.time.LocalDate;
 import java.time.Period;
 
+@Slf4j
 @Configuration
 public class ModelMapperConfig {
 
+    /**
+     * Создает и настраивает ModelMapper для преобразования сущностей в DTO.
+     *
+     * @return настроенный ModelMapper
+     */
     @Bean
     public ModelMapper modelMapper() {
+        log.debug("ПРОФИЛЬ_МАППИНГ_НАСТРОЙКА_НАЧАЛО: настройка ModelMapper");
         ModelMapper modelMapper = new ModelMapper();
 
         configureProfileMappings(modelMapper);
@@ -24,10 +32,15 @@ public class ModelMapperConfig {
                 .setSkipNullEnabled(true)
                 .setFieldAccessLevel(org.modelmapper.config.Configuration.AccessLevel.PRIVATE);
 
+        log.debug("ПРОФИЛЬ_МАППИНГ_НАСТРОЙКА_УСПЕХ: ModelMapper настроен");
         return modelMapper;
     }
 
-
+    /**
+     * Настраивает маппинг между Profile и ProfileResponse, включая вычисление возраста.
+     *
+     * @param modelMapper ModelMapper для настройки
+     */
     private void configureProfileMappings(ModelMapper modelMapper) {
         Converter<Profile, Integer> ageConverter = context -> {
             Profile profile = context.getSource();

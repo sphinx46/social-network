@@ -4,63 +4,197 @@ server:
 spring:
   application:
     name: api-gateway
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://keycloak:8080/realms/social-network
+  
+  # Redis configuration for session storage
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+  
+  # Spring Session configuration
+  session:
+    store-type: redis
+    redis:
+      namespace: spring:session:api-gateway
+    timeout: 30m
+  
   cloud:
     gateway:
       discovery:
         locator:
           enabled: true
           lower-case-service-id: true
-      httpclient:
-        connect-timeout: 1000
-        response-timeout: 5s
+          url-expression: "'http://'+serviceId"
+      routes:
+        # User Profile Service - Authenticated endpoints (POST, PUT, GET /me)
+        - id: user-profile-service-auth
+          uri: lb://user-profile-service
+          predicates:
+            - Path=/api/profile/me
+          filters:
+            - name: UserContextFilter
+              args:
+                enabled: true
+            - TokenRelay=
+            - RewritePath=/api/profile/me, /api/user-profile/profile/me
+          metadata:
+            response-timeout: 5000
+            connect-timeout: 2000
+        
+        # User Profile Service - Public endpoints (GET by UUID)
+        - id: user-profile-service-public
+          uri: lb://user-profile-service
+          predicates:
+            - Path=/api/profile/{keycloakUserId}
+            - Method=GET
+          filters:
+            - RewritePath=/api/profile/(?<keycloakUserId>.*), /api/user-profile/profile/${keycloakUserId}
+          metadata:
+            response-timeout: 5000
+            connect-timeout: 2000
+        
+        # Keycloak Auth endpoints
+        - id: keycloak-auth
+          uri: http://keycloak:8080
+          predicates:
+            - Path=/auth/**
+          filters:
+            - RewritePath=/auth/(?<segment>.*), /${segment}
+            - AddRequestHeader=X-Gateway, api-gateway
+        
+        # Eureka Dashboard
+        - id: eureka-dashboard
+          uri: http://eureka-server:8761
+          predicates:
+            - Path=/eureka/**
+          filters:
+            - AddRequestHeader=X-Gateway, api-gateway
+      
+      # Global CORS configuration
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOriginPatterns: "*"  # Use allowedOriginPatterns instead of allowedOrigins when allowCredentials is true
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+            maxAge: 3600
+      
+      # Default filters for all routes
       default-filters:
-        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+        - AddResponseHeader=X-Gateway-Version, 1.0.0
+  
+  # OAuth2 Client configuration for BFF pattern
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            # Use explicit URIs instead of issuer-uri to avoid metadata discovery issues
+            # Authorization URI must use localhost for browser redirects
+            # Token and other URIs can use keycloak hostname for internal Docker network access
+            jwk-set-uri: http://keycloak:8080/realms/social-network/protocol/openid-connect/certs
+            authorization-uri: http://localhost:8080/realms/social-network/protocol/openid-connect/auth
+            token-uri: http://keycloak:8080/realms/social-network/protocol/openid-connect/token
+            user-info-uri: http://keycloak:8080/realms/social-network/protocol/openid-connect/userinfo
+            user-name-attribute: preferred_username
+        registration:
+          keycloak:
+            provider: keycloak
+            client-id: ${KEYCLOAK_CLIENT_ID:api-gateway}
+            client-secret: ${KEYCLOAK_CLIENT_SECRET:oZIek84UaPuMBnXdK34GHzMRjFQCddJ1}
+            authorization-grant-type: authorization_code
+            scope:
+              - openid
+              - email
+              - profile
+              - roles
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
 
 eureka:
   client:
     service-url:
-      defaultZone: http://eureka-server:8761/eureka/
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE:http://eureka-server:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
     registry-fetch-interval-seconds: 5
     initial-instance-info-replication-interval-seconds: 5
+    healthcheck:
+      enabled: true
   instance:
-    prefer-ip-address: true
-    lease-renewal-interval-in-seconds: 10
-    lease-expiration-duration-in-seconds: 30
+    hostname: ${HOSTNAME:api-gateway}
+    prefer-ip-address: false
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10
+    health-check-url-path: /actuator/health
+    status-page-url-path: /actuator/info
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics,prometheus,gateway
+      base-path: /actuator
   endpoint:
     health:
       show-details: always
       probes:
         enabled: true
-
-logging:
-  level:
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.security: DEBUG
-    org.springframework.web: DEBUG
-    reactor.netty: DEBUG
-    ru.vsu.cs.social_network.api_gateway: TRACE
-  pattern:
-    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+    gateway:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  health:
+    circuitbreakers:
+      enabled: true
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
 
 resilience4j:
   circuitbreaker:
-    instances:
-      userProfileService:
-        register-health-indicator: true
-        sliding-window-size: 10
-        minimum-number-of-calls: 5
+    configs:
+      default:
+        registerHealthIndicator: true
+        slidingWindowSize: 10
+        minimumNumberOfCalls: 5
+        permittedNumberOfCallsInHalfOpenState: 3
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 10s
+        failureRateThreshold: 50
+        eventConsumerBufferSize: 10
   timelimiter:
-    instances:
-      userProfileService:
-        timeout-duration: 5s
+    configs:
+      default:
+        timeoutDuration: 5s
+        cancelRunningFuture: true
+
+logging:
+  level:
+    root: INFO
+    ru.vsu.cs.social_network.api_gateway: DEBUG
+    org.springframework.cloud.gateway: INFO
+    org.springframework.security: INFO
+    org.springframework.web: INFO
+    org.springframework.session: INFO
+    com.netflix.eureka: INFO
+    com.netflix.discovery: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

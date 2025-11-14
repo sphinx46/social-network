@@ -1,22 +1,35 @@
 package ru.cs.vsu.social_network.user_profile_service.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
+    /**
+     * Настраивает Security Filter Chain для user-profile-service.
+     * Отключает CSRF и разрешает доступ ко всем запросам, так как валидация выполняется в api-gateway.
+     *
+     * @param http объект для настройки безопасности
+     * @return настроенная цепочка фильтров безопасности
+     * @throws Exception при ошибке настройки
+     */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        log.info("ПРОФИЛЬ_БЕЗОПАСНОСТЬ_НАСТРОЙКА_НАЧАЛО: настройка Security Filter Chain");
+        SecurityFilterChain chain = http
                 .csrf(csrf -> csrf.disable())
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll()  // Разрешаем ВСЕ запросы без аутентификации
-                );
-        return http.build();
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
+                .build();
+        log.info("ПРОФИЛЬ_БЕЗОПАСНОСТЬ_НАСТРОЙКА_УСПЕХ: Security Filter Chain настроен");
+        return chain;
     }
 }

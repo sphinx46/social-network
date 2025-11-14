@@ -5,7 +5,6 @@ import ru.cs.vsu.social_network.user_profile_service.dto.response.ProfileRespons
 
 import java.util.UUID;
 
-
 public interface ProfileService {
     ProfileResponse getProfileByUserId(UUID id);
     ProfileResponse editProfile(UUID id, ProfileEditRequest request);

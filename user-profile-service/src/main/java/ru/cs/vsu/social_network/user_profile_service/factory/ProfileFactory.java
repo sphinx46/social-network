@@ -11,13 +11,15 @@ import java.util.UUID;
 public class ProfileFactory {
 
     /**
-     * Создает профиль с настройками по умолчанию
+     * Создает профиль с настройками по умолчанию.
      *
      * @param keycloakUserId идентификатор пользователя из Keycloak
      * @param username имя пользователя
      * @return профиль с настройками по умолчанию
      */
     public Profile createDefaultProfile(UUID keycloakUserId, String username) {
+        log.debug("ПРОФИЛЬ_ФАБРИКА_СОЗДАНИЕ_НАЧАЛО: создание профиля по умолчанию для keycloakUserId: {}, username: {}", keycloakUserId, username);
+        
         Profile profile = Profile.builder()
                 .keycloakUserId(keycloakUserId)
                 .username(username)
@@ -28,8 +30,7 @@ public class ProfileFactory {
                 .dateOfBirth(null)
                 .build();
 
-        log.debug("ПРОФИЛЬ_ФАБРИКА_СОЗДАНИЕ: профиль по умолчанию создан для keycloakUserId: {}, username: {}",
-                keycloakUserId, username);
+        log.debug("ПРОФИЛЬ_ФАБРИКА_СОЗДАНИЕ_УСПЕХ: профиль по умолчанию создан для keycloakUserId: {}", keycloakUserId);
         return profile;
     }
 }

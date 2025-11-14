@@ -709,19 +709,20 @@
       "id": "9552b051-c41a-42de-b945-9cc95b1ef794",
       "clientId": "api-gateway",
       "name": "API Gateway",
-      "description": "Backend API Gateway",
-      "rootUrl": "http://localhost:8090",
-      "adminUrl": "http://localhost:8090",
-      "baseUrl": "http://localhost:8090",
+      "description": "Backend API Gateway - Private OAuth2 Client for BFF pattern",
+      "rootUrl": "http://localhost:8082",
+      "adminUrl": "http://localhost:8082",
+      "baseUrl": "http://localhost:8082",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "http://localhost:8090/*"
+        "http://localhost:8082/*",
+        "http://localhost:8082/login/oauth2/code/keycloak"
       ],
       "webOrigins": [
-        "http://localhost:8090"
+        "http://localhost:8082"
       ],
       "notBefore": 0,
       "bearerOnly": false,
@@ -730,7 +731,7 @@
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": false,
-      "publicClient": true,
+      "publicClient": false,
       "frontchannelLogout": true,
       "protocol": "openid-connect",
       "attributes": {
@@ -739,7 +740,7 @@
         "backchannel.logout.session.required": "true",
         "standard.token.exchange.enabled": "false",
         "frontchannel.logout.session.required": "true",
-        "post.logout.redirect.uris": "http://localhost:8090",
+        "post.logout.redirect.uris": "http://localhost:8082",
         "display.on.consent.screen": "false",
         "oauth2.device.authorization.grant.enabled": "false",
         "backchannel.logout.revoke.offline.tokens": "false"

@@ -16,10 +16,6 @@ import ru.cs.vsu.social_network.user_profile_service.validation.ProfileValidator
 
 import java.util.UUID;
 
-/**
- * Сервис для управления профилями пользователей.
- * Обеспечивает операции получения, редактирования и создания профиля.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -31,7 +27,7 @@ public class ProfileServiceImpl implements ProfileService {
     private final EntityMapper mapper;
 
     /**
-     * Получает профиль пользователя по идентификатору Keycloak
+     * Получает профиль пользователя по идентификатору Keycloak.
      *
      * @param keycloakUserId идентификатор пользователя из Keycloak
      * @return данные профиля пользователя
@@ -50,7 +46,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     /**
-     * Редактирует профиль пользователя
+     * Редактирует профиль пользователя.
      *
      * @param keycloakUserId идентификатор пользователя из Keycloak
      * @param request данные для обновления профиля
@@ -76,7 +72,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     /**
-     * Создает профиль пользователя с настройками по умолчанию
+     * Создает профиль пользователя с настройками по умолчанию.
      *
      * @param keycloakUserId идентификатор пользователя из Keycloak
      * @param username имя пользователя
@@ -87,8 +83,10 @@ public class ProfileServiceImpl implements ProfileService {
         log.info("ПРОФИЛЬ_СОЗДАНИЕ_НАЧАЛО: создание профиля для keycloakUserId: {}, username: {}", keycloakUserId, username);
 
         if (profileRepository.existsByKeycloakUserId(keycloakUserId)) {
-            log.warn("ПРОФИЛЬ_СОЗДАНИЕ_ОШИБКА: профиль для keycloakUserId {} уже существует", keycloakUserId);
-            throw new ProfileAlreadyExistsException("Профиль уже существует");
+            log.info("ПРОФИЛЬ_СОЗДАНИЕ_СУЩЕСТВУЕТ: профиль для keycloakUserId {} уже существует, возвращаем существующий", keycloakUserId);
+            Profile existingProfile = provider.getByKeycloakUserId(keycloakUserId);
+            log.info("ПРОФИЛЬ_СОЗДАНИЕ_ВОЗВРАТ: возвращаем существующий профиль для keycloakUserId {}", keycloakUserId);
+            return mapper.map(existingProfile, ProfileResponse.class);
         }
 
         Profile profile = factory.createDefaultProfile(keycloakUserId, username);
@@ -100,7 +98,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     /**
-     * Обновляет поля профиля на основе данных из запроса
+     * Обновляет поля профиля на основе данных из запроса.
      *
      * @param profile сущность профиля для обновления
      * @param request запрос с данными для обновления
