@@ -31,7 +31,7 @@ public class GatewayConfig {
                     .switchIfEmpty(
                             Mono.defer(() -> {
                                 String ip = exchange.getRequest().getRemoteAddress() != null
-                                        ? exchange.getRequest().getRemoteAddress().getAddress().getHostAddress()
+                                    ? exchange.getRequest().getRemoteAddress().getAddress().getHostAddress()
                                         : "unknown";
                                 log.debug("ШЛЮЗ_КОНФИГ_РЕЗОЛВЕР_IP: использование IP адреса для rate limiting: {}", ip);
                                 return Mono.just(ip);

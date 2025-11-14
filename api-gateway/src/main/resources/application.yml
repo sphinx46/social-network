@@ -115,7 +115,7 @@ spring:
           keycloak:
             provider: keycloak
             client-id: ${KEYCLOAK_CLIENT_ID:api-gateway}
-            client-secret: ${KEYCLOAK_CLIENT_SECRET:oZIek84UaPuMBnXdK34GHzMRjFQCddJ1}
+            client-secret: ${KEYCLOAK_CLIENT_SECRET:axTCR87wh9WJMgGC9Bgf7rNSdU6WYHFy}
             authorization-grant-type: authorization_code
             scope:
               - openid
