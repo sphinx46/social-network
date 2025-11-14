@@ -3,13 +3,16 @@ spring:
     activate:
       on-profile: prod
     import: optional:file:./.env.prod[.properties]
-
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak:8080/realms/social-network}
   datasource:
     url: ${POSTGRES_DB_URL}
     username: ${POSTGRES_PG_USERNAME}
     password: ${POSTGRES_PG_PASSWORD}
     driver-class-name: org.postgresql.Driver
-
   jpa:
     hibernate:
       ddl-auto: validate
@@ -21,6 +24,15 @@ eureka:
   client:
     service-url:
       defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
 
 logging:
   level:

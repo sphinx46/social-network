@@ -2,16 +2,18 @@ spring:
   config:
     activate:
       on-profile: dev
-    import: optional:file:./.env.dev[.properties]
-
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/realms/social-network
   datasource:
-    url: ${POSTGRES_DB_URL:jdbc:postgresql://user-profile-postgres:5432/user_profile}
-    username: ${POSTGRES_PG_USERNAME:user-profile}
-    password: ${POSTGRES_PG_PASSWORD:user-profile}
+    url: jdbc:postgresql://user-profile-postgres:5432/user_profile
+    username: user-profile
+    password: user-profile
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 5
-
   jpa:
     hibernate:
       ddl-auto: update
@@ -22,13 +24,30 @@ spring:
 
 eureka:
   instance:
-    hostname: ${EUREKA_INSTANCE_HOSTNAME:user-profile-service}
+    hostname: user-profile-service
     prefer-ip-address: false
+    instance-id: ${spring.application.name}:${server.port}
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 10
   client:
+    register-with-eureka: true
+    fetch-registry: true
     service-url:
-      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE:http://localhost:8761/eureka/}
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE:http://eureka-server:8761/eureka/}
+    registry-fetch-interval-seconds: 5
+    initial-instance-info-replication-interval-seconds: 5
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
 
 logging:
   level:
-    com.yourcompany.userprofile: DEBUG
-    org.springframework.web: DEBUG
+    ru.cs.vsu.social_network: DEBUG
+    org.springframework.cloud: INFO
+    org.springframework.security: DEBUG
