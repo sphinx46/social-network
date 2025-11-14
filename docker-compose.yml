@@ -1,4 +1,31 @@
+version: '3.8'
+
 services:
+  eureka-server:
+    build:
+      context: ./eureka-server
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    networks:
+      - social-network
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8082:8082"
+    environment:
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE=http://eureka-server:8761/eureka/
+    depends_on:
+      eureka-server:
+        condition: service_started
+      keycloak:
+        condition: service_started
+    networks:
+      - social-network
+
   redis:
     image: redis:7-alpine
     container_name: redis
@@ -18,6 +45,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - social-network
 
   user-profile-service:
     build:
@@ -29,17 +58,22 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: dev
       JAVA_OPTS: "-Xms256m -Xmx512m"
+      EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE: http://eureka-server:8761/eureka/
     depends_on:
       user-profile-postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      eureka-server:
+        condition: service_started
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080/api/user-profile/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - social-network
 
   user-profile-postgres:
     image: postgres:17-alpine
@@ -57,6 +91,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - social-network
 
   relationship-postgres:
     image: postgres:17-alpine
@@ -84,6 +120,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - social-network
 
   content-postgres:
     image: postgres:17-alpine
@@ -111,6 +149,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - social-network
 
   feed-postgres:
     image: postgres:17-alpine
@@ -138,6 +178,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - social-network
 
   messaging-postgres:
     image: postgres:17-alpine
@@ -165,6 +207,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - social-network
 
   notification-postgres:
     image: postgres:17-alpine
@@ -192,6 +236,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - social-network
 
   keycloak-postgres:
     image: postgres:17-alpine
@@ -217,6 +263,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - social-network
 
   user-profile-postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
@@ -233,6 +281,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - social-network
 
   content-postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
@@ -252,6 +302,8 @@ services:
         reservations:
           memory: 32M
           cpus: '0.05'
+    networks:
+      - social-network
 
   relationship-postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
@@ -271,6 +323,8 @@ services:
         reservations:
           memory: 32M
           cpus: '0.05'
+    networks:
+      - social-network
 
   feed-postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
@@ -290,6 +344,8 @@ services:
         reservations:
           memory: 32M
           cpus: '0.05'
+    networks:
+      - social-network
 
   messaging-postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
@@ -309,6 +365,8 @@ services:
         reservations:
           memory: 32M
           cpus: '0.05'
+    networks:
+      - social-network
 
   notification-postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
@@ -328,6 +386,8 @@ services:
         reservations:
           memory: 32M
           cpus: '0.05'
+    networks:
+      - social-network
 
   keycloak-postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
@@ -347,7 +407,8 @@ services:
         reservations:
           memory: 32M
           cpus: '0.05'
-
+    networks:
+      - social-network
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.2
@@ -368,7 +429,6 @@ services:
       KC_DB_PASSWORD: keycloak
       KC_METRICS_ENABLED: "true"
       KC_HEALTH_ENABLED: "true"
-
       KC_HOSTNAME: localhost
       KC_SMTP_HOST: maildev
       KC_SMTP_PORT: 1025
@@ -377,11 +437,9 @@ services:
       KC_SMTP_AUTH: "false"
       KC_SMTP_SSL: "false"
       KC_SMTP_STARTTLS: "false"
-
       KC_HOSTNAME_STRICT: "false"
       KC_HOSTNAME_STRICT_HTTPS: "false"
       KC_HTTP_ENABLED: "true"
-
       JAVA_OPTS: "-Xms256m -Xmx512m -XX:MaxMetaspaceSize=256m"
     volumes:
       - ./infrastructure/keycloak/realm-config.json:/opt/keycloak/data/import/realm-config.json
@@ -399,10 +457,13 @@ services:
           memory: 512M
           cpus: '1.0'
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080/health/ready" ]
+      test: [ "CMD-SHELL", "cat /proc/net/tcp 2>/dev/null | grep -q ':901F' || cat /proc/net/tcp 2>/dev/null | grep -q '00000000:901F' || exit 1" ]
       interval: 10s
       timeout: 5s
       retries: 30
+      start_period: 60s
+    networks:
+      - social-network
 
   prometheus:
     image: prom/prometheus:latest
@@ -429,6 +490,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - social-network
 
   loki:
     image: grafana/loki:2.9.2
@@ -451,6 +514,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - social-network
 
   tempo:
     image: grafana/tempo:2.4.1
@@ -475,6 +540,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - social-network
 
   alloy:
     image: grafana/alloy:latest
@@ -504,6 +571,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - social-network
 
   grafana:
     image: grafana/grafana:10.3.1
@@ -530,7 +599,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-
+    networks:
+      - social-network
 
   maildev:
     image: maildev/maildev
@@ -551,6 +621,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - social-network
 
 volumes:
   tempo_data:
+
+networks:
+  social-network:
+    driver: bridge

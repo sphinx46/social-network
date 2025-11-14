@@ -2,11 +2,6 @@ spring:
   config:
     activate:
       on-profile: dev
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          issuer-uri: http://localhost:8080/realms/social-network
   datasource:
     url: jdbc:postgresql://user-profile-postgres:5432/user_profile
     username: user-profile
