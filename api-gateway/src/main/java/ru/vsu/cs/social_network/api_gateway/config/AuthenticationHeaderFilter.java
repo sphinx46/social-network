@@ -28,6 +28,12 @@ public class AuthenticationHeaderFilter implements GatewayFilter {
                         String userId = jwt.getSubject();
                         String username = jwt.getClaim("preferred_username");
 
+                        // Добавляем проверку на null и пустую строку
+                        if (userId == null || userId.trim().isEmpty()) {
+                            throw new IllegalArgumentException("User ID is missing in token");
+                        }
+
+                        // Пробуем распарсить UUID, но не сохраняем результат
                         UUID.fromString(userId);
 
                         ServerHttpRequest mutatedRequest = exchange.getRequest().mutate()
@@ -37,11 +43,14 @@ public class AuthenticationHeaderFilter implements GatewayFilter {
 
                         return chain.filter(exchange.mutate().request(mutatedRequest).build());
                     } catch (Exception e) {
+                        // Добавляем логирование для отладки
+                        System.err.println("Authentication error: " + e.getMessage());
                         exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                         return exchange.getResponse().setComplete();
                     }
                 })
                 .switchIfEmpty(Mono.defer(() -> {
+                    System.err.println("No authentication context found");
                     exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
                     return exchange.getResponse().setComplete();
                 }));
