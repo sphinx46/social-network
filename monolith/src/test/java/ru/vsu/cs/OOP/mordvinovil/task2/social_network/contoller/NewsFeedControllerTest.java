@@ -121,18 +121,18 @@ public class NewsFeedControllerTest extends BaseControllerTest {
                 .build();
 
         var user = TestDataFactory.createTestUser(1L, "testUser");
-        var nonCachingService = mock(NewsFeedService.class);
+        var cachingService = mock(NewsFeedService.class);
 
         when(userService.getCurrentUser()).thenReturn(user);
-        when(newsFeedServiceFactory.getService(CacheMode.NONE_CACHE)).thenReturn(nonCachingService);
-        when(nonCachingService.getPostsByFriends(any(), any())).thenReturn(pageResponse);
+        when(newsFeedServiceFactory.getService(CacheMode.CACHE)).thenReturn(cachingService);
+        when(cachingService.getPostsByFriends(any(), any())).thenReturn(pageResponse);
 
         mockMvcUtils.performGet("/newsfeed?size=10&pageNumber=0")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content.length()").value(10));
 
-        verify(newsFeedServiceFactory, times(1)).getService(CacheMode.NONE_CACHE);
-        verify(nonCachingService, times(1)).getPostsByFriends(any(), any());
+        verify(newsFeedServiceFactory, times(1)).getService(CacheMode.CACHE);
+        verify(cachingService, times(1)).getPostsByFriends(any(), any());
         verify(userService, times(1)).getCurrentUser();
     }
 

@@ -5,7 +5,6 @@ spring:
   application:
     name: api-gateway
   
-  # Redis configuration for session storage
   data:
     redis:
       host: ${REDIS_HOST:redis}
@@ -17,7 +16,6 @@ spring:
           max-idle: 8
           min-idle: 0
   
-  # Spring Session configuration
   session:
     store-type: redis
     redis:
@@ -26,13 +24,7 @@ spring:
   
   cloud:
     gateway:
-      discovery:
-        locator:
-          enabled: true
-          lower-case-service-id: true
-          url-expression: "'http://'+serviceId"
       routes:
-        # User Profile Service - Authenticated endpoints (POST, PUT, GET /me)
         - id: user-profile-service-auth
           uri: lb://user-profile-service
           predicates:
@@ -47,7 +39,6 @@ spring:
             response-timeout: 5000
             connect-timeout: 2000
         
-        # User Profile Service - Public endpoints (GET by UUID)
         - id: user-profile-service-public
           uri: lb://user-profile-service
           predicates:
@@ -59,7 +50,6 @@ spring:
             response-timeout: 5000
             connect-timeout: 2000
         
-        # Keycloak Auth endpoints
         - id: keycloak-auth
           uri: http://keycloak:8080
           predicates:
@@ -68,7 +58,6 @@ spring:
             - RewritePath=/auth/(?<segment>.*), /${segment}
             - AddRequestHeader=X-Gateway, api-gateway
         
-        # Eureka Dashboard
         - id: eureka-dashboard
           uri: http://eureka-server:8761
           predicates:
@@ -76,36 +65,45 @@ spring:
           filters:
             - AddRequestHeader=X-Gateway, api-gateway
       
-      # Global CORS configuration
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowedOriginPatterns: "*"  # Use allowedOriginPatterns instead of allowedOrigins when allowCredentials is true
-            allowedMethods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - PATCH
-              - OPTIONS
-            allowedHeaders: "*"
-            allowCredentials: true
-            maxAge: 3600
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+              url-expression: "'http://'+serviceId"
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOriginPatterns: ${CORS_ALLOWED_ORIGINS:http://localhost:*,http://127.0.0.1:*}
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - PATCH
+                  - OPTIONS
+                allowedHeaders:
+                  - Content-Type
+                  - Authorization
+                  - X-Requested-With
+                  - X-User-Id
+                  - X-Username
+                  - X-Email
+                  - X-First-Name
+                  - X-Last-Name
+                allowCredentials: true
+                maxAge: 3600
       
-      # Default filters for all routes
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
         - AddResponseHeader=X-Gateway-Version, 1.0.0
   
-  # OAuth2 Client configuration for BFF pattern
   security:
     oauth2:
       client:
         provider:
           keycloak:
-            # Use explicit URIs instead of issuer-uri to avoid metadata discovery issues
-            # Authorization URI must use localhost for browser redirects
-            # Token and other URIs can use keycloak hostname for internal Docker network access
             jwk-set-uri: http://keycloak:8080/realms/social-network/protocol/openid-connect/certs
             authorization-uri: http://localhost:8080/realms/social-network/protocol/openid-connect/auth
             token-uri: http://keycloak:8080/realms/social-network/protocol/openid-connect/token
@@ -115,7 +113,7 @@ spring:
           keycloak:
             provider: keycloak
             client-id: ${KEYCLOAK_CLIENT_ID:api-gateway}
-            client-secret: ${KEYCLOAK_CLIENT_SECRET:oZIek84UaPuMBnXdK34GHzMRjFQCddJ1}
+            client-secret: ${KEYCLOAK_CLIENT_SECRET}
             authorization-grant-type: authorization_code
             scope:
               - openid
@@ -123,6 +121,10 @@ spring:
               - profile
               - roles
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
+app:
+  logout:
+    redirect-uri: ${LOGOUT_REDIRECT_URI:http://localhost:8082/}
 
 eureka:
   client:
@@ -150,14 +152,12 @@ management:
       base-path: /actuator
   endpoint:
     health:
-      show-details: always
+      show-details: ${HEALTH_SHOW_DETAILS:when-authorized}
       probes:
         enabled: true
-    gateway:
-      enabled: true
-  metrics:
-    export:
-      prometheus:
+  prometheus:
+    metrics:
+      export:
         enabled: true
   health:
     circuitbreakers:
@@ -188,7 +188,7 @@ resilience4j:
 logging:
   level:
     root: INFO
-    ru.vsu.cs.social_network.api_gateway: DEBUG
+    ru.vsu.cs.social_network.api_gateway: ${LOG_LEVEL:INFO}
     org.springframework.cloud.gateway: INFO
     org.springframework.security: INFO
     org.springframework.web: INFO
