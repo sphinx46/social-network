@@ -12,12 +12,6 @@ import reactor.core.publisher.Mono;
 @RestController
 public class HomeController {
 
-    /**
-     * Возвращает главную страницу с информацией о статусе аутентификации и доступных эндпоинтах.
-     *
-     * @param oidcUser аутентифицированный пользователь (может быть null)
-     * @return Mono с ответом, содержащим информацию о статусе аутентификации
-     */
     @GetMapping("/")
     public Mono<ResponseEntity<String>> home(@AuthenticationPrincipal OidcUser oidcUser) {
         if (oidcUser != null) {

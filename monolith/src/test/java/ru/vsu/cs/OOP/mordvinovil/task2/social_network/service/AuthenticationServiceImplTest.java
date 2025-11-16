@@ -95,6 +95,8 @@ class AuthenticationServiceImplTest {
 
         when(userServiceImpl.userDetailsService()).thenReturn(userDetailsService);
         when(userDetailsService.loadUserByUsername("testuser")).thenReturn(userDetails);
+        when(userServiceImpl.getByUsername("testuser")).thenReturn(user);
+        when(userServiceImpl.save(any(User.class))).thenReturn(user);
         when(jwtServiceImpl.generateToken(userDetails)).thenReturn("jwt-token");
 
         JwtAuthenticationResponse response = authenticationServiceImpl.signIn(signInRequest);
@@ -103,6 +105,8 @@ class AuthenticationServiceImplTest {
         assertEquals("jwt-token", response.getToken());
         verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(userDetailsService).loadUserByUsername("testuser");
+        verify(userServiceImpl).getByUsername("testuser");
+        verify(userServiceImpl).save(any(User.class));
         verify(jwtServiceImpl).generateToken(userDetails);
     }
 
@@ -118,6 +122,8 @@ class AuthenticationServiceImplTest {
 
         when(userServiceImpl.userDetailsService()).thenReturn(userDetailsService);
         when(userDetailsService.loadUserByUsername("testuser")).thenReturn(userDetails);
+        when(userServiceImpl.getByUsername("testuser")).thenReturn(user);
+        when(userServiceImpl.save(any(User.class))).thenReturn(user);
         when(jwtServiceImpl.generateToken(userDetails)).thenReturn("jwt-token");
 
         authenticationServiceImpl.signIn(signInRequest);
@@ -125,6 +131,8 @@ class AuthenticationServiceImplTest {
         verify(authenticationManager).authenticate(
                 new UsernamePasswordAuthenticationToken("testuser", "password123")
         );
+        verify(userServiceImpl).getByUsername("testuser");
+        verify(userServiceImpl).save(any(User.class));
     }
 
     private User createTestUser(Long id, String username, String email) {

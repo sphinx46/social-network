@@ -1,9 +1,9 @@
 package ru.vsu.cs.social_network.api_gateway.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.client.web.server.ServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.oauth2.client.web.server.WebSessionServerOAuth2AuthorizedClientRepository;
@@ -26,9 +26,12 @@ import org.springframework.session.data.redis.config.annotation.web.server.Enabl
 @EnableRedisWebSession
 public class SecurityConfig {
 
+    @Value("${app.logout.redirect-uri:http://localhost:8082/}")
+    private String logoutRedirectUri;
+
     /**
      * Настраивает Security Web Filter Chain для API Gateway.
-     * Конфигурирует OAuth2 login, logout и правила авторизации.
+     * Конфигурирует OAuth2 login, logout, CSRF защиту и правила авторизации.
      *
      * @param httpSecurity объект для настройки безопасности
      * @param authorizedClientRepository репозиторий для хранения авторизованных OAuth2 клиентов
@@ -52,9 +55,8 @@ public class SecurityConfig {
                 .authorizeExchange(
                         authorizeExchange ->
                                 authorizeExchange.pathMatchers(
-                                                "/actuator/**",
-                                                "/access-token/**",
-                                                "/id-token",
+                                                "/actuator/health",
+                                                "/actuator/info",
                                                 "/auth/**",
                                                 "/realms/**",
                                                 "/eureka/**",
@@ -63,7 +65,7 @@ public class SecurityConfig {
                                                 "/",
                                                 "/api/profile/{keycloakUserId}")
                                         .permitAll()
-                                        .pathMatchers("/api/profile/me")
+                                        .pathMatchers("/api/profile/me", "/access-token/**", "/id-token")
                                         .authenticated()
                                         .anyExchange()
                                         .authenticated()
@@ -118,7 +120,7 @@ public class SecurityConfig {
         log.debug("ШЛЮЗ_БЕЗОПАСНОСТЬ_ВЫХОД: создание OidcClientInitiatedServerLogoutSuccessHandler");
         OidcClientInitiatedServerLogoutSuccessHandler handler = 
                 new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository);
-        handler.setPostLogoutRedirectUri("http://localhost:8082/");
+        handler.setPostLogoutRedirectUri(logoutRedirectUri);
         return handler;
     }
 
