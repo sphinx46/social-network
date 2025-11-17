@@ -630,4 +630,3 @@ make deploy
 [⬆ Наверх](#-social-network-monolith)
 
 </div>
-
