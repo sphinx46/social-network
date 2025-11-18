@@ -4,6 +4,7 @@ server:
 spring:
   application:
     name: api-gateway
+
   
   data:
     redis:
@@ -125,6 +126,8 @@ spring:
 app:
   logout:
     redirect-uri: ${LOGOUT_REDIRECT_URI:http://localhost:8082/}
+  gateway:
+      signature-secret: ${SIGNATURE_KEY_SECRET}
 
 eureka:
   client:
