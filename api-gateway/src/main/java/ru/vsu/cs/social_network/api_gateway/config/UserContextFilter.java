@@ -1,6 +1,7 @@
 package ru.vsu.cs.social_network.api_gateway.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.http.HttpStatus;
@@ -11,12 +12,19 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
 @Slf4j
 @Component
 public class UserContextFilter extends AbstractGatewayFilterFactory<UserContextFilter.Config> {
+    @Value("${app.gateway.signature-secret}")
+    private String signatureSecret;
+
 
     private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9._-]{1,100}$");
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
@@ -69,15 +77,21 @@ public class UserContextFilter extends AbstractGatewayFilterFactory<UserContextF
 
                             log.debug("ШЛЮЗ_КОНТЕКСТ_ДАННЫЕ: userId={}, username={}", userId, username);
 
+                            String currentTimestamp = String.valueOf(System.currentTimeMillis());
+                            String signature = generateSignature(userId, currentTimestamp);
+
                             ServerHttpRequest request = exchange.getRequest().mutate()
                                     .header("X-User-Id", userId)
                                     .header("X-Username", username != null ? username : "")
                                     .header("X-Email", email != null ? email : "")
                                     .header("X-First-Name", firstName != null ? firstName : "")
                                     .header("X-Last-Name", lastName != null ? lastName : "")
+                                    .header("X-Timestamp", currentTimestamp)
+                                    .header("X-Signature", signature)
                                     .build();
 
-                            log.debug("ШЛЮЗ_КОНТЕКСТ_УСПЕХ: заголовки пользователя добавлены для userId: {}", userId);
+                            log.debug("ШЛЮЗ_ПОДПИСЬ_СГЕНЕРИРОВАНА: Подпись заголовков для userId: {}, timestamp: {}", userId, currentTimestamp);
+
                             return exchange.mutate().request(request).build();
                         } catch (IllegalArgumentException e) {
                             log.error("ШЛЮЗ_КОНТЕКСТ_ОШИБКА: неверный формат user ID в OIDC user: {}", e.getMessage(), e);
@@ -137,6 +151,31 @@ public class UserContextFilter extends AbstractGatewayFilterFactory<UserContextF
             return null;
         }
         return sanitized;
+    }
+
+
+    /**
+     * Генерирует HMAC подпись для данных пользователя.
+     *
+     * @param userId    идентификатор пользователя
+     * @param timestamp временная метка
+     * @return Base64-encoded подпись
+     */
+    private String generateSignature(String userId, String timestamp) {
+        try {
+            String dataToSign = userId + "|" + timestamp;
+            SecretKeySpec secretKeySpec = new SecretKeySpec(
+                    signatureSecret.getBytes(StandardCharsets.UTF_8),
+                    "HmacSHA256"
+            );
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(secretKeySpec);
+            byte[] signatureBytes = mac.doFinal(dataToSign.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(signatureBytes);
+        } catch (Exception e) {
+            log.error("ШЛЮЗ_ПОДПИСЬ_ОШИБКА: Ошибка генерации подписи для userId: {}", userId, e);
+            throw new IllegalStateException("Не удалось сгенерировать подпись заголовков");
+        }
     }
 
     public static class Config {

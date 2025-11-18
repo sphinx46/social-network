@@ -33,3 +33,7 @@ management:
   endpoint:
     health:
       show-details: always
+
+app:
+  gateway:
+    signature-secret: ${SIGNATURE_KEY_SECRET}
