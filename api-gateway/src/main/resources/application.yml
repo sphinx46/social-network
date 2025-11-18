@@ -10,7 +10,7 @@ spring:
     redis:
       host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
-      timeout: 2000ms
+      timeout: 5000ms
       lettuce:
         pool:
           max-active: 8
@@ -36,15 +36,15 @@ spring:
                 enabled: true
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 10
-                redis-rate-limiter.burstCapacity: 20
-                redis-rate-limiter.requestedTokens: 1
                 key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.requestedTokens: 1
             - TokenRelay=
             - RewritePath=/api/profile/me, /api/user-profile/profile/me
           metadata:
-            response-timeout: 5000
-            connect-timeout: 2000
+            response-timeout: 10000
+            connect-timeout: 5000
         - id: user-profile-service-public
           uri: lb://user-profile-service
           predicates:
@@ -53,14 +53,14 @@ spring:
           filters:
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 30
-                redis-rate-limiter.burstCapacity: 50
-                redis-rate-limiter.requestedTokens: 1
                 key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 15
+                redis-rate-limiter.requestedTokens: 1
             - RewritePath=/api/profile/(?<keycloakUserId>.*), /api/user-profile/profile/${keycloakUserId}
           metadata:
-            response-timeout: 5000
-            connect-timeout: 2000
+            response-timeout: 10000
+            connect-timeout: 5000
         - id: keycloak-auth
           uri: http://keycloak:8080
           predicates:
@@ -198,8 +198,9 @@ resilience4j:
 logging:
   level:
     root: INFO
-    ru.vsu.cs.social_network.api_gateway: ${LOG_LEVEL:INFO}
-    org.springframework.cloud.gateway: INFO
+#    ru.vsu.cs.social_network.api_gateway: ${LOG_LEVEL:INFO}
+#    org.springframework.cloud.gateway: INFO
+    ru.vsu.cs.social_network.api_gateway: DEBUG
     org.springframework.security: INFO
     org.springframework.web: INFO
     org.springframework.session: INFO
