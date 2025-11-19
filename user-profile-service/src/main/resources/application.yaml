@@ -7,6 +7,15 @@ spring:
     open-in-view: false
     show-sql: false
 
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: ${REDIS_TIMEOUT:5000ms}
+  cache:
+    type: redis
+
 server:
   port: 8080
   servlet:
@@ -33,3 +42,24 @@ management:
   endpoint:
     health:
       show-details: always
+
+app:
+  gateway:
+    signature-secret: ${SIGNATURE_KEY_SECRET:dev-shared-signature-secret}
+
+token:
+  signing:
+    key: ${TOKEN_SIGNING_KEY:dev-jwt-signing-secret}
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    config-url: /api/user-profile/api-docs/swagger-config
+    url: /api/user-profile/api-docs
+    operations-sorter: method
+    tags-sorter: alpha
+
+

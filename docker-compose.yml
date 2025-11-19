@@ -20,9 +20,11 @@ services:
       - EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE=http://eureka-server:8761/eureka/
       - KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/social-network
       - KEYCLOAK_CLIENT_ID=api-gateway
-      - KEYCLOAK_CLIENT_SECRET=axTCR87wh9WJMgGC9Bgf7rNSdU6WYHFy
+      - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_TIMEOUT=${REDIS_TIMEOUT}
       - HOSTNAME=api-gateway
       - SPRING_PROFILES_ACTIVE=prod
     depends_on:
@@ -74,6 +76,10 @@ services:
       SPRING_PROFILES_ACTIVE: dev
       JAVA_OPTS: "-Xms256m -Xmx512m"
       EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE: http://eureka-server:8761/eureka/
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_TIMEOUT: ${REDIS_TIMEOUT}
     depends_on:
       user-profile-postgres:
         condition: service_healthy

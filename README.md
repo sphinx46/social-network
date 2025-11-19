@@ -288,8 +288,8 @@ docker-compose --version
    git clone https://github.com/sphinx46/social-network.git
    cd social-network/monolith
    ```
-   
-3. **Соберите проект:**
+
+2. **Соберите проект:**
    ```bash
    mvn clean install
    ```
@@ -299,8 +299,6 @@ docker-compose --version
 Самый простой способ запустить все сервисы:
 
 ```bash
-cd monolith
-
 # Запуск всех сервисов
 make up
 

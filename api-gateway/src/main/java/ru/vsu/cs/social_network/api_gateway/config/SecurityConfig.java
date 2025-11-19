@@ -33,11 +33,11 @@ public class SecurityConfig {
      * Настраивает Security Web Filter Chain для API Gateway.
      * Конфигурирует OAuth2 login, logout, CSRF защиту и правила авторизации.
      *
-     * @param httpSecurity объект для настройки безопасности
-     * @param authorizedClientRepository репозиторий для хранения авторизованных OAuth2 клиентов
+     * @param httpSecurity                 объект для настройки безопасности
+     * @param authorizedClientRepository   репозиторий для хранения авторизованных OAuth2 клиентов
      * @param authenticationSuccessHandler обработчик успешной аутентификации
-     * @param logoutSuccessHandler обработчик успешного выхода
-     * @param logoutHandler обработчик выхода
+     * @param logoutSuccessHandler         обработчик успешного выхода
+     * @param logoutHandler                обработчик выхода
      * @param clientRegistrationRepository репозиторий регистраций OAuth2 клиентов
      * @return настроенная цепочка фильтров безопасности
      */
@@ -50,7 +50,7 @@ public class SecurityConfig {
             ServerLogoutHandler logoutHandler,
             ReactiveClientRegistrationRepository clientRegistrationRepository) {
         log.info("ШЛЮЗ_БЕЗОПАСНОСТЬ_НАСТРОЙКА_НАЧАЛО: настройка Security Web Filter Chain");
-        
+
         SecurityWebFilterChain chain = httpSecurity
                 .authorizeExchange(
                         authorizeExchange ->
@@ -63,7 +63,20 @@ public class SecurityConfig {
                                                 "/oauth2/**",
                                                 "/login/**",
                                                 "/",
-                                                "/api/profile/{keycloakUserId}")
+                                                "/api/profile/{keycloakUserId}",
+                                                "/swagger-ui.html",
+                                                "/swagger-ui/**",
+                                                "/swagger-ui",
+                                                "/api-docs",
+                                                "/api-docs/**",
+                                                "/v3/api-docs",
+                                                "/v3/api-docs/**",
+                                                "/webjars/**",
+                                                "/swagger-resources/**",
+                                                "/swagger-resources",
+                                                "/configuration/ui",
+                                                "/configuration/security",
+                                                "/favicon.ico")
                                         .permitAll()
                                         .pathMatchers("/api/profile/me", "/access-token/**", "/id-token")
                                         .authenticated()
@@ -82,7 +95,7 @@ public class SecurityConfig {
                 )
                 .csrf(csrf -> csrf.disable())
                 .build();
-        
+
         log.info("ШЛЮЗ_БЕЗОПАСНОСТЬ_НАСТРОЙКА_УСПЕХ: Security Web Filter Chain настроен");
         return chain;
     }
@@ -118,7 +131,7 @@ public class SecurityConfig {
     @Bean
     ServerLogoutSuccessHandler logoutSuccessHandler(ReactiveClientRegistrationRepository clientRegistrationRepository) {
         log.debug("ШЛЮЗ_БЕЗОПАСНОСТЬ_ВЫХОД: создание OidcClientInitiatedServerLogoutSuccessHandler");
-        OidcClientInitiatedServerLogoutSuccessHandler handler = 
+        OidcClientInitiatedServerLogoutSuccessHandler handler =
                 new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository);
         handler.setPostLogoutRedirectUri(logoutRedirectUri);
         return handler;

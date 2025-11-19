@@ -1,0 +1,45 @@
+app:
+  gateway:
+    signature-secret: test-signature-secret-for-unit-tests-only
+
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: api-gateway
+            client-secret: test-keycloak-client-secret
+        provider:
+          keycloak:
+            jwk-set-uri: http://localhost:8080/realms/social-network/protocol/openid-connect/certs
+            authorization-uri: http://localhost:8080/realms/social-network/protocol/openid-connect/auth
+            token-uri: http://localhost:8080/realms/social-network/protocol/openid-connect/token
+            user-info-uri: http://localhost:8080/realms/social-network/protocol/openid-connect/userinfo
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes: []
+          discovery:
+            locator:
+              enabled: false
+          globalcors:
+            cors-configurations:
+              '[/**]':
+                allowedOriginPatterns: "*"
+                allowedMethods: "*"
+                allowedHeaders: "*"
+                allowCredentials: true
+          default-filters: []
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+

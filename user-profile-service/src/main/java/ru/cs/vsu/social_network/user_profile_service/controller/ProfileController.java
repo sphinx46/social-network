@@ -1,5 +1,6 @@
 package ru.cs.vsu.social_network.user_profile_service.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ public class ProfileController {
      * @param username имя пользователя (из заголовка X-Username)
      * @return созданный профиль
      */
+    @Operation(summary = "Создание профиля по умолчанию")
     @PostMapping("/me")
     public ResponseEntity<ProfileResponse> createDefaultProfile(
             @RequestHeader("X-User-Id") UUID keycloakUserId,
@@ -41,6 +43,7 @@ public class ProfileController {
      * @param keycloakUserId идентификатор пользователя из Keycloak (из заголовка X-User-Id)
      * @return профиль пользователя
      */
+    @Operation(summary = "Получение профиля текущего пользователя")
     @GetMapping("/me")
     public ResponseEntity<ProfileResponse> getCurrentUserProfile(
             @RequestHeader("X-User-Id") UUID keycloakUserId) {
@@ -57,6 +60,7 @@ public class ProfileController {
      * @param keycloakUserId идентификатор пользователя из Keycloak (из заголовка X-User-Id)
      * @return обновленный профиль
      */
+    @Operation(summary = "Редактирование профиля")
     @PutMapping("/me")
     public ResponseEntity<ProfileResponse> editProfile(
             @Valid @RequestBody ProfileEditRequest request,
@@ -73,6 +77,7 @@ public class ProfileController {
      * @param keycloakUserId идентификатор пользователя из Keycloak
      * @return профиль пользователя
      */
+    @Operation(summary = "Получить профиль пользователя по keycloakUserId")
     @GetMapping("/{keycloakUserId}")
     public ResponseEntity<ProfileResponse> getProfileById(@PathVariable("keycloakUserId") UUID keycloakUserId) {
         log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_ПОЛУЧЕНИЕ_ПО_ID_НАЧАЛО: получение профиля по keycloakUserId: {}", keycloakUserId);
