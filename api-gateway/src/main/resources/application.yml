@@ -134,7 +134,7 @@ app:
   logout:
     redirect-uri: ${LOGOUT_REDIRECT_URI:http://localhost:8082/}
   gateway:
-      signature-secret: ${SIGNATURE_KEY_SECRET:default-test-secret-change-in-production}
+      signature-secret: ${SIGNATURE_KEY_SECRET:dev-shared-signature-secret}
 
 eureka:
   client:
