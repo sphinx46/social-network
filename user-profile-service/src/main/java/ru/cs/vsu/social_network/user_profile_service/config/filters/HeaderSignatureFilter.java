@@ -7,8 +7,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import ru.cs.vsu.social_network.user_profile_service.config.security.GatewayUserPrincipal;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -17,6 +22,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -26,22 +33,27 @@ public class HeaderSignatureFilter extends OncePerRequestFilter {
 
     private static final long MAX_TIMESTAMP_DIFF_MS = 30000;
     private static final String HMAC_ALGORITHM = "HmacSHA256";
+    private static final String HEADER_USER_ID = "X-User-Id";
+    private static final String HEADER_USERNAME = "X-Username";
+    private static final String HEADER_EMAIL = "X-Email";
+    private static final String HEADER_FIRST_NAME = "X-First-Name";
+    private static final String HEADER_LAST_NAME = "X-Last-Name";
+    private static final String HEADER_TIMESTAMP = "X-Timestamp";
+    private static final String HEADER_SIGNATURE = "X-Signature";
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String path = request.getServletPath();
-
         if (shouldNotFilter(request)) {
-            log.debug("СИГНАТУРА_ПРОПУСК: Публичный эндпоинт: {}", path);
+            log.debug("СИГНАТУРА_ПРОПУСК: Публичный эндпоинт: {}", request.getServletPath());
             filterChain.doFilter(request, response);
             return;
         }
 
-        String userId = request.getHeader("X-User-Id");
-        String timestamp = request.getHeader("X-Timestamp");
-        String signature = request.getHeader("X-Signature");
+        String userId = request.getHeader(HEADER_USER_ID);
+        String timestamp = request.getHeader(HEADER_TIMESTAMP);
+        String signature = request.getHeader(HEADER_SIGNATURE);
 
         if (userId == null || timestamp == null || signature == null) {
             log.warn("СИГНАТУРА_ЗАГОЛОВКОВ_ОШИБКА: Отсутствуют обязательные заголовки подписи");
@@ -62,6 +74,7 @@ public class HeaderSignatureFilter extends OncePerRequestFilter {
         }
 
         log.debug("СИГНАТУРА_ЗАГОЛОВКОВ_УСПЕХ: Подпись валидна для userId: {}", userId);
+        setAuthenticationContext(request, userId);
         filterChain.doFilter(request, response);
     }
 
@@ -70,11 +83,21 @@ public class HeaderSignatureFilter extends OncePerRequestFilter {
      */
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        String path = request.getServletPath();
-        return path.startsWith("/actuator/") ||
-                (path.startsWith("/api/user-profile/profile/") &&
-                        "GET".equalsIgnoreCase(request.getMethod()) &&
-                        !path.equals("/api/user-profile/profile/me"));
+        String normalizedPath = getNormalizedPath(request);
+        boolean isGet = "GET".equalsIgnoreCase(request.getMethod());
+        boolean isPublicProfileLookup = normalizedPath.startsWith("/profile/") && !normalizedPath.equals("/profile/me");
+
+        return normalizedPath.startsWith("/actuator/") ||
+                (isPublicProfileLookup && isGet);
+    }
+
+    private String getNormalizedPath(HttpServletRequest request) {
+        String requestUri = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        if (contextPath != null && !contextPath.isEmpty() && requestUri.startsWith(contextPath)) {
+            return requestUri.substring(contextPath.length());
+        }
+        return requestUri;
     }
 
     private boolean isValidSignature(String userId, String timestamp, String receivedSignature) {
@@ -105,6 +128,39 @@ public class HeaderSignatureFilter extends OncePerRequestFilter {
             log.warn("СИГНАТУРА_ЗАГОЛОВКОВ_ОШИБКА_TIMESTAMP: Невалидный формат timestamp: {}", timestampStr);
             return true;
         }
+    }
+
+    private void setAuthenticationContext(HttpServletRequest request, String userId) {
+        if (SecurityContextHolder.getContext().getAuthentication() != null) {
+            return;
+        }
+
+        try {
+            UUID validatedUserId = UUID.fromString(userId);
+            GatewayUserPrincipal principal = GatewayUserPrincipal.builder()
+                    .userId(validatedUserId)
+                    .username(defaultIfNull(request.getHeader(HEADER_USERNAME)))
+                    .email(defaultIfNull(request.getHeader(HEADER_EMAIL)))
+                    .firstName(defaultIfNull(request.getHeader(HEADER_FIRST_NAME)))
+                    .lastName(defaultIfNull(request.getHeader(HEADER_LAST_NAME)))
+                    .build();
+
+            UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(
+                            principal,
+                            null,
+                            Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+                    );
+            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            log.debug("СИГНАТУРА_БЕЗОПАСНОСТЬ: Установлен аутентифицированный контекст для userId {}", userId);
+        } catch (IllegalArgumentException ex) {
+            log.warn("СИГНАТУРА_БЕЗОПАСНОСТЬ_ОШИБКА: userId из заголовка имеет неверный формат: {}", userId);
+        }
+    }
+
+    private String defaultIfNull(String value) {
+        return value != null ? value : "";
     }
 }
 

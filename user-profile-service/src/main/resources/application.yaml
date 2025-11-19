@@ -7,6 +7,17 @@ spring:
     open-in-view: false
     show-sql: false
 
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:localhost}
+      port: ${SPRING_REDIS_PORT:6379}
+      password: ${SPRING_REDIS_PASSWORD:}
+      username: ${SPRING_REDIS_USERNAME:}
+      ssl:
+        enabled: ${SPRING_REDIS_SSL_ENABLED:false}
+  cache:
+    type: redis
+
 server:
   port: 8080
   servlet:
@@ -36,4 +47,8 @@ management:
 
 app:
   gateway:
-    signature-secret: ${SIGNATURE_KEY_SECRET}
+    signature-secret: ${SIGNATURE_KEY_SECRET:dev-shared-signature-secret}
+
+token:
+  signing:
+    key: ${TOKEN_SIGNING_KEY:dev-jwt-signing-secret}

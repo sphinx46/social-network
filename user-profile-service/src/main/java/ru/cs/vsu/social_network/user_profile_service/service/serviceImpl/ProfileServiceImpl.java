@@ -2,11 +2,12 @@ package ru.cs.vsu.social_network.user_profile_service.service.serviceImpl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import ru.cs.vsu.social_network.user_profile_service.dto.request.ProfileEditRequest;
 import ru.cs.vsu.social_network.user_profile_service.dto.response.ProfileResponse;
 import ru.cs.vsu.social_network.user_profile_service.entity.Profile;
-import ru.cs.vsu.social_network.user_profile_service.exceptions.profile.ProfileAlreadyExistsException;
 import ru.cs.vsu.social_network.user_profile_service.factory.ProfileFactory;
 import ru.cs.vsu.social_network.user_profile_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.user_profile_service.provider.ProfileEntityProvider;
@@ -32,6 +33,7 @@ public class ProfileServiceImpl implements ProfileService {
      * @param keycloakUserId идентификатор пользователя из Keycloak
      * @return данные профиля пользователя
      */
+    @Cacheable(value="profile", key="#keyCloakUserId")
     @Override
     public ProfileResponse getProfileByUserId(UUID keycloakUserId) {
         log.info("ПРОФИЛЬ_ПОЛУЧЕНИЕ_НАЧАЛО: запрос профиля пользователя с keycloakUserId: {}", keycloakUserId);
@@ -52,6 +54,7 @@ public class ProfileServiceImpl implements ProfileService {
      * @param request данные для обновления профиля
      * @return обновленные данные профиля
      */
+    @CacheEvict(value="profile", key="#keyCloakUserId")
     @Override
     public ProfileResponse editProfile(UUID keycloakUserId, ProfileEditRequest request) {
         log.info("ПРОФИЛЬ_РЕДАКТИРОВАНИЕ_НАЧАЛО: начало редактирования профиля пользователя {}", keycloakUserId);
