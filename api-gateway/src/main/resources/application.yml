@@ -4,12 +4,14 @@ server:
 spring:
   application:
     name: api-gateway
+
   
   data:
     redis:
       host: ${REDIS_HOST:redis}
       port: ${REDIS_PORT:6379}
-      timeout: 2000ms
+      password: ${REDIS_PASSWORD:}
+      timeout: ${REDIS_TIMEOUT:5000ms}
       lettuce:
         pool:
           max-active: 8
@@ -33,23 +35,55 @@ spring:
             - name: UserContextFilter
               args:
                 enabled: true
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.requestedTokens: 1
             - TokenRelay=
             - RewritePath=/api/profile/me, /api/user-profile/profile/me
           metadata:
-            response-timeout: 5000
-            connect-timeout: 2000
-        
+            response-timeout: 10000
+            connect-timeout: 5000
+        - id: swagger-ui
+          uri: http://localhost:8082
+          predicates:
+            - Path=/swagger-ui.html
+          ilters:
+            - SetPath=/swagger-ui.html
+
+
+        - id: swagger-resources
+          uri: http://localhost:8082
+          predicates:
+            - Path=/swagger-ui/**
+          filters:
+            - RewritePath=/swagger-ui/(?<path>.*), /swagger-ui/${path}
+
+
+        - id: api-docs
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api-docs, /v3/api-docs
+          filters:
+            - SetPath=/v3/api-docs
         - id: user-profile-service-public
           uri: lb://user-profile-service
           predicates:
             - Path=/api/profile/{keycloakUserId}
             - Method=GET
           filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 15
+                redis-rate-limiter.requestedTokens: 1
             - RewritePath=/api/profile/(?<keycloakUserId>.*), /api/user-profile/profile/${keycloakUserId}
           metadata:
-            response-timeout: 5000
-            connect-timeout: 2000
-        
+            response-timeout: 10000
+            connect-timeout: 5000
         - id: keycloak-auth
           uri: http://keycloak:8080
           predicates:
@@ -57,21 +91,19 @@ spring:
           filters:
             - RewritePath=/auth/(?<segment>.*), /${segment}
             - AddRequestHeader=X-Gateway, api-gateway
-        
         - id: eureka-dashboard
           uri: http://eureka-server:8761
           predicates:
             - Path=/eureka/**
           filters:
             - AddRequestHeader=X-Gateway, api-gateway
-      
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+          url-expression: "'http://'+serviceId"
       server:
         webflux:
-          discovery:
-            locator:
-              enabled: true
-              lower-case-service-id: true
-              url-expression: "'http://'+serviceId"
           globalcors:
             cors-configurations:
               '[/**]':
@@ -94,7 +126,6 @@ spring:
                   - X-Last-Name
                 allowCredentials: true
                 maxAge: 3600
-      
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
         - AddResponseHeader=X-Gateway-Version, 1.0.0
@@ -113,7 +144,7 @@ spring:
           keycloak:
             provider: keycloak
             client-id: ${KEYCLOAK_CLIENT_ID:api-gateway}
-            client-secret: ${KEYCLOAK_CLIENT_SECRET}
+            client-secret: ${KEYCLOAK_CLIENT_SECRET:change-me-in-production}
             authorization-grant-type: authorization_code
             scope:
               - openid
@@ -125,6 +156,8 @@ spring:
 app:
   logout:
     redirect-uri: ${LOGOUT_REDIRECT_URI:http://localhost:8082/}
+  gateway:
+    signature-secret: ${SIGNATURE_KEY_SECRET:dev-shared-signature-secret}
 
 eureka:
   client:
@@ -185,11 +218,17 @@ resilience4j:
         timeoutDuration: 5s
         cancelRunningFuture: true
 
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
 logging:
   level:
     root: INFO
-    ru.vsu.cs.social_network.api_gateway: ${LOG_LEVEL:INFO}
-    org.springframework.cloud.gateway: INFO
+    ru.vsu.cs.social_network.api_gateway: DEBUG
     org.springframework.security: INFO
     org.springframework.web: INFO
     org.springframework.session: INFO
@@ -198,3 +237,4 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+

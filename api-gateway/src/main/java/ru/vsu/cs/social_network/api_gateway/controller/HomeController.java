@@ -1,5 +1,6 @@
 package ru.vsu.cs.social_network.api_gateway.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -12,6 +13,7 @@ import reactor.core.publisher.Mono;
 @RestController
 public class HomeController {
 
+    @Operation(summary = "Переход на домашнюю страницу")
     @GetMapping("/")
     public Mono<ResponseEntity<String>> home(@AuthenticationPrincipal OidcUser oidcUser) {
         if (oidcUser != null) {
