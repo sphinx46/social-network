@@ -72,8 +72,9 @@ public class HeaderSignatureFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
         return path.startsWith("/actuator/") ||
-                path.equals("/api/user-profile/profile/me") && "GET".equalsIgnoreCase(request.getMethod()) ||
-                path.startsWith("/api/user-profile/profile/") && "GET".equalsIgnoreCase(request.getMethod());
+                (path.startsWith("/api/user-profile/profile/") &&
+                        "GET".equalsIgnoreCase(request.getMethod()) &&
+                        !path.equals("/api/user-profile/profile/me"));
     }
 
     private boolean isValidSignature(String userId, String timestamp, String receivedSignature) {
