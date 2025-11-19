@@ -1,5 +1,6 @@
 package ru.vsu.cs.social_network.api_gateway.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
@@ -20,6 +21,7 @@ public class AuthInfoController {
      * @param client авторизованный OAuth2 клиент из сессии
      * @return Mono с access token
      */
+    @Operation(summary = "Получение access токена")
     @GetMapping("/access-token")
     public Mono<OAuth2AccessToken> getAccessToken(
             @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client) {
@@ -35,6 +37,7 @@ public class AuthInfoController {
      * @param oidcUser OIDC пользователь из principal
      * @return Mono с ID token
      */
+    @Operation(summary = "Получение id токена")
     @GetMapping("/id-token")
     public Mono<org.springframework.security.oauth2.core.oidc.OidcIdToken> getIdToken(
             @AuthenticationPrincipal OidcUser oidcUser) {
