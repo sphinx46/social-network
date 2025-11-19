@@ -1,4 +1,4 @@
-package ru.vsu.cs.social_network.api_gateway.config;
+package ru.cs.vsu.social_network.api_gateway.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,9 +28,6 @@ public class UserContextFilter extends AbstractGatewayFilterFactory<UserContextF
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
     private static final int MAX_HEADER_LENGTH = 200;
 
-    private static final Pattern USERNAME_PATTERN = Pattern.compile("^[a-zA-Z0-9._-]{1,100}$");
-    private static final Pattern EMAIL_PATTERN = Pattern.compile("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
-    private static final int MAX_HEADER_LENGTH = 200;
 
     public UserContextFilter() {
         super(Config.class);
