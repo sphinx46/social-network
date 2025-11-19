@@ -1,4 +1,4 @@
-package ru.vsu.cs.social_network.api_gateway.config;
+package ru.cs.vsu.social_network.api_gateway.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

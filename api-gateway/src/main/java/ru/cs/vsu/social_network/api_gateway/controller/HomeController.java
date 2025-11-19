@@ -1,4 +1,4 @@
-package ru.vsu.cs.social_network.api_gateway.controller;
+package ru.cs.vsu.social_network.api_gateway.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.extern.slf4j.Slf4j;

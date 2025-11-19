@@ -1,4 +1,4 @@
-package ru.vsu.cs.social_network.api_gateway;
+package ru.cs.vsu.social_network.api_gateway;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,8 +10,6 @@ class ApiGatewayApplicationTests {
 
 	@Test
 	void contextLoads() {
-		// Простой тест для проверки загрузки контекста
-		// В тестовом профиле Gateway и Security конфигурации упрощены
 	}
 
 }

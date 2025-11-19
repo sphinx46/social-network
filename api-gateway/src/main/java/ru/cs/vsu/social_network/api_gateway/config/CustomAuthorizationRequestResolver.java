@@ -1,4 +1,4 @@
-package ru.vsu.cs.social_network.api_gateway.config;
+package ru.cs.vsu.social_network.api_gateway.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.web.server.DefaultServerOAuth2AuthorizationRequestResolver;

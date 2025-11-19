@@ -1,4 +1,4 @@
-package ru.vsu.cs.social_network.api_gateway.exception;
+package ru.cs.vsu.social_network.api_gateway.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.web.reactive.error.ErrorWebExceptionHandler;
