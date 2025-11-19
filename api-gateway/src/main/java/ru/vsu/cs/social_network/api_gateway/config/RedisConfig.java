@@ -18,7 +18,7 @@ public class RedisConfig {
     private int redisPort;
 
     /**
-     * Создает фабрику подключений к Redis для хранения сессий.
+     * Создает фабрику подключений к Redis для хранения сессий и rate limiting.
      *
      * @return фабрика подключений к Redis
      */
