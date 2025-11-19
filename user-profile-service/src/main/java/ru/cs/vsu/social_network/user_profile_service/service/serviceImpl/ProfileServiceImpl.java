@@ -33,7 +33,7 @@ public class ProfileServiceImpl implements ProfileService {
      * @param keycloakUserId идентификатор пользователя из Keycloak
      * @return данные профиля пользователя
      */
-    @Cacheable(value="profile", key="#keyCloakUserId")
+    @Cacheable(value="profile", key="#keycloakUserId")
     @Override
     public ProfileResponse getProfileByUserId(UUID keycloakUserId) {
         log.info("ПРОФИЛЬ_ПОЛУЧЕНИЕ_НАЧАЛО: запрос профиля пользователя с keycloakUserId: {}", keycloakUserId);
@@ -54,7 +54,7 @@ public class ProfileServiceImpl implements ProfileService {
      * @param request данные для обновления профиля
      * @return обновленные данные профиля
      */
-    @CacheEvict(value="profile", key="#keyCloakUserId")
+    @CacheEvict(value="profile", key="#keycloakUserId")
     @Override
     public ProfileResponse editProfile(UUID keycloakUserId, ProfileEditRequest request) {
         log.info("ПРОФИЛЬ_РЕДАКТИРОВАНИЕ_НАЧАЛО: начало редактирования профиля пользователя {}", keycloakUserId);
