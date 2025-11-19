@@ -149,7 +149,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<mainClass>ru.vsu.cs.social_network.api_gateway.ApiGatewayApplication</mainClass>
+					<mainClass>ru.cs.vsu.social_network.api_gateway.ApiGatewayApplication</mainClass>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>
