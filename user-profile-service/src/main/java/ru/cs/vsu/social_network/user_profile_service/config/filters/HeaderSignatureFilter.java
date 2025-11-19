@@ -85,9 +85,18 @@ public class HeaderSignatureFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String normalizedPath = getNormalizedPath(request);
         boolean isGet = "GET".equalsIgnoreCase(request.getMethod());
-        boolean isPublicProfileLookup = normalizedPath.startsWith("/profile/") && !normalizedPath.equals("/profile/me");
+        boolean isPublicProfileLookup = normalizedPath.startsWith("/profile/")
+                && !normalizedPath.equals("/profile/me");
+
+        boolean isSwagger = normalizedPath.startsWith("/swagger-ui") ||
+                normalizedPath.startsWith("/api-docs") ||
+                normalizedPath.equals("/swagger-ui.html") ||
+                normalizedPath.equals("/v3/api-docs") ||
+                normalizedPath.contains("swagger") ||
+                normalizedPath.contains("api-docs");
 
         return normalizedPath.startsWith("/actuator/") ||
+                isSwagger ||
                 (isPublicProfileLookup && isGet);
     }
 

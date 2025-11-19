@@ -46,6 +46,28 @@ spring:
           metadata:
             response-timeout: 10000
             connect-timeout: 5000
+        - id: swagger-ui
+          uri: http://localhost:8082
+          predicates:
+            - Path=/swagger-ui.html
+          ilters:
+            - SetPath=/swagger-ui.html
+
+
+        - id: swagger-resources
+          uri: http://localhost:8082
+          predicates:
+            - Path=/swagger-ui/**
+          filters:
+            - RewritePath=/swagger-ui/(?<path>.*), /swagger-ui/${path}
+
+
+        - id: api-docs
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api-docs, /v3/api-docs
+          filters:
+            - SetPath=/v3/api-docs
         - id: user-profile-service-public
           uri: lb://user-profile-service
           predicates:
@@ -135,7 +157,7 @@ app:
   logout:
     redirect-uri: ${LOGOUT_REDIRECT_URI:http://localhost:8082/}
   gateway:
-      signature-secret: ${SIGNATURE_KEY_SECRET:dev-shared-signature-secret}
+    signature-secret: ${SIGNATURE_KEY_SECRET:dev-shared-signature-secret}
 
 eureka:
   client:
@@ -196,11 +218,16 @@ resilience4j:
         timeoutDuration: 5s
         cancelRunningFuture: true
 
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
 logging:
   level:
     root: INFO
-#    ru.vsu.cs.social_network.api_gateway: ${LOG_LEVEL:INFO}
-#    org.springframework.cloud.gateway: INFO
     ru.vsu.cs.social_network.api_gateway: DEBUG
     org.springframework.security: INFO
     org.springframework.web: INFO
@@ -210,3 +237,4 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+

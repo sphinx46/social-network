@@ -27,7 +27,7 @@
           </elementProp>
           <elementProp name="sessionCookie" elementType="Argument">
             <stringProp name="Argument.name">sessionCookie</stringProp>
-            <stringProp name="Argument.value">643ab4e5-82c5-471f-b972-9e15d7fd5d14</stringProp>
+            <stringProp name="Argument.value">8ceec676-3939-4e77-be13-d32c2beae723</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="burstThreads" elementType="Argument">

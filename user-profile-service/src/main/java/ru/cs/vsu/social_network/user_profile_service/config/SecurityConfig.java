@@ -37,6 +37,8 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/profile/me").authenticated()
                         .requestMatchers(HttpMethod.GET, "/profile/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/api-docs/**", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(headerSignatureFilter, UsernamePasswordAuthenticationFilter.class)
