@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, develop-main, feature/**]
   pull_request:
-    branches: [main, develop-main]
+    branches: [main, develop-main, feature-main]
   workflow_dispatch:
 
 env:
@@ -108,6 +108,36 @@ jobs:
         uses: super-linter/super-linter@v8.2.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2-
+
+      - name: Run Checkstyle
+        run: |
+          mvn -B checkstyle:check
+
+      - name: Run SpotBugs
+        run: |
+          mvn -B spotbugs:check
+
+      - name: Run PMD
+        run: |
+          mvn -B pmd:check
+
+      - name: Upload linting reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: linting-reports
+          path: |
+            **/target/checkstyle-result.xml
+            **/target/spotbugsXml.xml
+            **/target/pmd.xml
+          retention-days: 30
 
       - name: SonarCloud analysis
         env:

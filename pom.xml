@@ -42,6 +42,10 @@
 		<logback-json.version>0.1.5</logback-json.version>
 		<spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
 		<keycloak-admin-client.version>26.0.7</keycloak-admin-client.version>
+		
+		<checkstyle.version>10.15.0</checkstyle.version>
+		<spotbugs.version>4.8.6.6</spotbugs.version>
+		<pmd.version>3.25.0</pmd.version>
 	</properties>
 
 	<dependencyManagement>
@@ -199,6 +203,51 @@
 							</goals>
 						</execution>
 					</executions>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-checkstyle-plugin</artifactId>
+					<version>${checkstyle.version}</version>
+					<configuration>
+						<configLocation>sun_checks.xml</configLocation>
+						<consoleOutput>true</consoleOutput>
+						<failsOnError>true</failsOnError>
+						<linkXRef>false</linkXRef>
+					</configuration>
+					<dependencies>
+						<dependency>
+							<groupId>com.puppycrawl.tools</groupId>
+							<artifactId>checkstyle</artifactId>
+							<version>10.15.0</version>
+						</dependency>
+					</dependencies>
+				</plugin>
+
+				<plugin>
+					<groupId>com.github.spotbugs</groupId>
+					<artifactId>spotbugs-maven-plugin</artifactId>
+					<version>${spotbugs.version}</version>
+					<configuration>
+						<effort>Max</effort>
+						<threshold>Low</threshold>
+						<xmlOutput>true</xmlOutput>
+						<failOnError>true</failOnError>
+					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>org.apache.maven.plugins</groupId>
+					<artifactId>maven-pmd-plugin</artifactId>
+					<version>${pmd.version}</version>
+					<configuration>
+						<targetJdk>${java.version}</targetJdk>
+						<rulesets>
+							<ruleset>/rulesets/java/quickstart.xml</ruleset>
+							<ruleset>/rulesets/java/unusedcode.xml</ruleset>
+						</rulesets>
+						<failOnViolation>true</failOnViolation>
+					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>
