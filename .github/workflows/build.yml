@@ -231,4 +231,8 @@ jobs:
           mvn -B -pl api-gateway,eureka-server,user-profile-service -am verify -DskipUnitTests=true
         env:
           SPRING_PROFILES_ACTIVE: test
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/test
+          SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+          SPRING_DATASOURCE_USERNAME: sa
+          SPRING_DATASOURCE_PASSWORD: password
+          SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
