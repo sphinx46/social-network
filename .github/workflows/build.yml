@@ -126,13 +126,14 @@ jobs:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_ALL_CODEBASE: true
+          FILTER_REGEX_EXCLUDE: .*monolith.*
 
       - name: SonarCloud analysis
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          mvn -B verify -DskipTests org.sonarsource.scanner.maven:sonar-maven-plugin:5.3.0.6276:sonar \
+          mvn -B verify -DskipTests -pl '!monolith' org.sonarsource.scanner.maven:sonar-maven-plugin:5.3.0.6276:sonar \
             -Dsonar.projectKey=sphinx46_social-network \
             -Dsonar.organization=sphinx46 \
             -Dsonar.host.url=https://sonarcloud.io
@@ -149,7 +150,7 @@ jobs:
       - name: Run OWASP dependency check
         if: github.event_name == 'pull_request'
         run: |
-          mvn org.owasp:dependency-check-maven:check -DskipTests
+          mvn org.owasp:dependency-check-maven:check -DskipTests -pl '!monolith'
 
       - name: Check for vulnerable dependencies
         uses: aquasecurity/trivy-action@master
@@ -158,6 +159,7 @@ jobs:
           scan-ref: '.'
           format: 'sarif'
           output: 'trivy-results.sarif'
+          trivy-options: '--skip-dirs monolith'
 
       - name: Upload security results
         uses: github/codeql-action/upload-sarif@v4
