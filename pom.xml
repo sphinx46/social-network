@@ -43,10 +43,7 @@
 		<spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
 		<keycloak-admin-client.version>26.0.7</keycloak-admin-client.version>
 		
-		<checkstyle-plugin.version>3.3.1</checkstyle-plugin.version>
-		<checkstyle.version>10.15.0</checkstyle.version>
-		<spotbugs-plugin.version>4.8.6.6</spotbugs-plugin.version>
-		<pmd-plugin.version>3.25.0</pmd-plugin.version>
+		<jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
 	</properties>
 
 	<dependencyManagement>
@@ -207,47 +204,24 @@
 				</plugin>
 
 				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-checkstyle-plugin</artifactId>
-					<version>${checkstyle-plugin.version}</version>
-					<configuration>
-						<configLocation>checkstyle.xml</configLocation>
-						<consoleOutput>true</consoleOutput>
-						<failsOnError>false</failsOnError>
-						<linkXRef>false</linkXRef>
-					</configuration>
-					<dependencies>
-						<dependency>
-							<groupId>com.puppycrawl.tools</groupId>
-							<artifactId>checkstyle</artifactId>
-							<version>${checkstyle.version}</version>
-						</dependency>
-					</dependencies>
-				</plugin>
-
-				<plugin>
-					<groupId>com.github.spotbugs</groupId>
-					<artifactId>spotbugs-maven-plugin</artifactId>
-					<version>${spotbugs-plugin.version}</version>
-					<configuration>
-						<effort>Default</effort>
-						<threshold>Medium</threshold>
-						<xmlOutput>true</xmlOutput>
-						<failOnError>false</failOnError>
-					</configuration>
-				</plugin>
-
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-pmd-plugin</artifactId>
-					<version>${pmd-plugin.version}</version>
-					<configuration>
-						<targetJdk>${java.version}</targetJdk>
-						<rulesets>
-							<ruleset>/rulesets/java/unusedcode.xml</ruleset>
-						</rulesets>
-						<failOnViolation>false</failOnViolation>
-					</configuration>
+					<groupId>org.jacoco</groupId>
+					<artifactId>jacoco-maven-plugin</artifactId>
+					<version>${jacoco-maven-plugin.version}</version>
+					<executions>
+						<execution>
+							<id>prepare-agent</id>
+							<goals>
+								<goal>prepare-agent</goal>
+							</goals>
+						</execution>
+						<execution>
+							<id>report</id>
+							<phase>verify</phase>
+							<goals>
+								<goal>report</goal>
+							</goals>
+						</execution>
+					</executions>
 				</plugin>
 			</plugins>
 		</pluginManagement>
@@ -256,6 +230,10 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>

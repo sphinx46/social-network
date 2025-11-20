@@ -38,4 +38,3 @@ build/
 /.env
 
 .DS_Store
-/checkstyle.xml

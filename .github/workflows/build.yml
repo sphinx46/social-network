@@ -63,9 +63,9 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2-
 
-      - name: Run unit tests
+      - name: Run unit tests with coverage
         run: |
-          mvn -B clean test -pl ${{ matrix.service }} -am
+          mvn -B clean verify -pl ${{ matrix.service }} -am
         env:
           SPRING_PROFILES_ACTIVE: test
           SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false
@@ -84,6 +84,15 @@ jobs:
           path: |
             **/target/surefire-reports/
             **/target/failsafe-reports/
+          retention-days: 30
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-reports-${{ matrix.service }}
+          path: |
+            **/target/site/jacoco/
           retention-days: 30
 
   code-analysis:
@@ -111,31 +120,12 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2-
 
-      - name: Run Checkstyle
-        continue-on-error: true
-        run: |
-          mvn -B checkstyle:check -pl '!monolith'
-
-      - name: Run SpotBugs
-        continue-on-error: true
-        run: |
-          mvn -B spotbugs:check -pl '!monolith'
-
-      - name: Run PMD
-        continue-on-error: true
-        run: |
-          mvn -B pmd:check -pl '!monolith'
-
-      - name: Upload linting reports
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: linting-reports
-          path: |
-            **/target/checkstyle-result.xml
-            **/target/spotbugsXml.xml
-            **/target/pmd.xml
-          retention-days: 30
+      - name: Run Super-Linter
+        uses: github/super-linter@v5
+        env:
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ALL_CODEBASE: true
 
       - name: SonarCloud analysis
         env:
