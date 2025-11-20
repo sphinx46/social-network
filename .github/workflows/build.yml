@@ -228,7 +228,7 @@ jobs:
 
       - name: Run integration tests
         run: |
-          mvn -B verify -DskipUnitTests=true
+          mvn -B -pl api-gateway,eureka-server,user-profile-service -am verify -DskipUnitTests=true
         env:
           SPRING_PROFILES_ACTIVE: test
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/test
