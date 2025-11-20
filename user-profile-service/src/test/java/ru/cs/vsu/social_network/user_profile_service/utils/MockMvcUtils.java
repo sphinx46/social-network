@@ -1,6 +1,5 @@
 package ru.cs.vsu.social_network.user_profile_service.utils;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -11,52 +10,76 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
+/**
+ * Утилитный класс для упрощения тестирования Spring MVC контроллеров.
+ * Инкапсулирует common операции с MockMvc и автоматически логирует результаты.
+ */
 public class MockMvcUtils {
 
     private final MockMvc mockMvc;
     private final ObjectMapper objectMapper;
 
+    /**
+     * Создает экземпляр утилиты с указанными MockMvc и ObjectMapper.
+     */
     public MockMvcUtils(MockMvc mockMvc, ObjectMapper objectMapper) {
         this.mockMvc = mockMvc;
         this.objectMapper = objectMapper;
     }
 
-    public ResultActions performPost(String url, Object request) throws Exception {
+    /**
+     * Выполняет POST запрос с JSON телом и автоматическим логированием.
+     */
+    public ResultActions performPost(final String url, Object request) throws Exception {
         return mockMvc.perform(post(url)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print());
     }
 
-    public ResultActions performPut(String url, Object request) throws Exception {
+    /**
+     * Выполняет PUT запрос с JSON телом и автоматическим логированием.
+     */
+    public ResultActions performPut(final String url, Object request) throws Exception {
         return mockMvc.perform(put(url)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print());
     }
 
-
-    public ResultActions performPatch(String url, Object request) throws Exception {
+    /**
+     * Выполняет PATCH запрос с JSON телом и автоматическим логированием.
+     */
+    public ResultActions performPatch(final String url, Object request) throws Exception {
         return mockMvc.perform(patch(url)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andDo(print());
     }
 
-    public ResultActions performPatch(String url) throws Exception {
+    /**
+     * Выполняет PATCH запрос без тела и с автоматическим логированием.
+     */
+    public ResultActions performPatch(final String url) throws Exception {
         return mockMvc.perform(patch(url)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print());
     }
 
-
-    public ResultActions performGet(String url) throws Exception {
+    /**
+     * Выполняет GET запрос и автоматически логирует результат.
+     */
+    public ResultActions performGet(final String url) throws Exception {
         return mockMvc.perform(get(url)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print());
     }
 
-    public ResultActions performGet(String url, String... headers) throws Exception {
+    /**
+     * Выполняет GET запрос с указанными заголовками и автоматическим логированием.
+     * Заголовки передаются парами: "Header-Name", "header-value"
+     */
+    public ResultActions performGet(final String url, String... headers) throws Exception {
         MockHttpServletRequestBuilder requestBuilder = get(url)
                 .contentType(MediaType.APPLICATION_JSON);
         for (int i = 0; i < headers.length; i += 2) {
@@ -67,7 +90,11 @@ public class MockMvcUtils {
         return mockMvc.perform(requestBuilder).andDo(print());
     }
 
-    public ResultActions performPost(String url, Object request, String... headers) throws Exception {
+    /**
+     * Выполняет POST запрос с JSON телом и указанными заголовками.
+     * Заголовки передаются парами: "Header-Name", "header-value"
+     */
+    public ResultActions performPost(final String url, Object request, String... headers) throws Exception {
         var requestBuilder = post(url)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request));
@@ -79,7 +106,11 @@ public class MockMvcUtils {
         return mockMvc.perform(requestBuilder).andDo(print());
     }
 
-    public ResultActions performPut(String url, Object request, String... headers) throws Exception {
+    /**
+     * Выполняет PUT запрос с JSON телом и указанными заголовками.
+     * Заголовки передаются парами: "Header-Name", "header-value"
+     */
+    public ResultActions performPut(final String url, Object request, String... headers) throws Exception {
         var requestBuilder = put(url)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request));
@@ -91,13 +122,19 @@ public class MockMvcUtils {
         return mockMvc.perform(requestBuilder).andDo(print());
     }
 
-    public ResultActions performDelete(String url) throws Exception {
+    /**
+     * Выполняет DELETE запрос и автоматически логирует результат.
+     */
+    public ResultActions performDelete(final String url) throws Exception {
         return mockMvc.perform(delete(url)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print());
     }
 
-    public ResultActions performMultipart(String url, MockMultipartFile file) throws Exception {
+    /**
+     * Выполняет multipart запрос для загрузки файла и автоматически логирует результат.
+     */
+    public ResultActions performMultipart(final String url, MockMultipartFile file) throws Exception {
         return mockMvc.perform(multipart(url)
                         .file(file)
                         .contentType(MediaType.MULTIPART_FORM_DATA))

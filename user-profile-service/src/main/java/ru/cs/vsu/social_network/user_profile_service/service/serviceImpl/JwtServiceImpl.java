@@ -32,7 +32,7 @@ public class JwtServiceImpl implements JwtService {
      * @return имя пользователя
      */
     @Override
-    public String extractUserName(String token) {
+    public String extractUserName(final String token) {
         Map<String, Object> context = new HashMap<>();
         context.put("tokenLength", token != null ? token.length() : 0);
 
@@ -65,7 +65,7 @@ public class JwtServiceImpl implements JwtService {
      * @return true, если токен валиден
      */
     @Override
-    public boolean isTokenValid(String token, UserDetails userDetails) {
+    public boolean isTokenValid(final String token, final UserDetails userDetails) {
         Map<String, Object> context = new HashMap<>();
         context.put("username", userDetails.getUsername());
         context.put("tokenLength", token != null ? token.length() : 0);
@@ -100,7 +100,7 @@ public class JwtServiceImpl implements JwtService {
      * @param <T>             тип данных
      * @return данные
      */
-    private <T> T extractClaim(String token, Function<Claims, T> claimsResolvers) {
+    private <T> T extractClaim(final String token, final Function<Claims, T> claimsResolvers) {
         final Claims claims = extractAllClaims(token);
         return claimsResolvers.apply(claims);
     }
@@ -112,7 +112,7 @@ public class JwtServiceImpl implements JwtService {
      * @param userDetails данные пользователя
      * @return токен
      */
-    private String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+    private String generateToken(Map<String, Object> extraClaims, final UserDetails userDetails) {
         return Jwts.builder().setClaims(extraClaims).setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 100000 * 60 * 24))

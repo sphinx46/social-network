@@ -5,10 +5,19 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.Period;
 
+/**
+ * Компонент для расчета возраста на основе даты рождения.
+ * Использует Java Time API для точного вычисления количества полных лет.
+ * Возвращает null при отсутствии даты рождения.
+ */
 @Component
 public class ProfileAgeCalculator {
 
-    public Integer calculateAge(LocalDate dateOfBirth) {
+    /**
+     * Вычисляет возраст в полных годах на текущую дату.
+     * Возвращает null если дата рождения не указана.
+     */
+    public Integer calculateAge(final LocalDate dateOfBirth) {
         if (dateOfBirth == null) {
             return null;
         }

@@ -17,7 +17,7 @@ public class ProfileFactory {
      * @param username имя пользователя
      * @return профиль с настройками по умолчанию
      */
-    public Profile createDefaultProfile(UUID keycloakUserId, String username) {
+    public Profile createDefaultProfile(final UUID keycloakUserId, final String username) {
         log.debug("ПРОФИЛЬ_ФАБРИКА_СОЗДАНИЕ_НАЧАЛО: создание профиля по умолчанию для keycloakUserId: {}, username: {}", keycloakUserId, username);
 
         Profile profile = Profile.builder()
