@@ -36,12 +36,15 @@ class HeaderSignatureFilterTest {
     private FilterChain filterChain;
 
     private HeaderSignatureFilter filter;
-    private String testSecret = "test-signature-secret-for-unit-tests-only";
+    // Test-only secret, not used in production
+    private static final String TEST_SECRET = System.getenv()
+            .getOrDefault("TEST_SIGNATURE_SECRET",
+                    "test-signature-secret-for-unit-tests-only");
 
     @BeforeEach
     void setUp() {
         filter = new HeaderSignatureFilter();
-        ReflectionTestUtils.setField(filter, "signatureSecret", testSecret);
+        ReflectionTestUtils.setField(filter, "signatureSecret", TEST_SECRET);
     }
 
     @Test
@@ -164,7 +167,7 @@ class HeaderSignatureFilterTest {
         try {
             String dataToSign = userId + "|" + timestamp;
             SecretKeySpec secretKeySpec = new SecretKeySpec(
-                    testSecret.getBytes(StandardCharsets.UTF_8),
+                    TEST_SECRET.getBytes(StandardCharsets.UTF_8),
                     "HmacSHA256"
             );
             Mac mac = Mac.getInstance("HmacSHA256");
