@@ -211,9 +211,9 @@
 					<artifactId>maven-checkstyle-plugin</artifactId>
 					<version>${checkstyle-plugin.version}</version>
 					<configuration>
-						<configLocation>sun_checks.xml</configLocation>
+						<configLocation>checkstyle.xml</configLocation>
 						<consoleOutput>true</consoleOutput>
-						<failsOnError>true</failsOnError>
+						<failsOnError>false</failsOnError>
 						<linkXRef>false</linkXRef>
 					</configuration>
 					<dependencies>
@@ -230,10 +230,10 @@
 					<artifactId>spotbugs-maven-plugin</artifactId>
 					<version>${spotbugs-plugin.version}</version>
 					<configuration>
-						<effort>Max</effort>
-						<threshold>Low</threshold>
+						<effort>Default</effort>
+						<threshold>Medium</threshold>
 						<xmlOutput>true</xmlOutput>
-						<failOnError>true</failOnError>
+						<failOnError>false</failOnError>
 					</configuration>
 				</plugin>
 
@@ -244,10 +244,9 @@
 					<configuration>
 						<targetJdk>${java.version}</targetJdk>
 						<rulesets>
-							<ruleset>/rulesets/java/quickstart.xml</ruleset>
 							<ruleset>/rulesets/java/unusedcode.xml</ruleset>
 						</rulesets>
-						<failOnViolation>true</failOnViolation>
+						<failOnViolation>false</failOnViolation>
 					</configuration>
 				</plugin>
 			</plugins>

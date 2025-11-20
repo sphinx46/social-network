@@ -8,18 +8,10 @@ import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 @EnableEurekaServer
 public final class EurekaServerApplication {
 
-    /**
-     * Приватный конструктор для предотвращения создания экземпляров.
-     */
     private EurekaServerApplication() {
         // Utility class
     }
 
-    /**
-     * Точка входа в приложение.
-     *
-     * @param args аргументы командной строки
-     */
     public static void main(final String[] args) {
         SpringApplication.run(EurekaServerApplication.class, args);
     }

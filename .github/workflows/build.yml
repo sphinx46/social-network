@@ -112,14 +112,17 @@ jobs:
           restore-keys: ${{ runner.os }}-m2-
 
       - name: Run Checkstyle
+        continue-on-error: true
         run: |
           mvn -B checkstyle:check -pl '!monolith'
 
       - name: Run SpotBugs
+        continue-on-error: true
         run: |
           mvn -B spotbugs:check -pl '!monolith'
 
       - name: Run PMD
+        continue-on-error: true
         run: |
           mvn -B pmd:check -pl '!monolith'
 

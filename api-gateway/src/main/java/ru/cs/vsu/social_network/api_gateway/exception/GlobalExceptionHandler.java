@@ -22,9 +22,6 @@ import java.util.Map;
 @Order(GlobalExceptionHandler.EXCEPTION_HANDLER_ORDER)
 public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
 
-    /**
-     * Порядок обработчика исключений.
-     */
     public static final int EXCEPTION_HANDLER_ORDER = -2;
 
     /**

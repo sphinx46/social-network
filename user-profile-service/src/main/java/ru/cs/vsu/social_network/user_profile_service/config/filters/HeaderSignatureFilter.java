@@ -27,7 +27,7 @@ import java.util.UUID;
 
 @Slf4j
 @Component
-public class HeaderSignatureFilter extends OncePerRequestFilter {
+public final class HeaderSignatureFilter extends OncePerRequestFilter {
     @Value("${app.gateway.signature-secret}")
     private String signatureSecret;
 
@@ -86,12 +86,6 @@ public class HeaderSignatureFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * Пропускает публичные эндпоинты из проверки подписи.
-     *
-     * @param request HTTP запрос
-     * @return true если эндпоинт публичный
-     */
     @Override
     protected boolean shouldNotFilter(final HttpServletRequest request) {
         String normalizedPath = getNormalizedPath(request);

@@ -11,18 +11,12 @@ import java.time.LocalDate;
 @Data
 @Schema(description = "Запрос на редактирование профиля")
 public class ProfileEditRequest {
-    public ProfileEditRequest() {
-    }
-    
-    public ProfileEditRequest(String bio, LocalDate dateOfBirth, String city) {
-        this.bio = bio;
-        this.dateOfBirth = dateOfBirth;
-        this.city = city;
-    }
-    
+    private static final int MAX_BIO_LENGTH = 500;
+
     @Schema(description = "Описание",
             example = "О себе: увлекаюсь программированием, люблю танцевать!")
-    @Size(max = 500, message = "Длина описания не более 500 символов")
+    @Size(max = MAX_BIO_LENGTH,
+            message = "Длина описания не более 500 символов")
     private String bio;
 
     @Schema(description = "Дата рождения", example = "2000-01-01")

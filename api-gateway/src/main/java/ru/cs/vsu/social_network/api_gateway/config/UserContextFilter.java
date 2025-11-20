@@ -22,30 +22,15 @@ import java.util.regex.Pattern;
 @Component
 public class UserContextFilter
         extends AbstractGatewayFilterFactory<UserContextFilter.Config> {
-    /**
-     * Секрет для подписи заголовков.
-     */
     @Value("${app.gateway.signature-secret}")
     private String signatureSecret;
 
-    /**
-     * Паттерн для валидации имени пользователя.
-     */
     private static final Pattern USERNAME_PATTERN =
             Pattern.compile("^[a-zA-Z0-9._-]{1,100}$");
-    /**
-     * Паттерн для валидации email.
-     */
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
             "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
-    /**
-     * Максимальная длина заголовка.
-     */
     private static final int MAX_HEADER_LENGTH = 200;
 
-    /**
-     * Конструктор.
-     */
     public UserContextFilter() {
         super(Config.class);
     }
@@ -159,7 +144,8 @@ public class UserContextFilter
                                     .then(Mono.empty());
                         } catch (Exception e) {
                             log.error("ШЛЮЗ_КОНТЕКСТ_ОШИБКА: "
-                                    + "ошибка извлечения контекста пользователя: {}",
+                                    + "ошибка извлечения контекста "
+                                    + "пользователя: {}",
                                     e.getMessage(), e);
                             exchange.getResponse()
                                     .setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -188,9 +174,13 @@ public class UserContextFilter
                                 + "для пути {}: {}", path, e.getMessage(), e);
                         if (!exchange.getResponse().isCommitted()) {
                             if (isProtectedEndpoint) {
-                                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                                exchange.getResponse()
+                                        .setStatusCode(
+                                                HttpStatus.UNAUTHORIZED);
                             } else {
-                                exchange.getResponse().setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+                                exchange.getResponse()
+                                        .setStatusCode(HttpStatus
+                                                .INTERNAL_SERVER_ERROR);
                             }
                             return exchange.getResponse().setComplete();
                         }

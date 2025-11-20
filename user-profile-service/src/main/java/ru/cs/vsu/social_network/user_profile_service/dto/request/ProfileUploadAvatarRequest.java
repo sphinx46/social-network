@@ -9,6 +9,9 @@ import org.springframework.web.multipart.MultipartFile;
 @Data
 @Schema(description = "Запрос на загрузку аватарки в профиль")
 public class ProfileUploadAvatarRequest {
+    /**
+     * Файл изображения аватарки.
+     */
     @Schema(description = "Аватарка профиля")
     private MultipartFile imageFile;
 }

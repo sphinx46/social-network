@@ -14,17 +14,9 @@ import java.util.Map;
 public class CustomAuthorizationRequestResolver
         implements ServerOAuth2AuthorizationRequestResolver {
 
-    /**
-     * Резолвер по умолчанию.
-     */
     private final DefaultServerOAuth2AuthorizationRequestResolver
             defaultResolver;
 
-    /**
-     * Конструктор.
-     *
-     * @param resolver резолвер по умолчанию
-     */
     public CustomAuthorizationRequestResolver(
             final DefaultServerOAuth2AuthorizationRequestResolver resolver) {
         this.defaultResolver = resolver;
@@ -55,7 +47,8 @@ public class CustomAuthorizationRequestResolver
                                 + "kc_idp_hint={}",
                                 prompt, kcIdpHint);
                         Map<String, Object> additionalParameters =
-                                new HashMap<>(request.getAdditionalParameters());
+                                new HashMap<>(
+                                        request.getAdditionalParameters());
 
                         if (prompt != null) {
                             additionalParameters.put("prompt", prompt);
@@ -105,7 +98,8 @@ public class CustomAuthorizationRequestResolver
                                 + "kc_idp_hint={}",
                                 prompt, kcIdpHint);
                         Map<String, Object> additionalParameters =
-                                new HashMap<>(request.getAdditionalParameters());
+                                new HashMap<>(
+                                        request.getAdditionalParameters());
 
                         if (prompt != null) {
                             additionalParameters.put("prompt", prompt);

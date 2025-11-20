@@ -23,13 +23,17 @@ public class EntityMapper {
      * @param <T> тип целевого объекта
      * @return преобразованный объект или null, если source равен null
      */
-    public <S, T> T map(S source, Class<T> targetClass) {
+    public <S, T> T map(final S source, final Class<T> targetClass) {
         if (source == null) {
-            log.debug("ПРОФИЛЬ_МАППИНГ_ПУСТОЙ: исходный объект null, возвращаем null");
+            log.debug("ПРОФИЛЬ_МАППИНГ_ПУСТОЙ: "
+                    + "исходный объект null, возвращаем null");
             return null;
         }
         T result = modelMapper.map(source, targetClass);
-        log.debug("ПРОФИЛЬ_МАППИНГ_УСПЕХ: объект {} успешно преобразован в {}", source.getClass().getSimpleName(), targetClass.getSimpleName());
+        log.debug("ПРОФИЛЬ_МАППИНГ_УСПЕХ: объект {} успешно "
+                        + "преобразован в {}",
+                source.getClass().getSimpleName(),
+                targetClass.getSimpleName());
         return result;
     }
 
@@ -42,16 +46,21 @@ public class EntityMapper {
      * @param <T> тип целевых объектов
      * @return преобразованный список или пустой список, если source равен null
      */
-    public <S, T> List<T> mapList(List<S> source, Class<T> targetClass) {
+    public <S, T> List<T> mapList(
+            final List<S> source, final Class<T> targetClass) {
         if (source == null) {
-            log.debug("ПРОФИЛЬ_МАППИНГ_СПИСОК_ПУСТОЙ: исходный список null, возвращаем пустой список");
+            log.debug("ПРОФИЛЬ_МАППИНГ_СПИСОК_ПУСТОЙ: "
+                    + "исходный список null, возвращаем пустой список");
             return List.of();
         }
-        log.debug("ПРОФИЛЬ_МАППИНГ_СПИСОК_НАЧАЛО: преобразование списка из {} элементов", source.size());
+        log.debug("ПРОФИЛЬ_МАППИНГ_СПИСОК_НАЧАЛО: "
+                + "преобразование списка из {} элементов", source.size());
         List<T> result = source.stream()
                 .map(element -> modelMapper.map(element, targetClass))
                 .collect(Collectors.toList());
-        log.debug("ПРОФИЛЬ_МАППИНГ_СПИСОК_УСПЕХ: список успешно преобразован, элементов: {}", result.size());
+        log.debug("ПРОФИЛЬ_МАППИНГ_СПИСОК_УСПЕХ: "
+                + "список успешно преобразован, элементов: {}",
+                result.size());
         return result;
     }
 }

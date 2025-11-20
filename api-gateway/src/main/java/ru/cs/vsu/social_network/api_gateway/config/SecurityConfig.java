@@ -172,7 +172,8 @@ public class SecurityConfig {
      */
     @Bean
     ServerLogoutHandler logoutHandler() {
-        log.debug("ШЛЮЗ_БЕЗОПАСНОСТЬ_ОБРАБОТЧИК_ВЫХОДА: создание DelegatingServerLogoutHandler");
+        log.debug("ШЛЮЗ_БЕЗОПАСНОСТЬ_ОБРАБОТЧИК_ВЫХОДА: "
+                + "создание DelegatingServerLogoutHandler");
         return new DelegatingServerLogoutHandler(
                 new SecurityContextServerLogoutHandler(),
                 new WebSessionServerLogoutHandler()
