@@ -22,13 +22,25 @@ import java.util.regex.Pattern;
 @Component
 public class UserContextFilter
         extends AbstractGatewayFilterFactory<UserContextFilter.Config> {
+    /**
+     * Секрет для подписи заголовков.
+     */
     @Value("${app.gateway.signature-secret}")
     private String signatureSecret;
 
+    /**
+     * Паттерн для валидации имени пользователя.
+     */
     private static final Pattern USERNAME_PATTERN =
             Pattern.compile("^[a-zA-Z0-9._-]{1,100}$");
+    /**
+     * Паттерн для валидации email.
+     */
     private static final Pattern EMAIL_PATTERN = Pattern.compile(
             "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    /**
+     * Максимальная длина заголовка.
+     */
     private static final int MAX_HEADER_LENGTH = 200;
 
     /**
@@ -59,9 +71,12 @@ public class UserContextFilter
                     .onErrorResume(e -> Mono.empty())
                     .flatMap(principal -> {
                         if (principal instanceof OAuth2AuthenticationToken) {
-                            OAuth2AuthenticationToken oauth2Token = (OAuth2AuthenticationToken) principal;
-                            if (oauth2Token.getPrincipal() instanceof OidcUser) {
-                                return Mono.just((OidcUser) oauth2Token.getPrincipal());
+                            OAuth2AuthenticationToken oauth2Token =
+                                    (OAuth2AuthenticationToken) principal;
+                            if (oauth2Token.getPrincipal()
+                                    instanceof OidcUser) {
+                                return Mono.just(
+                                        (OidcUser) oauth2Token.getPrincipal());
                             }
                             return Mono.empty();
                         } else if (principal instanceof OidcUser) {
@@ -86,7 +101,8 @@ public class UserContextFilter
 
                             String username = sanitizeHeader(
                                     oidcUser.getPreferredUsername());
-                            String email = sanitizeEmail(oidcUser.getEmail());
+                            String email = sanitizeEmail(
+                                    oidcUser.getEmail());
                             String firstName = sanitizeHeader(
                                     oidcUser.getGivenName());
                             String lastName = sanitizeHeader(
@@ -107,10 +123,11 @@ public class UserContextFilter
                             } catch (IllegalStateException e) {
                                 log.error("ШЛЮЗ_КОНТЕКСТ_ОШИБКА: "
                                         + "ошибка генерации подписи для "
-                                        + "userId: {}", userId, e);
+                                        + "userId: {}",
+                                        userId, e);
                                 exchange.getResponse()
-                                        .setStatusCode(
-                                                HttpStatus.INTERNAL_SERVER_ERROR);
+                                        .setStatusCode(HttpStatus
+                                                .INTERNAL_SERVER_ERROR);
                                 return exchange.getResponse().setComplete()
                                         .then(Mono.empty());
                             }
@@ -253,6 +270,9 @@ public class UserContextFilter
      * Конфигурация фильтра извлечения контекста пользователя.
      */
     public static class Config {
+        /**
+         * Включен ли фильтр.
+         */
         private boolean enabled = true;
 
         /**

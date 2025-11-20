@@ -6,7 +6,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-public class UserProfileServiceApplication {
+public final class UserProfileServiceApplication {
 
     /**
      * Приватный конструктор для предотвращения создания экземпляров.

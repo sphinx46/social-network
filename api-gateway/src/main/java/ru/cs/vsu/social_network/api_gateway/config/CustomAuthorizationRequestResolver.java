@@ -14,6 +14,9 @@ import java.util.Map;
 public class CustomAuthorizationRequestResolver
         implements ServerOAuth2AuthorizationRequestResolver {
 
+    /**
+     * Резолвер по умолчанию.
+     */
     private final DefaultServerOAuth2AuthorizationRequestResolver
             defaultResolver;
 
@@ -49,7 +52,8 @@ public class CustomAuthorizationRequestResolver
                     if (prompt != null || kcIdpHint != null) {
                         log.debug("ШЛЮЗ_ОАУТ2_РЕЗОЛВЕР_ПАРАМЕТРЫ: "
                                 + "добавление параметров prompt={}, "
-                                + "kc_idp_hint={}", prompt, kcIdpHint);
+                                + "kc_idp_hint={}",
+                                prompt, kcIdpHint);
                         Map<String, Object> additionalParameters =
                                 new HashMap<>(request.getAdditionalParameters());
 
@@ -98,7 +102,8 @@ public class CustomAuthorizationRequestResolver
                     if (prompt != null || kcIdpHint != null) {
                         log.debug("ШЛЮЗ_ОАУТ2_РЕЗОЛВЕР_ПАРАМЕТРЫ: "
                                 + "добавление параметров prompt={}, "
-                                + "kc_idp_hint={}", prompt, kcIdpHint);
+                                + "kc_idp_hint={}",
+                                prompt, kcIdpHint);
                         Map<String, Object> additionalParameters =
                                 new HashMap<>(request.getAdditionalParameters());
 

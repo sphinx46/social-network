@@ -22,7 +22,10 @@ import java.util.Map;
 @Order(GlobalExceptionHandler.EXCEPTION_HANDLER_ORDER)
 public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
 
-    private static final int EXCEPTION_HANDLER_ORDER = -2;
+    /**
+     * Порядок обработчика исключений.
+     */
+    public static final int EXCEPTION_HANDLER_ORDER = -2;
 
     /**
      * Обрабатывает все исключения, возникающие в Gateway,

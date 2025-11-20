@@ -26,6 +26,9 @@ import org.springframework.session.data.redis.config.annotation.web.server.Enabl
 @EnableRedisWebSession
 public class SecurityConfig {
 
+    /**
+     * URI для редиректа после выхода.
+     */
     @Value("${app.logout.redirect-uri:http://localhost:8082/}")
     private String logoutRedirectUri;
 
@@ -85,15 +88,19 @@ public class SecurityConfig {
                                                 "/configuration/security",
                                                 "/favicon.ico")
                                         .permitAll()
-                                        .pathMatchers("/api/profile/me", "/access-token/**", "/id-token")
+                                        .pathMatchers("/api/profile/me",
+                                                "/access-token/**",
+                                                "/id-token")
                                         .authenticated()
                                         .anyExchange()
                                         .authenticated()
                 )
                 .oauth2Login(oauth2Login ->
                         oauth2Login
-                                .authorizedClientRepository(authorizedClientRepository)
-                                .authenticationSuccessHandler(authenticationSuccessHandler)
+                                .authorizedClientRepository(
+                                        authorizedClientRepository)
+                                .authenticationSuccessHandler(
+                                        authenticationSuccessHandler)
                                 .authorizationRequestResolver(
                                         customAuthorizationRequestResolver(
                                                 clientRegistrationRepository))
@@ -105,29 +112,34 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .build();
 
-        log.info("ШЛЮЗ_БЕЗОПАСНОСТЬ_НАСТРОЙКА_УСПЕХ: Security Web Filter Chain настроен");
+        log.info("ШЛЮЗ_БЕЗОПАСНОСТЬ_НАСТРОЙКА_УСПЕХ: "
+                + "Security Web Filter Chain настроен");
         return chain;
     }
 
     /**
-     * Создает репозиторий для хранения авторизованных OAuth2 клиентов в сессии.
+     * Создает репозиторий для хранения авторизованных
+     * OAuth2 клиентов в сессии.
      *
      * @return репозиторий авторизованных клиентов
      */
     @Bean
     ServerOAuth2AuthorizedClientRepository authorizedClientRepository() {
-        log.debug("ШЛЮЗ_БЕЗОПАСНОСТЬ_РЕПОЗИТОРИЙ: создание WebSessionServerOAuth2AuthorizedClientRepository");
+        log.debug("ШЛЮЗ_БЕЗОПАСНОСТЬ_РЕПОЗИТОРИЙ: "
+                + "создание WebSessionServerOAuth2AuthorizedClientRepository");
         return new WebSessionServerOAuth2AuthorizedClientRepository();
     }
 
     /**
-     * Создает обработчик успешной аутентификации, который перенаправляет на главную страницу.
+     * Создает обработчик успешной аутентификации,
+     * который перенаправляет на главную страницу.
      *
      * @return обработчик успешной аутентификации
      */
     @Bean
     ServerAuthenticationSuccessHandler authenticationSuccessHandler() {
-        log.debug("ШЛЮЗ_БЕЗОПАСНОСТЬ_УСПЕХ: создание RedirectServerAuthenticationSuccessHandler");
+        log.debug("ШЛЮЗ_БЕЗОПАСНОСТЬ_УСПЕХ: "
+                + "создание RedirectServerAuthenticationSuccessHandler");
         return new RedirectServerAuthenticationSuccessHandler("/");
     }
 
@@ -144,7 +156,8 @@ public class SecurityConfig {
             final ReactiveClientRegistrationRepository
                     clientRegistrationRepository) {
         log.debug("ШЛЮЗ_БЕЗОПАСНОСТЬ_ВЫХОД: "
-                + "создание OidcClientInitiatedServerLogoutSuccessHandler");
+                + "создание "
+                + "OidcClientInitiatedServerLogoutSuccessHandler");
         OidcClientInitiatedServerLogoutSuccessHandler handler =
                 new OidcClientInitiatedServerLogoutSuccessHandler(
                         clientRegistrationRepository);
@@ -184,6 +197,7 @@ public class SecurityConfig {
         DefaultServerOAuth2AuthorizationRequestResolver defaultResolver =
                 new DefaultServerOAuth2AuthorizationRequestResolver(
                         clientRegistrationRepository);
-        return new CustomAuthorizationRequestResolver(defaultResolver);
+        return new CustomAuthorizationRequestResolver(
+                defaultResolver);
     }
 }
