@@ -67,9 +67,11 @@ jobs:
           mvn -B clean test -pl ${{ matrix.service }} -am
         env:
           SPRING_PROFILES_ACTIVE: test
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/test
-          SPRING_DATASOURCE_USERNAME: test
-          SPRING_DATASOURCE_PASSWORD: test
+          SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false
+          SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+          SPRING_DATASOURCE_USERNAME: sa
+          SPRING_DATASOURCE_PASSWORD: password
+          SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
           SPRING_REDIS_HOST: localhost
           SPRING_REDIS_PORT: 6379
 
@@ -86,6 +88,9 @@ jobs:
   code-analysis:
     name: Code Analysis
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
 
     steps:
       - name: Checkout code
@@ -104,8 +109,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           mvn -B verify -DskipTests org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-            -Dsonar.projectKey=${{ github.repository }} \
-            -Dsonar.organization=${{ github.repository_owner }} \
+            -Dsonar.projectKey=sphinx46-social-network \
+            -Dsonar.organization=sphinx46 \
             -Dsonar.host.url=https://sonarcloud.io
 
       - name: Run OWASP dependency check
@@ -121,8 +126,8 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload security results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        if: always() && hashFiles('trivy-results.sarif') != ''
         with:
           sarif_file: 'trivy-results.sarif'
 
