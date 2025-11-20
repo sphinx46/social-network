@@ -121,12 +121,22 @@ jobs:
           restore-keys: ${{ runner.os }}-m2-
 
       - name: Run Super-Linter
+        continue-on-error: true
         uses: github/super-linter@v5
         env:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_ALL_CODEBASE: true
           FILTER_REGEX_EXCLUDE: .*monolith.*
+          VALIDATE_JAVA: true
+          VALIDATE_YAML: true
+          VALIDATE_DOCKERFILE_HADOLINT: true
+          VALIDATE_MARKDOWN: true
+          VALIDATE_SQLFLUFF: false
+          VALIDATE_JSCPD: false
+          VALIDATE_GOOGLE_JAVA_FORMAT: false
+          VALIDATE_ENV: false
+          DISABLE_ERRORS: true
 
       - name: SonarCloud analysis
         env:

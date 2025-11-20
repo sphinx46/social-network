@@ -40,7 +40,7 @@ public class CustomAuthorizationRequestResolver
                             .getQueryParams().getFirst("prompt");
                     String kcIdpHint = exchange.getRequest()
                             .getQueryParams().getFirst("kc_idp_hint");
-
+                    
                     if (prompt != null || kcIdpHint != null) {
                         log.debug("ШЛЮЗ_ОАУТ2_РЕЗОЛВЕР_ПАРАМЕТРЫ: "
                                 + "добавление параметров prompt={}, "
@@ -49,14 +49,14 @@ public class CustomAuthorizationRequestResolver
                         Map<String, Object> additionalParameters =
                                 new HashMap<>(
                                         request.getAdditionalParameters());
-
+                        
                         if (prompt != null) {
                             additionalParameters.put("prompt", prompt);
                         }
                         if (kcIdpHint != null) {
                             additionalParameters.put("kc_idp_hint", kcIdpHint);
                         }
-
+                        
                         OAuth2AuthorizationRequest modifiedRequest =
                                 OAuth2AuthorizationRequest.from(request)
                                 .additionalParameters(additionalParameters)
@@ -65,7 +65,7 @@ public class CustomAuthorizationRequestResolver
                                 + "OAuth2 authorization request модифицирован");
                         return modifiedRequest;
                     }
-
+                    
                     return request;
                 });
     }
@@ -91,7 +91,7 @@ public class CustomAuthorizationRequestResolver
                             .getQueryParams().getFirst("prompt");
                     String kcIdpHint = exchange.getRequest()
                             .getQueryParams().getFirst("kc_idp_hint");
-
+                    
                     if (prompt != null || kcIdpHint != null) {
                         log.debug("ШЛЮЗ_ОАУТ2_РЕЗОЛВЕР_ПАРАМЕТРЫ: "
                                 + "добавление параметров prompt={}, "
@@ -100,14 +100,14 @@ public class CustomAuthorizationRequestResolver
                         Map<String, Object> additionalParameters =
                                 new HashMap<>(
                                         request.getAdditionalParameters());
-
+                        
                         if (prompt != null) {
                             additionalParameters.put("prompt", prompt);
                         }
                         if (kcIdpHint != null) {
                             additionalParameters.put("kc_idp_hint", kcIdpHint);
                         }
-
+                        
                         OAuth2AuthorizationRequest modifiedRequest =
                                 OAuth2AuthorizationRequest.from(request)
                                 .additionalParameters(additionalParameters)
@@ -116,7 +116,7 @@ public class CustomAuthorizationRequestResolver
                                 + "OAuth2 authorization request модифицирован");
                         return modifiedRequest;
                     }
-
+                    
                     return request;
                 });
     }

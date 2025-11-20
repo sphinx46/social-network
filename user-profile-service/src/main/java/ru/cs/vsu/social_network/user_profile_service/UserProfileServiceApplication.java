@@ -13,6 +13,6 @@ public final class UserProfileServiceApplication {
     }
 
     public static void main(final String[] args) {
-        SpringApplication.run(UserProfileServiceApplication.class, args);
-    }
+		SpringApplication.run(UserProfileServiceApplication.class, args);
+	}
 }
