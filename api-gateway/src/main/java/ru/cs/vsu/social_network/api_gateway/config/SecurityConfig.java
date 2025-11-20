@@ -14,7 +14,11 @@ import org.springframework.security.oauth2.client.web.server.WebSessionServerOAu
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.RedirectServerAuthenticationSuccessHandler;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
-import org.springframework.security.web.server.authentication.logout.*;
+import org.springframework.security.web.server.authentication.logout.DelegatingServerLogoutHandler;
+import org.springframework.security.web.server.authentication.logout.SecurityContextServerLogoutHandler;
+import org.springframework.security.web.server.authentication.logout.ServerLogoutHandler;
+import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+import org.springframework.security.web.server.authentication.logout.WebSessionServerLogoutHandler;
 import org.springframework.session.data.redis.config.annotation.web.server.EnableRedisWebSession;
 
 @Slf4j
@@ -27,25 +31,32 @@ public class SecurityConfig {
 
     /**
      * Настраивает Security Web Filter Chain для API Gateway.
-     * Конфигурирует OAuth2 login, logout, CSRF защиту и правила авторизации.
+     * Конфигурирует OAuth2 login, logout, CSRF защиту
+     * и правила авторизации.
      *
      * @param httpSecurity                 объект для настройки безопасности
-     * @param authorizedClientRepository   репозиторий для хранения авторизованных OAuth2 клиентов
+     * @param authorizedClientRepository   репозиторий для хранения
+     *                                     авторизованных OAuth2 клиентов
      * @param authenticationSuccessHandler обработчик успешной аутентификации
      * @param logoutSuccessHandler         обработчик успешного выхода
      * @param logoutHandler                обработчик выхода
-     * @param clientRegistrationRepository репозиторий регистраций OAuth2 клиентов
+     * @param clientRegistrationRepository репозиторий регистраций
+     *                                     OAuth2 клиентов
      * @return настроенная цепочка фильтров безопасности
      */
     @Bean
     SecurityWebFilterChain securityWebFilterChain(
-            ServerHttpSecurity httpSecurity,
-            ServerOAuth2AuthorizedClientRepository authorizedClientRepository,
-            ServerAuthenticationSuccessHandler authenticationSuccessHandler,
-            ServerLogoutSuccessHandler logoutSuccessHandler,
-            ServerLogoutHandler logoutHandler,
-            ReactiveClientRegistrationRepository clientRegistrationRepository) {
-        log.info("ШЛЮЗ_БЕЗОПАСНОСТЬ_НАСТРОЙКА_НАЧАЛО: настройка Security Web Filter Chain");
+            final ServerHttpSecurity httpSecurity,
+            final ServerOAuth2AuthorizedClientRepository
+                    authorizedClientRepository,
+            final ServerAuthenticationSuccessHandler
+                    authenticationSuccessHandler,
+            final ServerLogoutSuccessHandler logoutSuccessHandler,
+            final ServerLogoutHandler logoutHandler,
+            final ReactiveClientRegistrationRepository
+                    clientRegistrationRepository) {
+        log.info("ШЛЮЗ_БЕЗОПАСНОСТЬ_НАСТРОЙКА_НАЧАЛО: "
+                + "настройка Security Web Filter Chain");
 
         SecurityWebFilterChain chain = httpSecurity
                 .authorizeExchange(
@@ -83,7 +94,9 @@ public class SecurityConfig {
                         oauth2Login
                                 .authorizedClientRepository(authorizedClientRepository)
                                 .authenticationSuccessHandler(authenticationSuccessHandler)
-                                .authorizationRequestResolver(customAuthorizationRequestResolver(clientRegistrationRepository))
+                                .authorizationRequestResolver(
+                                        customAuthorizationRequestResolver(
+                                                clientRegistrationRepository))
                 )
                 .logout(logout ->
                         logout.logoutSuccessHandler(logoutSuccessHandler)
@@ -119,16 +132,22 @@ public class SecurityConfig {
     }
 
     /**
-     * Создает обработчик успешного выхода, который также выходит из Keycloak SSO сессии.
+     * Создает обработчик успешного выхода, который также выходит
+     * из Keycloak SSO сессии.
      *
-     * @param clientRegistrationRepository репозиторий регистраций OAuth2 клиентов
+     * @param clientRegistrationRepository репозиторий регистраций
+     *                                     OAuth2 клиентов
      * @return обработчик успешного выхода
      */
     @Bean
-    ServerLogoutSuccessHandler logoutSuccessHandler(ReactiveClientRegistrationRepository clientRegistrationRepository) {
-        log.debug("ШЛЮЗ_БЕЗОПАСНОСТЬ_ВЫХОД: создание OidcClientInitiatedServerLogoutSuccessHandler");
+    ServerLogoutSuccessHandler logoutSuccessHandler(
+            final ReactiveClientRegistrationRepository
+                    clientRegistrationRepository) {
+        log.debug("ШЛЮЗ_БЕЗОПАСНОСТЬ_ВЫХОД: "
+                + "создание OidcClientInitiatedServerLogoutSuccessHandler");
         OidcClientInitiatedServerLogoutSuccessHandler handler =
-                new OidcClientInitiatedServerLogoutSuccessHandler(clientRegistrationRepository);
+                new OidcClientInitiatedServerLogoutSuccessHandler(
+                        clientRegistrationRepository);
         handler.setPostLogoutRedirectUri(logoutRedirectUri);
         return handler;
     }
@@ -148,17 +167,23 @@ public class SecurityConfig {
     }
 
     /**
-     * Создает кастомный резолвер OAuth2 authorization request для передачи параметров (prompt, kc_idp_hint) в Keycloak.
+     * Создает кастомный резолвер OAuth2 authorization request
+     * для передачи параметров (prompt, kc_idp_hint) в Keycloak.
      *
-     * @param clientRegistrationRepository репозиторий регистраций OAuth2 клиентов
+     * @param clientRegistrationRepository репозиторий регистраций
+     *                                     OAuth2 клиентов
      * @return кастомный резолвер authorization request
      */
     @Bean
-    ServerOAuth2AuthorizationRequestResolver customAuthorizationRequestResolver(
-            ReactiveClientRegistrationRepository clientRegistrationRepository) {
-        log.debug("ШЛЮЗ_БЕЗОПАСНОСТЬ_РЕЗОЛВЕР: создание CustomAuthorizationRequestResolver");
+    ServerOAuth2AuthorizationRequestResolver
+            customAuthorizationRequestResolver(
+            final ReactiveClientRegistrationRepository
+                    clientRegistrationRepository) {
+        log.debug("ШЛЮЗ_БЕЗОПАСНОСТЬ_РЕЗОЛВЕР: "
+                + "создание CustomAuthorizationRequestResolver");
         DefaultServerOAuth2AuthorizationRequestResolver defaultResolver =
-                new DefaultServerOAuth2AuthorizationRequestResolver(clientRegistrationRepository);
+                new DefaultServerOAuth2AuthorizationRequestResolver(
+                        clientRegistrationRepository);
         return new CustomAuthorizationRequestResolver(defaultResolver);
     }
 }

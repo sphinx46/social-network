@@ -16,7 +16,8 @@ import reactor.core.publisher.Mono;
 public class AuthInfoController {
 
     /**
-     * Возвращает access token текущего аутентифицированного пользователя из сессии.
+     * Возвращает access token текущего аутентифицированного
+     * пользователя из сессии.
      *
      * @param client авторизованный OAuth2 клиент из сессии
      * @return Mono с access token
@@ -24,7 +25,8 @@ public class AuthInfoController {
     @Operation(summary = "Получение access токена")
     @GetMapping("/access-token")
     public Mono<OAuth2AccessToken> getAccessToken(
-            @RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient client) {
+            @RegisteredOAuth2AuthorizedClient
+                    final OAuth2AuthorizedClient client) {
         log.info("ШЛЮЗ_ТОКЕН_ACCESS_НАЧАЛО: запрос access token");
         OAuth2AccessToken token = client.getAccessToken();
         log.info("ШЛЮЗ_ТОКЕН_ACCESS_УСПЕХ: access token получен");
@@ -32,17 +34,20 @@ public class AuthInfoController {
     }
 
     /**
-     * Возвращает ID token текущего аутентифицированного пользователя из сессии.
+     * Возвращает ID token текущего аутентифицированного
+     * пользователя из сессии.
      *
      * @param oidcUser OIDC пользователь из principal
      * @return Mono с ID token
      */
     @Operation(summary = "Получение id токена")
     @GetMapping("/id-token")
-    public Mono<org.springframework.security.oauth2.core.oidc.OidcIdToken> getIdToken(
-            @AuthenticationPrincipal OidcUser oidcUser) {
-        log.info("ШЛЮЗ_ТОКЕН_ID_НАЧАЛО: запрос ID token для пользователя {}", oidcUser.getPreferredUsername());
-        org.springframework.security.oauth2.core.oidc.OidcIdToken token = oidcUser.getIdToken();
+    public Mono<org.springframework.security.oauth2.core.oidc.OidcIdToken>
+            getIdToken(@AuthenticationPrincipal final OidcUser oidcUser) {
+        log.info("ШЛЮЗ_ТОКЕН_ID_НАЧАЛО: запрос ID token для "
+                + "пользователя {}", oidcUser.getPreferredUsername());
+        org.springframework.security.oauth2.core.oidc.OidcIdToken token =
+                oidcUser.getIdToken();
         log.info("ШЛЮЗ_ТОКЕН_ID_УСПЕХ: ID token получен");
         return Mono.just(token);
     }

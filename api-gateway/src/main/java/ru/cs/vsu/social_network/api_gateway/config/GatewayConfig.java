@@ -13,8 +13,10 @@ import java.util.Optional;
 public class GatewayConfig {
 
     /**
-     * Создает резолвер ключа для rate limiting на основе user ID из OIDC или IP адреса.
-     * Если пользователь аутентифицирован, используется его user ID из OIDC токена.
+     * Создает резолвер ключа для rate limiting на основе user ID
+     * из OIDC или IP адреса.
+     * Если пользователь аутентифицирован, используется его user ID
+     * из OIDC токена.
      * В противном случае используется IP адрес запроса.
      *
      * @return резолвер ключа для rate limiting
@@ -26,14 +28,15 @@ public class GatewayConfig {
                 .flatMap(principal -> {
                     OidcUser oidcUser = null;
                     if (principal instanceof OAuth2AuthenticationToken) {
-                        OAuth2AuthenticationToken oauth2Token = (OAuth2AuthenticationToken) principal;
+                        OAuth2AuthenticationToken oauth2Token =
+                                (OAuth2AuthenticationToken) principal;
                         if (oauth2Token.getPrincipal() instanceof OidcUser) {
                             oidcUser = (OidcUser) oauth2Token.getPrincipal();
                         }
                     } else if (principal instanceof OidcUser) {
                         oidcUser = (OidcUser) principal;
                     }
-                    
+
                     if (oidcUser != null) {
                         String userId = oidcUser.getSubject();
                         if (userId != null && !userId.isEmpty()) {
@@ -44,10 +47,14 @@ public class GatewayConfig {
                 })
                 .switchIfEmpty(Mono.defer(() -> {
                     String ip = Optional.ofNullable(
-                                    exchange.getRequest().getHeaders().getFirst("X-Forwarded-For"))
+                                    exchange.getRequest().getHeaders()
+                                            .getFirst("X-Forwarded-For"))
                             .orElseGet(() ->
-                                    Optional.ofNullable(exchange.getRequest().getRemoteAddress())
-                                            .map(addr -> addr.getAddress().getHostAddress())
+                                    Optional.ofNullable(
+                                            exchange.getRequest()
+                                                    .getRemoteAddress())
+                                            .map(addr -> addr.getAddress()
+                                                    .getHostAddress())
                                             .orElse("unknown"));
                     return Mono.just(ip);
                 }));

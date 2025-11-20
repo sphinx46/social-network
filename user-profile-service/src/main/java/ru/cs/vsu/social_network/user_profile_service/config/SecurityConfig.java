@@ -21,29 +21,38 @@ public class SecurityConfig {
 
     /**
      * Настраивает Security Filter Chain для user-profile-service.
-     * Отключает CSRF и разрешает доступ ко всем запросам, так как валидация выполняется в api-gateway.
+     * Отключает CSRF и разрешает доступ ко всем запросам,
+     * так как валидация выполняется в api-gateway.
      *
      * @param http объект для настройки безопасности
      * @return настроенная цепочка фильтров безопасности
      * @throws Exception при ошибке настройки
      */
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        log.info("ПРОФИЛЬ_БЕЗОПАСНОСТЬ_НАСТРОЙКА_НАЧАЛО: настройка Security Filter Chain");
+    public SecurityFilterChain securityFilterChain(final HttpSecurity http)
+            throws Exception {
+        log.info("ПРОФИЛЬ_БЕЗОПАСНОСТЬ_НАСТРОЙКА_НАЧАЛО: "
+                + "настройка Security Filter Chain");
         SecurityFilterChain chain = http
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/profile/me").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/profile/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()
-                        .requestMatchers("/api-docs/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/profile/**")
+                        .permitAll()
+                        .requestMatchers("/swagger-ui/**",
+                                "/swagger-ui.html").permitAll()
+                        .requestMatchers("/api-docs/**",
+                                "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(headerSignatureFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(headerSignatureFilter,
+                        UsernamePasswordAuthenticationFilter.class)
                 .build();
-        log.info("ПРОФИЛЬ_БЕЗОПАСНОСТЬ_НАСТРОЙКА_УСПЕХ: Security Filter Chain настроен");
+        log.info("ПРОФИЛЬ_БЕЗОПАСНОСТЬ_НАСТРОЙКА_УСПЕХ: "
+                + "Security Filter Chain настроен");
         return chain;
     }
 }

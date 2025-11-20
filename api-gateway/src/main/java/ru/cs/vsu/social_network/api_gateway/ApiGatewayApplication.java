@@ -8,7 +8,19 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 @EnableDiscoveryClient
 public class ApiGatewayApplication {
 
-    public static void main(String[] args) {
+    /**
+     * Приватный конструктор для предотвращения создания экземпляров.
+     */
+    private ApiGatewayApplication() {
+        // Utility class
+    }
+
+    /**
+     * Точка входа в приложение.
+     *
+     * @param args аргументы командной строки
+     */
+    public static void main(final String[] args) {
         SpringApplication.run(ApiGatewayApplication.class, args);
     }
 }

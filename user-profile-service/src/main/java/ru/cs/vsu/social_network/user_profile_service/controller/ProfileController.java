@@ -29,27 +29,36 @@ public class ProfileController {
     @Operation(summary = "Создание профиля по умолчанию")
     @PostMapping("/me")
     public ResponseEntity<ProfileResponse> createDefaultProfile(
-            @RequestHeader("X-User-Id") UUID keycloakUserId,
-            @RequestHeader("X-Username") String username) {
-        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_СОЗДАНИЕ_НАЧАЛО: создание профиля по умолчанию для keycloakUserId: {}, username: {}", keycloakUserId, username);
-        ProfileResponse response = profileService.createDefaultProfile(keycloakUserId, username);
-        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_СОЗДАНИЕ_УСПЕХ: профиль создан для keycloakUserId: {}", keycloakUserId);
+            @RequestHeader("X-User-Id") final UUID keycloakUserId,
+            @RequestHeader("X-Username") final String username) {
+        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_СОЗДАНИЕ_НАЧАЛО: "
+                + "создание профиля по умолчанию для keycloakUserId: {}, "
+                + "username: {}", keycloakUserId, username);
+        ProfileResponse response = profileService.createDefaultProfile(
+                keycloakUserId, username);
+        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_СОЗДАНИЕ_УСПЕХ: "
+                + "профиль создан для keycloakUserId: {}", keycloakUserId);
         return ResponseEntity.ok(response);
     }
 
     /**
      * Получает профиль текущего аутентифицированного пользователя.
      *
-     * @param keycloakUserId идентификатор пользователя из Keycloak (из заголовка X-User-Id)
+     * @param keycloakUserId идентификатор пользователя из Keycloak
+     *                       (из заголовка X-User-Id)
      * @return профиль пользователя
      */
     @Operation(summary = "Получение профиля текущего пользователя")
     @GetMapping("/me")
     public ResponseEntity<ProfileResponse> getCurrentUserProfile(
-            @RequestHeader("X-User-Id") UUID keycloakUserId) {
-        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_ПОЛУЧЕНИЕ_НАЧАЛО: получение текущего профиля для keycloakUserId: {}", keycloakUserId);
-        ProfileResponse response = profileService.getProfileByUserId(keycloakUserId);
-        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_ПОЛУЧЕНИЕ_УСПЕХ: профиль получен для keycloakUserId: {}", keycloakUserId);
+            @RequestHeader("X-User-Id") final UUID keycloakUserId) {
+        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_ПОЛУЧЕНИЕ_НАЧАЛО: "
+                + "получение текущего профиля для keycloakUserId: {}",
+                keycloakUserId);
+        ProfileResponse response = profileService.getProfileByUserId(
+                keycloakUserId);
+        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_ПОЛУЧЕНИЕ_УСПЕХ: "
+                + "профиль получен для keycloakUserId: {}", keycloakUserId);
         return ResponseEntity.ok(response);
     }
 
@@ -57,32 +66,43 @@ public class ProfileController {
      * Редактирует профиль текущего аутентифицированного пользователя.
      *
      * @param request данные для обновления профиля
-     * @param keycloakUserId идентификатор пользователя из Keycloak (из заголовка X-User-Id)
+     * @param keycloakUserId идентификатор пользователя из Keycloak
+     *                       (из заголовка X-User-Id)
      * @return обновленный профиль
      */
     @Operation(summary = "Редактирование профиля")
     @PutMapping("/me")
     public ResponseEntity<ProfileResponse> editProfile(
-            @Valid @RequestBody ProfileEditRequest request,
-            @RequestHeader("X-User-Id") UUID keycloakUserId) {
-        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_РЕДАКТИРОВАНИЕ_НАЧАЛО: редактирование профиля для keycloakUserId: {}", keycloakUserId);
-        ProfileResponse response = profileService.editProfile(keycloakUserId, request);
-        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_РЕДАКТИРОВАНИЕ_УСПЕХ: профиль отредактирован для keycloakUserId: {}", keycloakUserId);
+            @Valid @RequestBody final ProfileEditRequest request,
+            @RequestHeader("X-User-Id") final UUID keycloakUserId) {
+        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_РЕДАКТИРОВАНИЕ_НАЧАЛО: "
+                + "редактирование профиля для keycloakUserId: {}",
+                keycloakUserId);
+        ProfileResponse response = profileService.editProfile(
+                keycloakUserId, request);
+        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_РЕДАКТИРОВАНИЕ_УСПЕХ: "
+                + "профиль отредактирован для keycloakUserId: {}",
+                keycloakUserId);
         return ResponseEntity.ok(response);
     }
 
     /**
-     * Получает профиль пользователя по его Keycloak UUID (публичный эндпоинт).
+     * Получает профиль пользователя по его Keycloak UUID
+     * (публичный эндпоинт).
      *
      * @param keycloakUserId идентификатор пользователя из Keycloak
      * @return профиль пользователя
      */
     @Operation(summary = "Получить профиль пользователя по keycloakUserId")
     @GetMapping("/{keycloakUserId}")
-    public ResponseEntity<ProfileResponse> getProfileById(@PathVariable("keycloakUserId") UUID keycloakUserId) {
-        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_ПОЛУЧЕНИЕ_ПО_ID_НАЧАЛО: получение профиля по keycloakUserId: {}", keycloakUserId);
-        ProfileResponse response = profileService.getProfileByUserId(keycloakUserId);
-        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_ПОЛУЧЕНИЕ_ПО_ID_УСПЕХ: профиль получен для keycloakUserId: {}", keycloakUserId);
+    public ResponseEntity<ProfileResponse> getProfileById(
+            @PathVariable("keycloakUserId") final UUID keycloakUserId) {
+        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_ПОЛУЧЕНИЕ_ПО_ID_НАЧАЛО: "
+                + "получение профиля по keycloakUserId: {}", keycloakUserId);
+        ProfileResponse response = profileService.getProfileByUserId(
+                keycloakUserId);
+        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_ПОЛУЧЕНИЕ_ПО_ID_УСПЕХ: "
+                + "профиль получен для keycloakUserId: {}", keycloakUserId);
         return ResponseEntity.ok(response);
     }
 }

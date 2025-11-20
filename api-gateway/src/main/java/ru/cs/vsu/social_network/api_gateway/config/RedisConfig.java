@@ -11,21 +11,29 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 @Configuration
 public class RedisConfig {
 
+    /**
+     * Хост Redis.
+     */
     @Value("${spring.data.redis.host:redis}")
     private String redisHost;
 
+    /**
+     * Порт Redis.
+     */
     @Value("${spring.data.redis.port:6379}")
     private int redisPort;
 
     /**
-     * Создает фабрику подключений к Redis для хранения сессий и rate limiting.
+     * Создает фабрику подключений к Redis для хранения сессий
+     * и rate limiting.
      *
      * @return фабрика подключений к Redis
      */
     @Bean
     @Primary
     public RedisConnectionFactory redisConnectionFactory() {
-        LettuceConnectionFactory factory = new LettuceConnectionFactory(redisHost, redisPort);
+        LettuceConnectionFactory factory = new LettuceConnectionFactory(
+                redisHost, redisPort);
         factory.setValidateConnection(true);
         factory.setShareNativeConnection(false);
         return factory;
@@ -33,13 +41,15 @@ public class RedisConfig {
 
     /**
      * Создает реактивную фабрику подключений к Redis для rate limiting.
-     * LettuceConnectionFactory реализует оба интерфейса (RedisConnectionFactory и ReactiveRedisConnectionFactory).
+     * LettuceConnectionFactory реализует оба интерфейса
+     * (RedisConnectionFactory и ReactiveRedisConnectionFactory).
      *
      * @return реактивная фабрика подключений к Redis
      */
     @Bean
     public ReactiveRedisConnectionFactory reactiveRedisConnectionFactory() {
-        LettuceConnectionFactory factory = new LettuceConnectionFactory(redisHost, redisPort);
+        LettuceConnectionFactory factory = new LettuceConnectionFactory(
+                redisHost, redisPort);
         factory.setValidateConnection(true);
         factory.setShareNativeConnection(false);
         factory.afterPropertiesSet();

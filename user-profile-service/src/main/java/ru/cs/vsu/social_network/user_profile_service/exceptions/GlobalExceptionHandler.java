@@ -25,7 +25,8 @@ public class GlobalExceptionHandler {
      * @return ответ с ошибкой 404
      */
     @ExceptionHandler(ProfileNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleProfileNotFoundException(ProfileNotFoundException ex) {
+    public ResponseEntity<Map<String, Object>> handleProfileNotFoundException(
+            final ProfileNotFoundException ex) {
         log.warn("ПРОФИЛЬ_ОШИБКА_НЕ_НАЙДЕН: {}", ex.getMessage());
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
@@ -42,7 +43,9 @@ public class GlobalExceptionHandler {
      * @return ответ с ошибкой 409
      */
     @ExceptionHandler(ProfileAlreadyExistsException.class)
-    public ResponseEntity<Map<String, Object>> handleProfileAlreadyExistsException(ProfileAlreadyExistsException ex) {
+    public ResponseEntity<Map<String, Object>>
+            handleProfileAlreadyExistsException(
+            final ProfileAlreadyExistsException ex) {
         log.warn("ПРОФИЛЬ_ОШИБКА_УЖЕ_СУЩЕСТВУЕТ: {}", ex.getMessage());
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
@@ -59,7 +62,9 @@ public class GlobalExceptionHandler {
      * @return ответ с ошибкой 400
      */
     @ExceptionHandler(ProfileBioTooLongException.class)
-    public ResponseEntity<Map<String, Object>> handleProfileBioTooLongException(ProfileBioTooLongException ex) {
+    public ResponseEntity<Map<String, Object>>
+            handleProfileBioTooLongException(
+            final ProfileBioTooLongException ex) {
         log.warn("ПРОФИЛЬ_ОШИБКА_БИО_ДЛИННОЕ: {}", ex.getMessage());
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
@@ -76,7 +81,9 @@ public class GlobalExceptionHandler {
      * @return ответ с ошибкой 400
      */
     @ExceptionHandler(ProfileCityTooLongException.class)
-    public ResponseEntity<Map<String, Object>> handleProfileCityTooLongException(ProfileCityTooLongException ex) {
+    public ResponseEntity<Map<String, Object>>
+            handleProfileCityTooLongException(
+            final ProfileCityTooLongException ex) {
         log.warn("ПРОФИЛЬ_ОШИБКА_ГОРОД_ДЛИННЫЙ: {}", ex.getMessage());
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
@@ -93,13 +100,15 @@ public class GlobalExceptionHandler {
      * @return ответ с ошибкой 500
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
+    public ResponseEntity<Map<String, Object>> handleGenericException(
+            final Exception ex) {
         log.error("ПРОФИЛЬ_ОШИБКА_НЕОЖИДАННАЯ: неожиданная ошибка", ex);
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
         body.put("error", "Internal Server Error");
         body.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(body);
     }
 }
