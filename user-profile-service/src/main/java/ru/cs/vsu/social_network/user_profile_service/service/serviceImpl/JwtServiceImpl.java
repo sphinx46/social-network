@@ -23,7 +23,7 @@ import java.util.function.Function;
 public class JwtServiceImpl implements JwtService {
     @Value("${token.signing.key}")
     private String jwtSigningKey;
-    
+
 
     /**
      * Извлечение имени пользователя из токена

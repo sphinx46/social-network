@@ -36,7 +36,7 @@ public class GatewayConfig {
                     } else if (principal instanceof OidcUser) {
                         oidcUser = (OidcUser) principal;
                     }
-                    
+
                     if (oidcUser != null) {
                         String userId = oidcUser.getSubject();
                         if (userId != null && !userId.isEmpty()) {

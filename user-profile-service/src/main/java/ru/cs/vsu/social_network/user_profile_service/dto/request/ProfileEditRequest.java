@@ -12,7 +12,7 @@ import java.time.LocalDate;
 @Schema(description = "Запрос на редактирование профиля")
 public class ProfileEditRequest {
     private static final int MAX_BIO_LENGTH = 500;
-    
+
     @Schema(description = "Описание",
             example = "О себе: увлекаюсь программированием, люблю танцевать!")
     @Size(max = MAX_BIO_LENGTH,

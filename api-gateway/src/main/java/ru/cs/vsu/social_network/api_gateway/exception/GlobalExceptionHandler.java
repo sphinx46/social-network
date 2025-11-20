@@ -36,14 +36,14 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
     public Mono<Void> handle(
             final ServerWebExchange exchange, final Throwable ex) {
         ServerHttpResponse response = exchange.getResponse();
-        
+
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         String message = "Internal server error";
-        
+
         if (ex instanceof ResponseStatusException) {
             ResponseStatusException rse = (ResponseStatusException) ex;
-            status = HttpStatus.resolve(rse.getStatusCode().value()) != null 
-                    ? HttpStatus.resolve(rse.getStatusCode().value()) 
+            status = HttpStatus.resolve(rse.getStatusCode().value()) != null
+                    ? HttpStatus.resolve(rse.getStatusCode().value())
                     : HttpStatus.INTERNAL_SERVER_ERROR;
             message = rse.getReason() != null ? rse.getReason() : message;
         } else if (ex instanceof IllegalStateException) {
@@ -55,26 +55,26 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
             message = ex.getMessage() != null
                     ? ex.getMessage() : "Invalid argument";
         }
-        
-        log.error("ШЛЮЗ_ОШИБКА: обработка исключения для пути {}: {}", 
+
+        log.error("ШЛЮЗ_ОШИБКА: обработка исключения для пути {}: {}",
                 exchange.getRequest().getPath(), ex.getMessage(), ex);
-        
+
         response.setStatusCode(status);
         response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-        
+
         Map<String, Object> errorBody = new HashMap<>();
         errorBody.put("timestamp", LocalDateTime.now().toString());
         errorBody.put("status", status.value());
         errorBody.put("error", status.getReasonPhrase());
         errorBody.put("message", message);
         errorBody.put("path", exchange.getRequest().getPath().value());
-        
+
         String json = "{\"timestamp\":\"" + errorBody.get("timestamp")
                 + "\",\"status\":" + errorBody.get("status")
                 + ",\"error\":\"" + errorBody.get("error")
                 + "\",\"message\":\"" + message.replace("\"", "\\\"")
                 + "\",\"path\":\"" + errorBody.get("path") + "\"}";
-        
+
         DataBuffer buffer = response.bufferFactory()
                 .wrap(json.getBytes(StandardCharsets.UTF_8));
         return response.writeWith(Mono.just(buffer));

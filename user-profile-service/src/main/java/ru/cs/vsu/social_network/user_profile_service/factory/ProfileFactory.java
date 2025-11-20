@@ -19,7 +19,7 @@ public class ProfileFactory {
      */
     public Profile createDefaultProfile(UUID keycloakUserId, String username) {
         log.debug("ПРОФИЛЬ_ФАБРИКА_СОЗДАНИЕ_НАЧАЛО: создание профиля по умолчанию для keycloakUserId: {}, username: {}", keycloakUserId, username);
-        
+
         Profile profile = Profile.builder()
                 .keycloakUserId(keycloakUserId)
                 .username(username)
