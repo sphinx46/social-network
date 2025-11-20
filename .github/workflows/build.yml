@@ -114,6 +114,7 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io
 
       - name: Cache OWASP dependency data
+        if: github.event_name == 'pull_request'
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository/org/owasp/dependency-check-data
@@ -122,6 +123,7 @@ jobs:
             ${{ runner.os }}-owasp-
 
       - name: Run OWASP dependency check
+        if: github.event_name == 'pull_request'
         run: |
           mvn org.owasp:dependency-check-maven:check -DskipTests
 
