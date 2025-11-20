@@ -17,6 +17,9 @@ public class CustomAuthorizationRequestResolver
     private final DefaultServerOAuth2AuthorizationRequestResolver
             defaultResolver;
 
+    private final String PROMT = "promt";
+    private final String KC_IDP_HINT = "kc_idp_hint";
+
     public CustomAuthorizationRequestResolver(
             final DefaultServerOAuth2AuthorizationRequestResolver resolver) {
         this.defaultResolver = resolver;
@@ -37,9 +40,9 @@ public class CustomAuthorizationRequestResolver
         return defaultResolver.resolve(exchange)
                 .map(request -> {
                     String prompt = exchange.getRequest()
-                            .getQueryParams().getFirst("prompt");
+                            .getQueryParams().getFirst(PROMT);
                     String kcIdpHint = exchange.getRequest()
-                            .getQueryParams().getFirst("kc_idp_hint");
+                            .getQueryParams().getFirst(KC_IDP_HINT);
 
                     if (prompt != null || kcIdpHint != null) {
                         log.debug("ШЛЮЗ_ОАУТ2_РЕЗОЛВЕР_ПАРАМЕТРЫ: "
@@ -51,10 +54,10 @@ public class CustomAuthorizationRequestResolver
                                         request.getAdditionalParameters());
 
                         if (prompt != null) {
-                            additionalParameters.put("prompt", prompt);
+                            additionalParameters.put(PROMT, prompt);
                         }
                         if (kcIdpHint != null) {
-                            additionalParameters.put("kc_idp_hint", kcIdpHint);
+                            additionalParameters.put(KC_IDP_HINT, kcIdpHint);
                         }
 
                         OAuth2AuthorizationRequest modifiedRequest =
@@ -88,9 +91,9 @@ public class CustomAuthorizationRequestResolver
         return defaultResolver.resolve(exchange, clientRegistrationId)
                 .map(request -> {
                     String prompt = exchange.getRequest()
-                            .getQueryParams().getFirst("prompt");
+                            .getQueryParams().getFirst(PROMT);
                     String kcIdpHint = exchange.getRequest()
-                            .getQueryParams().getFirst("kc_idp_hint");
+                            .getQueryParams().getFirst(KC_IDP_HINT);
 
                     if (prompt != null || kcIdpHint != null) {
                         log.debug("ШЛЮЗ_ОАУТ2_РЕЗОЛВЕР_ПАРАМЕТРЫ: "
@@ -102,10 +105,10 @@ public class CustomAuthorizationRequestResolver
                                         request.getAdditionalParameters());
 
                         if (prompt != null) {
-                            additionalParameters.put("prompt", prompt);
+                            additionalParameters.put(PROMT, prompt);
                         }
                         if (kcIdpHint != null) {
-                            additionalParameters.put("kc_idp_hint", kcIdpHint);
+                            additionalParameters.put(KC_IDP_HINT, kcIdpHint);
                         }
 
                         OAuth2AuthorizationRequest modifiedRequest =
