@@ -43,9 +43,10 @@
 		<spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
 		<keycloak-admin-client.version>26.0.7</keycloak-admin-client.version>
 		
+		<checkstyle-plugin.version>3.3.1</checkstyle-plugin.version>
 		<checkstyle.version>10.15.0</checkstyle.version>
-		<spotbugs.version>4.8.6.6</spotbugs.version>
-		<pmd.version>3.25.0</pmd.version>
+		<spotbugs-plugin.version>4.8.6.6</spotbugs-plugin.version>
+		<pmd-plugin.version>3.25.0</pmd-plugin.version>
 	</properties>
 
 	<dependencyManagement>
@@ -208,7 +209,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-checkstyle-plugin</artifactId>
-					<version>${checkstyle.version}</version>
+					<version>${checkstyle-plugin.version}</version>
 					<configuration>
 						<configLocation>sun_checks.xml</configLocation>
 						<consoleOutput>true</consoleOutput>
@@ -219,7 +220,7 @@
 						<dependency>
 							<groupId>com.puppycrawl.tools</groupId>
 							<artifactId>checkstyle</artifactId>
-							<version>10.15.0</version>
+							<version>${checkstyle.version}</version>
 						</dependency>
 					</dependencies>
 				</plugin>
@@ -227,7 +228,7 @@
 				<plugin>
 					<groupId>com.github.spotbugs</groupId>
 					<artifactId>spotbugs-maven-plugin</artifactId>
-					<version>${spotbugs.version}</version>
+					<version>${spotbugs-plugin.version}</version>
 					<configuration>
 						<effort>Max</effort>
 						<threshold>Low</threshold>
@@ -239,7 +240,7 @@
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-pmd-plugin</artifactId>
-					<version>${pmd.version}</version>
+					<version>${pmd-plugin.version}</version>
 					<configuration>
 						<targetJdk>${java.version}</targetJdk>
 						<rulesets>
