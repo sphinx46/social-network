@@ -113,6 +113,14 @@ jobs:
             -Dsonar.organization=sphinx46 \
             -Dsonar.host.url=https://sonarcloud.io
 
+      - name: Cache OWASP dependency data
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository/org/owasp/dependency-check-data
+          key: ${{ runner.os }}-owasp-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-owasp-
+
       - name: Run OWASP dependency check
         run: |
           mvn org.owasp:dependency-check-maven:check -DskipTests
