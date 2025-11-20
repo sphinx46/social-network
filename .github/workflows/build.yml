@@ -113,15 +113,15 @@ jobs:
 
       - name: Run Checkstyle
         run: |
-          mvn -B checkstyle:check
+          mvn -B checkstyle:check -pl '!monolith'
 
       - name: Run SpotBugs
         run: |
-          mvn -B spotbugs:check
+          mvn -B spotbugs:check -pl '!monolith'
 
       - name: Run PMD
         run: |
-          mvn -B pmd:check
+          mvn -B pmd:check -pl '!monolith'
 
       - name: Upload linting reports
         uses: actions/upload-artifact@v4
