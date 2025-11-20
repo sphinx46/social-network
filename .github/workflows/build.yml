@@ -164,6 +164,10 @@ jobs:
             type=ref,event=branch
             type=sha
 
+      - name: Build service artifact
+        run: |
+          mvn -B -pl ${{ matrix.service }} -am package -DskipTests
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
