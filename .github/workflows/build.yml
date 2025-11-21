@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, develop-main, feature-main, feature/**]
   pull_request:
-    branches: [main, develop-main, feature-main]
+    branches: [main, develop-main, feature-main, feature/**]
   workflow_dispatch:
 
 env:
@@ -241,7 +241,7 @@ jobs:
     name: Integration Tests
     runs-on: ubuntu-latest
     needs: build-images
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop-main' || startsWith(github.ref, 'refs/heads/featurex'))
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/develop-main' || startsWith(github.ref, 'refs/heads/feature'))
 
     services:
       postgres:
