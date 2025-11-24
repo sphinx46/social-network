@@ -84,6 +84,25 @@ spring:
           metadata:
             response-timeout: 10000
             connect-timeout: 5000
+        - id: upload-service-protected
+          uri: lb://upload-service
+          predicates:
+            - Path=/api/upload/media, /api/upload/media/**, /api/upload/actuator/**
+          filters:
+            - name: UserContextFilter
+              args:
+                enabled: true
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.requestedTokens: 1
+            - TokenRelay=
+            - RewritePath=/api/upload/(?<segment>.*), /api/upload/${segment}
+          metadata:
+            response-timeout: 20000
+            connect-timeout: 5000
         - id: keycloak-auth
           uri: http://keycloak:8080
           predicates:
