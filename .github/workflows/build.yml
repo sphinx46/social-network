@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [eureka-server, api-gateway, user-profile-service]
+        service: [eureka-server, api-gateway, user-profile-service, upload-service]
         java-version: [21]
 
     services:
@@ -65,7 +65,7 @@ jobs:
 
       - name: Run unit tests with coverage
         run: |
-          mvn -B clean verify -pl ${{ matrix.service }} -am
+          mvn -B clean verify -pl ${{ matrix.service }} -am -Djacoco.skip=false
         env:
           SPRING_PROFILES_ACTIVE: test
           SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false
@@ -75,6 +75,13 @@ jobs:
           SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.H2Dialect
           SPRING_REDIS_HOST: localhost
           SPRING_REDIS_PORT: 6379
+
+      - name: Check if coverage reports exist
+        run: |
+          echo "Checking for JaCoCo reports in ${{ matrix.service }}..."
+          find . -name "jacoco.xml" -o -name "jacoco.csv" -o -name "index.html" | head -10 || echo "No JaCoCo reports found"
+          ls -la ${{ matrix.service }}/target/site/ 2>/dev/null || echo "No site directory in ${{ matrix.service }}"
+          ls -la ${{ matrix.service }}/target/ 2>/dev/null || echo "No target directory in ${{ matrix.service }}"
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -93,6 +100,8 @@ jobs:
           name: coverage-reports-${{ matrix.service }}
           path: |
             **/target/site/jacoco/
+            **/target/jacoco.xml
+            **/target/jacoco.exec
           retention-days: 30
 
   code-analysis:
@@ -191,7 +200,7 @@ jobs:
 
     strategy:
       matrix:
-        service: [eureka-server, api-gateway, user-profile-service]
+        service: [eureka-server, api-gateway, user-profile-service, upload-service]
 
     steps:
       - name: Checkout code
@@ -225,7 +234,7 @@ jobs:
 
       - name: Build service artifact
         run: |
-          mvn -B -pl ${{ matrix.service }} -am package -DskipTests
+          mvn -B -pl ${{ matrix.service }} -am package -DskipTests -Djacoco.skip=true
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -270,7 +279,7 @@ jobs:
 
       - name: Run integration tests
         run: |
-          mvn -B -pl api-gateway,eureka-server,user-profile-service -am verify -DskipUnitTests=true
+          mvn -B -pl api-gateway,eureka-server,user-profile-service,upload-service -am verify -DskipUnitTests=true -Djacoco.skip=true
         env:
           SPRING_PROFILES_ACTIVE: test
           SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false
