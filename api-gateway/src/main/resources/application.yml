@@ -151,11 +151,14 @@ spring:
   
   security:
     oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak:8080/realms/social-network}
       client:
         provider:
           keycloak:
             jwk-set-uri: http://keycloak:8080/realms/social-network/protocol/openid-connect/certs
-            authorization-uri: http://localhost:8080/realms/social-network/protocol/openid-connect/auth
+            authorization-uri: http://keycloak:8080/realms/social-network/protocol/openid-connect/auth
             token-uri: http://keycloak:8080/realms/social-network/protocol/openid-connect/token
             user-info-uri: http://keycloak:8080/realms/social-network/protocol/openid-connect/userinfo
             user-name-attribute: preferred_username

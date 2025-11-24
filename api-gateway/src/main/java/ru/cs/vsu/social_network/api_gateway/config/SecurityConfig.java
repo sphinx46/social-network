@@ -105,6 +105,9 @@ public class SecurityConfig {
                                         customAuthorizationRequestResolver(
                                                 clientRegistrationRepository))
                 )
+                .oauth2ResourceServer(oauth2 ->
+                        oauth2.jwt()
+                )
                 .logout(logout ->
                         logout.logoutSuccessHandler(logoutSuccessHandler)
                                 .logoutHandler(logoutHandler)

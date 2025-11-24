@@ -2,13 +2,17 @@ package ru.cs.vsu.social_network.user_profile_service.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 
 @Builder
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Schema(description = "Запрос на редактирование профиля")
 public class ProfileEditRequest {
     private static final int MAX_BIO_LENGTH = 500;

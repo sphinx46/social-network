@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import reactor.core.publisher.Mono;
 
 import java.util.Optional;
@@ -35,6 +37,14 @@ public class GatewayConfig {
                         }
                     } else if (principal instanceof OidcUser) {
                         oidcUser = (OidcUser) principal;
+                    } else if (principal instanceof JwtAuthenticationToken) {
+                        JwtAuthenticationToken jwtToken =
+                                (JwtAuthenticationToken) principal;
+                        Jwt jwt = jwtToken.getToken();
+                        String subject = jwt.getSubject();
+                        if (subject != null && !subject.isEmpty()) {
+                            return Mono.just(subject);
+                        }
                     }
 
                     if (oidcUser != null) {

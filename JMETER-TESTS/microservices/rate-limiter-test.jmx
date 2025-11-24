@@ -22,12 +22,12 @@
           </elementProp>
           <elementProp name="publicProfileId" elementType="Argument">
             <stringProp name="Argument.name">publicProfileId</stringProp>
-            <stringProp name="Argument.value">20262aba-d2b3-40ff-963d-a8795c1a98a1</stringProp>
+            <stringProp name="Argument.value">6b98dd5b-1682-4b27-a4a8-58faf28c4399</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="sessionCookie" elementType="Argument">
             <stringProp name="Argument.name">sessionCookie</stringProp>
-            <stringProp name="Argument.value">b488654a-d49b-4c83-b24d-106af24633a1</stringProp>
+            <stringProp name="Argument.value">d6f622ed-bde9-4c3f-b64d-5d7e6cf30bb6</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="burstThreads" elementType="Argument">
@@ -211,7 +211,7 @@
         <stringProp name="filename">rate-limiter-results.jtl</stringProp>
       </ResultCollector>
       <hashTree/>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
@@ -248,7 +248,7 @@
         <stringProp name="filename"></stringProp>
       </ResultCollector>
       <hashTree/>
-      <ResultCollector guiclass="TableVisualizer" testclass="ResultCollector" testname="View Results in Table" enabled="true">
+      <ResultCollector guiclass="TableVisualizer" testclass="ResultCollector" testname="View Results in Table">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
