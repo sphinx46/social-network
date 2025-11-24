@@ -123,14 +123,15 @@ public class ProfileController {
      * @return обновленный профиль пользователя с новым URL аватара
      */
     @Operation(summary = "Загрузить аватарку для текущего пользователя")
-    @PostMapping("/me/avatar")
+    @PutMapping("/me/avatar")
     public ResponseEntity<ProfileResponse> uploadAvatar(
             @RequestHeader("X-User-Id") final UUID keycloakUserId,
-            @RequestBody final ProfileUploadAvatarRequest request) {
+            @Valid @RequestBody final ProfileUploadAvatarRequest request) {
+        String publicUrl = request.getPublicUrl();
         log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_АВАТАР_ЗАГРУЗКА_НАЧАЛО: "
                         + "начало загрузки аватара для пользователя {}, "
                         + "длина URL: {} символов",
-                keycloakUserId, request.getPublicUrl().length());
+                keycloakUserId, publicUrl != null ? publicUrl.length() : 0);
 
         ProfileResponse response = profileService.uploadAvatar(keycloakUserId, request);
 

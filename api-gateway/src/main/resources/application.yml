@@ -42,7 +42,26 @@ spring:
                 redis-rate-limiter.burstCapacity: 10
                 redis-rate-limiter.requestedTokens: 1
             - TokenRelay=
-            - RewritePath=/api/profile/me, /api/user-profile/profile/me
+            - RewritePath=/api/profile/me(?<segment>/?.*), /api/user-profile/profile/me${segment}
+          metadata:
+            response-timeout: 10000
+            connect-timeout: 5000
+        - id: user-profile-service-avatar
+          uri: lb://user-profile-service
+          predicates:
+            - Path=/api/profile/me/avatar
+          filters:
+            - name: UserContextFilter
+              args:
+                enabled: true
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+                redis-rate-limiter.requestedTokens: 1
+            - TokenRelay=
+            - RewritePath=/api/profile/me/avatar, /api/user-profile/profile/me/avatar
           metadata:
             response-timeout: 10000
             connect-timeout: 5000

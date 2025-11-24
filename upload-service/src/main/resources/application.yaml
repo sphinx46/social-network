@@ -60,3 +60,4 @@ minio:
   secure: ${MINIO_SECURE:false}
   public-url: ${MINIO_PUBLIC_URL:http://localhost:9000/media}
   auto-create-bucket: ${MINIO_AUTO_CREATE_BUCKET:true}
+  public-read-enabled: ${MINIO_PUBLIC_READ_ENABLED:true}

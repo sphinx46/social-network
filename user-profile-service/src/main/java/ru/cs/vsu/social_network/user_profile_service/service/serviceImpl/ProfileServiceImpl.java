@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import ru.cs.vsu.social_network.user_profile_service.dto.request.ProfileEditRequest;
 import ru.cs.vsu.social_network.user_profile_service.dto.request.ProfileUploadAvatarRequest;
 import ru.cs.vsu.social_network.user_profile_service.dto.response.ProfileResponse;
@@ -142,12 +143,14 @@ public class ProfileServiceImpl implements ProfileService {
                         + "начало загрузки аватара для пользователя {}",
                 keycloakUserId);
 
-        if (publicUrl == null || publicUrl.isEmpty()) {
+        if (!StringUtils.hasText(publicUrl)) {
             log.error("ПРОФИЛЬ_АВАТАР_ЗАГРУЗКА_ОШИБКА: "
                             + "пустой URL аватара для пользователя {}",
                     keycloakUserId);
             throw new ProfileUploadAvatarException(MessageConstants.FAILURE_PROFILE_UPLOAD_AVATAR);
         }
+
+        publicUrl = publicUrl.trim();
 
         log.debug("ПРОФИЛЬ_АВАТАР_ЗАГРУЗКА_ПРОВЕРКА_URL: "
                         + "валидный URL аватара получен для пользователя {}, "

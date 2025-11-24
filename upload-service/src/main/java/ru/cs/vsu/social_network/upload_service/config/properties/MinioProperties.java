@@ -15,5 +15,6 @@ public class MinioProperties {
     private boolean secure;
     private String publicUrl;
     private boolean autoCreateBucket = true;
+    private boolean publicReadEnabled = true;
 }
 
