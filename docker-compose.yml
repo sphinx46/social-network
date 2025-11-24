@@ -65,6 +65,26 @@ services:
     networks:
       - social-network
 
+  minio:
+    image: quay.io/minio/minio:RELEASE.2024-11-07T00-00-00Z
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - social-network
+
   user-profile-service:
     build:
       context: ./user-profile-service
@@ -93,6 +113,58 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    networks:
+      - social-network
+
+  upload-service:
+    build:
+      context: ./upload-service
+      dockerfile: Dockerfile
+    container_name: upload-service
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      JAVA_OPTS: "-Xms256m -Xmx512m"
+      EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE: http://eureka-server:8761/eureka/
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_BUCKET_NAME: media
+      MINIO_PUBLIC_URL: http://localhost:9000/media
+      SIGNATURE_KEY_SECRET: dev-shared-signature-secret
+    depends_on:
+      upload-postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8084/api/upload/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - social-network
+
+  upload-postgres:
+    image: postgres:17-alpine
+    container_name: upload-postgres
+    environment:
+      POSTGRES_USER: upload
+      POSTGRES_PASSWORD: upload
+      POSTGRES_DB: upload
+    volumes:
+      - ./infrastructure/databases/upload:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5440:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U upload -d upload" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - social-network
 
@@ -297,6 +369,24 @@ services:
       DATA_SOURCE_NAME: "postgresql://user-profile:user-profile@user-profile-postgres:5432/user_profile?sslmode=disable"
     ports:
       - "9181:9187"
+    healthcheck:
+      test: [ "CMD", "wget", "--spider", "-q", "http://localhost:9187/metrics" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - social-network
+
+  upload-postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: upload-postgres-exporter
+    depends_on:
+      upload-postgres:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: "postgresql://upload:upload@upload-postgres:5432/upload?sslmode=disable"
+    ports:
+      - "9188:9187"
     healthcheck:
       test: [ "CMD", "wget", "--spider", "-q", "http://localhost:9187/metrics" ]
       interval: 10s
@@ -648,6 +738,7 @@ services:
 
 volumes:
   tempo_data:
+  minio_data:
 
 networks:
   social-network:

@@ -19,6 +19,7 @@
 		<module>api-gateway</module>
 		<module>eureka-server</module>
 		<module>user-profile-service</module>
+		<module>upload-service</module>
 	</modules>
 
 	<properties>
