@@ -175,7 +175,7 @@ jobs:
           scan-ref: '.'
           format: 'sarif'
           output: 'trivy-results.sarif'
-          trivy-options: '--skip-dirs monolith'
+          skip-dirs: monolith
 
       - name: Upload security results
         uses: github/codeql-action/upload-sarif@v4
