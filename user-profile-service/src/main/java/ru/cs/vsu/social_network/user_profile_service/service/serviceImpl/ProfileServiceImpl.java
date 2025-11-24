@@ -6,13 +6,16 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import ru.cs.vsu.social_network.user_profile_service.dto.request.ProfileEditRequest;
+import ru.cs.vsu.social_network.user_profile_service.dto.request.ProfileUploadAvatarRequest;
 import ru.cs.vsu.social_network.user_profile_service.dto.response.ProfileResponse;
 import ru.cs.vsu.social_network.user_profile_service.entity.Profile;
+import ru.cs.vsu.social_network.user_profile_service.exceptions.profile.ProfileUploadAvatarException;
 import ru.cs.vsu.social_network.user_profile_service.factory.ProfileFactory;
 import ru.cs.vsu.social_network.user_profile_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.user_profile_service.provider.ProfileEntityProvider;
 import ru.cs.vsu.social_network.user_profile_service.repository.ProfileRepository;
 import ru.cs.vsu.social_network.user_profile_service.service.ProfileService;
+import ru.cs.vsu.social_network.user_profile_service.utils.constants.MessageConstants;
 import ru.cs.vsu.social_network.user_profile_service.validation.ProfileValidator;
 
 import java.util.UUID;
@@ -37,12 +40,12 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public ProfileResponse getProfileByUserId(final UUID keycloakUserId) {
         log.info("ПРОФИЛЬ_ПОЛУЧЕНИЕ_НАЧАЛО: "
-                + "запрос профиля пользователя с keycloakUserId: {}",
+                        + "запрос профиля пользователя с keycloakUserId: {}",
                 keycloakUserId);
 
         Profile profile = provider.getByKeycloakUserId(keycloakUserId);
         log.debug("ПРОФИЛЬ_ПОЛУЧЕНИЕ_ДАННЫЕ: "
-                + "найден профиль пользователя {} с именем {}",
+                        + "найден профиль пользователя {} с именем {}",
                 keycloakUserId, profile.getUsername());
 
         ProfileResponse response = mapper.map(profile, ProfileResponse.class);
@@ -65,17 +68,17 @@ public class ProfileServiceImpl implements ProfileService {
             final UUID keycloakUserId,
             final ProfileEditRequest request) {
         log.info("ПРОФИЛЬ_РЕДАКТИРОВАНИЕ_НАЧАЛО: "
-                + "начало редактирования профиля пользователя {}",
+                        + "начало редактирования профиля пользователя {}",
                 keycloakUserId);
 
         validator.validateProfileEdit(keycloakUserId, request);
         log.debug("ПРОФИЛЬ_РЕДАКТИРОВАНИЕ_ВАЛИДАЦИЯ: "
-                + "валидация данных пройдена для пользователя {}",
+                        + "валидация данных пройдена для пользователя {}",
                 keycloakUserId);
 
         Profile profile = provider.getByKeycloakUserId(keycloakUserId);
         log.debug("ПРОФИЛЬ_РЕДАКТИРОВАНИЕ_ДАННЫЕ: "
-                + "текущий профиль - город: {}, длина био: {} символов",
+                        + "текущий профиль - город: {}, длина био: {} символов",
                 profile.getCity(),
                 profile.getBio() != null ? profile.getBio().length() : 0);
 
@@ -99,7 +102,7 @@ public class ProfileServiceImpl implements ProfileService {
     public ProfileResponse createDefaultProfile(
             final UUID keycloakUserId, final String username) {
         log.info("ПРОФИЛЬ_СОЗДАНИЕ_НАЧАЛО: "
-                + "создание профиля для keycloakUserId: {}, username: {}",
+                        + "создание профиля для keycloakUserId: {}, username: {}",
                 keycloakUserId, username);
 
         if (profileRepository.existsByKeycloakUserId(keycloakUserId)) {
@@ -109,7 +112,7 @@ public class ProfileServiceImpl implements ProfileService {
             Profile existingProfile = provider.getByKeycloakUserId(
                     keycloakUserId);
             log.info("ПРОФИЛЬ_СОЗДАНИЕ_ВОЗВРАТ: "
-                    + "возвращаем существующий профиль для keycloakUserId {}",
+                            + "возвращаем существующий профиль для keycloakUserId {}",
                     keycloakUserId);
             return mapper.map(existingProfile, ProfileResponse.class);
         }
@@ -118,9 +121,61 @@ public class ProfileServiceImpl implements ProfileService {
         Profile savedProfile = profileRepository.save(profile);
 
         log.info("ПРОФИЛЬ_СОЗДАНИЕ_УСПЕХ: "
-                + "профиль создан для keycloakUserId: {}, внутренний ID: {}",
+                        + "профиль создан для keycloakUserId: {}, внутренний ID: {}",
                 keycloakUserId, savedProfile.getId());
         return mapper.map(savedProfile, ProfileResponse.class);
+    }
+
+    /**
+     * Загружает аватар пользователя и обновляет URL в профиле.
+     *
+     * @param keycloakUserId идентификатор пользователя из Keycloak
+     * @param request данные для загрузки аватарки
+     * @return обновленные данные профиля с новым URL аватара
+     * @throws ProfileUploadAvatarException если URL аватара пустой или null
+     */
+    @Override
+    @CacheEvict(value = "profile", key = "#keycloakUserId")
+    public ProfileResponse uploadAvatar(final UUID keycloakUserId, final ProfileUploadAvatarRequest request) {
+        String publicUrl = request.getPublicUrl();
+        log.info("ПРОФИЛЬ_АВАТАР_ЗАГРУЗКА_НАЧАЛО: "
+                        + "начало загрузки аватара для пользователя {}",
+                keycloakUserId);
+
+        if (publicUrl == null || publicUrl.isEmpty()) {
+            log.error("ПРОФИЛЬ_АВАТАР_ЗАГРУЗКА_ОШИБКА: "
+                            + "пустой URL аватара для пользователя {}",
+                    keycloakUserId);
+            throw new ProfileUploadAvatarException(MessageConstants.FAILURE_PROFILE_UPLOAD_AVATAR);
+        }
+
+        log.debug("ПРОФИЛЬ_АВАТАР_ЗАГРУЗКА_ПРОВЕРКА_URL: "
+                        + "валидный URL аватара получен для пользователя {}, "
+                        + "длина URL: {} символов",
+                keycloakUserId, publicUrl.length());
+
+        Profile profile = provider.getByKeycloakUserId(keycloakUserId);
+        log.debug("ПРОФИЛЬ_АВАТАР_ЗАГРУЗКА_ПРОФИЛЬ_НАЙДЕН: "
+                        + "профиль пользователя {} найден, текущий аватар: {}",
+                keycloakUserId,
+                profile.getAvatarUrl() != null ? "установлен" : "отсутствует");
+
+        String previousAvatarUrl = profile.getAvatarUrl();
+        profile.setAvatarUrl(publicUrl);
+
+        Profile savedProfile = profileRepository.save(profile);
+        log.info("ПРОФИЛЬ_АВАТАР_ЗАГРУЗКА_УСПЕХ: "
+                        + "аватар успешно обновлен для пользователя {}, "
+                        + "новый URL: {}, предыдущий URL: {}",
+                keycloakUserId, publicUrl,
+                previousAvatarUrl != null ? "был установлен" : "отсутствовал");
+
+        ProfileResponse response = mapper.map(savedProfile, ProfileResponse.class);
+        log.debug("ПРОФИЛЬ_АВАТАР_ЗАГРУЗКА_МАППИНГ: "
+                        + "данные профиля успешно смаппированы в response для пользователя {}",
+                keycloakUserId);
+
+        return response;
     }
 
     /**
@@ -136,7 +191,7 @@ public class ProfileServiceImpl implements ProfileService {
         if (request.getCity() != null
                 && !request.getCity().equals(profile.getCity())) {
             log.debug("ПРОФИЛЬ_ОБНОВЛЕНИЕ_ГОРОД: "
-                    + "обновление города с '{}' на '{}'",
+                            + "обновление города с '{}' на '{}'",
                     profile.getCity(), request.getCity());
             profile.setCity(request.getCity());
             hasChanges = true;
@@ -145,7 +200,7 @@ public class ProfileServiceImpl implements ProfileService {
         if (request.getDateOfBirth() != null
                 && !request.getDateOfBirth().equals(profile.getDateOfBirth())) {
             log.debug("ПРОФИЛЬ_ОБНОВЛЕНИЕ_ДАТА_РОЖДЕНИЯ: "
-                    + "обновление даты рождения с {} на {}",
+                            + "обновление даты рождения с {} на {}",
                     profile.getDateOfBirth(), request.getDateOfBirth());
             profile.setDateOfBirth(request.getDateOfBirth());
             hasChanges = true;
@@ -154,7 +209,7 @@ public class ProfileServiceImpl implements ProfileService {
         if (request.getBio() != null
                 && !request.getBio().equals(profile.getBio())) {
             log.debug("ПРОФИЛЬ_ОБНОВЛЕНИЕ_БИО: "
-                    + "обновление био, длина: {} символов",
+                            + "обновление био, длина: {} символов",
                     request.getBio().length());
             profile.setBio(request.getBio());
             hasChanges = true;

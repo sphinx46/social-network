@@ -21,6 +21,8 @@ public final class MessageConstants {
     public static final String FAILURE_PROFILE_CITY_TOO_LONG = "Ошибка! Название города слишком длинное";
     public static final String FAILURE_PROFILE_NOT_FOUND = "Ошибка! Профиль не найден";
 
+    public static final String FAILURE_PROFILE_UPLOAD_AVATAR = "Ошибка! Ссылка на медиа-файл невалидна.";
+
     /**
      * Приватный конструктор для предотвращения создания экземпляров.
      * Класс предназначен только для хранения констант.

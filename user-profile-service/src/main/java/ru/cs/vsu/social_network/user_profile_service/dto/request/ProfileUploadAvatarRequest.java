@@ -3,15 +3,14 @@ package ru.cs.vsu.social_network.user_profile_service.dto.request;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
-import org.springframework.web.multipart.MultipartFile;
 
 @Builder
 @Data
 @Schema(description = "Запрос на загрузку аватарки в профиль")
 public class ProfileUploadAvatarRequest {
     /**
-     * Файл изображения аватарки.
+     * Публичная ссылка на аватарку.
      */
-    @Schema(description = "Аватарка профиля")
-    private MultipartFile imageFile;
+    @Schema(description = "Ссылка на аватарку профиля")
+    private String publicUrl;
 }
