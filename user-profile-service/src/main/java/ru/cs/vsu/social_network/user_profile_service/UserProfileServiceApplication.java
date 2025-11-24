@@ -9,7 +9,6 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 public final class UserProfileServiceApplication {
 
     private UserProfileServiceApplication() {
-        // Utility class
     }
 
     public static void main(final String[] args) {

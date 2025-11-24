@@ -7,9 +7,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.cs.vsu.social_network.user_profile_service.dto.request.ProfileEditRequest;
+import ru.cs.vsu.social_network.user_profile_service.dto.request.ProfileUploadAvatarRequest;
 import ru.cs.vsu.social_network.user_profile_service.dto.response.ProfileResponse;
 import ru.cs.vsu.social_network.user_profile_service.entity.Profile;
 import ru.cs.vsu.social_network.user_profile_service.exceptions.profile.ProfileBioTooLongException;
+import ru.cs.vsu.social_network.user_profile_service.exceptions.profile.ProfileUploadAvatarException;
 import ru.cs.vsu.social_network.user_profile_service.factory.ProfileFactory;
 import ru.cs.vsu.social_network.user_profile_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.user_profile_service.provider.ProfileEntityProvider;
@@ -49,7 +51,7 @@ public class ProfileServiceImplTest {
     void createDefaultProfile_whenRequestIsValid() {
         String username = "testUser";
         Profile profile = TestDataFactory.createTestProfile(username, TEST_USER_ID);
-        ProfileResponse expectedResponse = TestDataFactory.createProfileResponse(username, null, null);
+        ProfileResponse expectedResponse = TestDataFactory.createProfileResponse(username, null, null, null);
 
         when(profileRepository.existsByKeycloakUserId(TEST_USER_ID)).thenReturn(false);
         when(factory.createDefaultProfile(TEST_USER_ID, username)).thenReturn(profile);
@@ -69,7 +71,7 @@ public class ProfileServiceImplTest {
     void createDefaultProfile_whenProfileExists() {
         String username = "testUser";
         Profile existingProfile = TestDataFactory.createTestProfile(username, TEST_USER_ID);
-        ProfileResponse expectedResponse = TestDataFactory.createProfileResponse(username, null, null);
+        ProfileResponse expectedResponse = TestDataFactory.createProfileResponse(username, null, null, null);
 
         when(profileRepository.existsByKeycloakUserId(TEST_USER_ID)).thenReturn(true);
         when(provider.getByKeycloakUserId(TEST_USER_ID)).thenReturn(existingProfile);
@@ -88,7 +90,7 @@ public class ProfileServiceImplTest {
     void getProfileByUserId_whenRequestIsValid() {
         String username = "testUser";
         Profile profile = TestDataFactory.createTestProfile(username, TEST_USER_ID);
-        ProfileResponse expectedResponse = TestDataFactory.createProfileResponse(username, "Moscow", "Test bio");
+        ProfileResponse expectedResponse = TestDataFactory.createProfileResponse(username, "Moscow", "Test bio", null);
 
         when(provider.getByKeycloakUserId(TEST_USER_ID)).thenReturn(profile);
         when(mapper.map(any(Profile.class), eq(ProfileResponse.class))).thenReturn(expectedResponse);
@@ -111,7 +113,7 @@ public class ProfileServiceImplTest {
         Profile updatedProfile = TestDataFactory.createTestProfile(username, TEST_USER_ID);
         updatedProfile.setCity("Moscow");
         updatedProfile.setBio("I am Ilya.");
-        ProfileResponse expectedResponse = TestDataFactory.createProfileResponse(username, "Moscow", "I am Ilya.");
+        ProfileResponse expectedResponse = TestDataFactory.createProfileResponse(username, "Moscow", "I am Ilya.", null);
 
         when(provider.getByKeycloakUserId(TEST_USER_ID)).thenReturn(profile);
         when(profileRepository.save(any(Profile.class))).thenReturn(updatedProfile);
@@ -147,5 +149,46 @@ public class ProfileServiceImplTest {
         verify(profileRepository, never()).save(any(Profile.class));
         verify(provider, never()).getByKeycloakUserId(any(UUID.class));
         verify(mapper, never()).map(any(Profile.class), any(Class.class));
+    }
+
+    @Test
+    @DisplayName("Загрузка аватарки - успешно")
+    void uploadAvatar_whenRequestIsValid() {
+        String username = "testUser";
+        ProfileUploadAvatarRequest request = TestDataFactory.createUploadAvatarRequest("testPublicUrl");
+
+        Profile profile = TestDataFactory.createTestProfile(username, TEST_USER_ID);
+
+        Profile updatedProfile = TestDataFactory.createTestProfile(username, TEST_USER_ID);
+        updatedProfile.setAvatarUrl(request.getPublicUrl());
+        ProfileResponse expectedResponse = TestDataFactory.createProfileResponse(username, null, null, "testPublicUrl");
+
+        when(provider.getByKeycloakUserId(TEST_USER_ID)).thenReturn(profile);
+        when(profileRepository.save(profile)).thenReturn(updatedProfile);
+        when(mapper.map(updatedProfile, ProfileResponse.class)).thenReturn(expectedResponse);
+
+        ProfileResponse result = profileServiceImpl.uploadAvatar(TEST_USER_ID, request);
+
+        assertNotNull(result);
+        assertEquals(request.getPublicUrl(), result.getAvatarUrl());
+
+        verify(provider).getByKeycloakUserId(TEST_USER_ID);
+        verify(profileRepository).save(profile);
+        verify(mapper).map(updatedProfile, ProfileResponse.class);
+    }
+
+    @Test
+    @DisplayName("Загрузка аватара - пустой URL")
+    void uploadAvatar_whenUrlIsBlank() {
+        ProfileUploadAvatarRequest request = TestDataFactory.createUploadAvatarRequest("");
+
+        ProfileUploadAvatarException exception = assertThrows(
+                ProfileUploadAvatarException.class,
+                () -> profileServiceImpl.uploadAvatar(TEST_USER_ID, request));
+
+        assertEquals(MessageConstants.FAILURE_PROFILE_UPLOAD_AVATAR, exception.getMessage());
+        verify(provider, never()).getByKeycloakUserId(any(UUID.class));
+        verify(profileRepository, never()).save(any(Profile.class));
+        verify(mapper, never()).map(any(Profile.class), eq(ProfileResponse.class));
     }
 }

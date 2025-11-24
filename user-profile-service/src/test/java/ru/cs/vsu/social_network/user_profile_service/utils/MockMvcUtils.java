@@ -67,6 +67,22 @@ public class MockMvcUtils {
     }
 
     /**
+     * Выполняет PATCH запрос с JSON телом и указанными заголовками.
+     * Заголовки передаются парами: "Header-Name", "header-value"
+     */
+    public ResultActions performPatch(final String url, Object request, String... headers) throws Exception {
+        var requestBuilder = patch(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request));
+        for (int i = 0; i < headers.length; i += 2) {
+            if (i + 1 < headers.length) {
+                requestBuilder = requestBuilder.header(headers[i], headers[i + 1]);
+            }
+        }
+        return mockMvc.perform(requestBuilder).andDo(print());
+    }
+
+    /**
      * Выполняет GET запрос и автоматически логирует результат.
      */
     public ResultActions performGet(final String url) throws Exception {

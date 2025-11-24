@@ -4,10 +4,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import ru.cs.vsu.social_network.user_profile_service.controller.ProfileController;
 import ru.cs.vsu.social_network.user_profile_service.dto.request.ProfileEditRequest;
+import ru.cs.vsu.social_network.user_profile_service.dto.request.ProfileUploadAvatarRequest;
 import ru.cs.vsu.social_network.user_profile_service.dto.response.ProfileResponse;
 import ru.cs.vsu.social_network.user_profile_service.exceptions.profile.ProfileNotFoundException;
 import ru.cs.vsu.social_network.user_profile_service.service.ProfileService;
@@ -33,7 +34,7 @@ public class ProfileControllerTest extends BaseControllerTest {
     @DisplayName("Создание профиля по умолчанию - успешно")
     void createDefaultProfile_whenRequestIsValid() throws Exception {
         String username = "testUser";
-        ProfileResponse response = TestDataFactory.createProfileResponse(username, null, null);
+        ProfileResponse response = TestDataFactory.createProfileResponse(username, null, null, null);
 
         when(profileService.createDefaultProfile(any(UUID.class), any(String.class))).thenReturn(response);
 
@@ -51,7 +52,7 @@ public class ProfileControllerTest extends BaseControllerTest {
     @DisplayName("Получение профиля текущего пользователя - успешно")
     void getCurrentUserProfile_whenRequestIsValid() throws Exception {
         String username = "testUser";
-        ProfileResponse response = TestDataFactory.createProfileResponse(username, "Moscow", "Test bio");
+        ProfileResponse response = TestDataFactory.createProfileResponse(username, "Moscow", "Test bio", null);
 
         when(profileService.getProfileByUserId(any(UUID.class))).thenReturn(response);
 
@@ -64,7 +65,6 @@ public class ProfileControllerTest extends BaseControllerTest {
 
         verify(profileService, times(1)).getProfileByUserId(any(UUID.class));
     }
-
 
     @Test
     @WithMockUser(username = "testUser", authorities = "ROLE_USER")
@@ -80,14 +80,13 @@ public class ProfileControllerTest extends BaseControllerTest {
         verify(profileService, times(1)).getProfileByUserId(any(UUID.class));
     }
 
-
     @Test
     @WithMockUser(username = "testUser", authorities = "ROLE_USER")
     @DisplayName("Редактирование профиля - успешно")
     void editProfile_whenRequestIsValid() throws Exception {
         String username = "testUser";
         ProfileEditRequest request = TestDataFactory.createProfileRequest();
-        ProfileResponse response = TestDataFactory.createProfileResponse(username, "Москва", "I am Ilya.");
+        ProfileResponse response = TestDataFactory.createProfileResponse(username, "Москва", "I am Ilya.", null);
 
         when(profileService.editProfile(any(UUID.class), any(ProfileEditRequest.class))).thenReturn(response);
 
@@ -105,7 +104,7 @@ public class ProfileControllerTest extends BaseControllerTest {
     @DisplayName("Получение профиля по ID - успешно")
     void getProfileById_whenRequestIsValid() throws Exception {
         String username = "testUser";
-        ProfileResponse response = TestDataFactory.createProfileResponse(username, "Moscow", "Test bio");
+        ProfileResponse response = TestDataFactory.createProfileResponse(username, "Moscow", "Test bio", null);
 
         when(profileService.getProfileByUserId(any(UUID.class))).thenReturn(response);
 
@@ -127,5 +126,68 @@ public class ProfileControllerTest extends BaseControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(profileService, times(1)).getProfileByUserId(any(UUID.class));
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", authorities = "ROLE_USER")
+    @DisplayName("Загрузка аватарки - успешно")
+    void uploadAvatar_whenRequestIsValid() throws Exception {
+        String username = "testUser";
+        String avatarUrl = "https://example.com/avatar.jpg";
+        ProfileUploadAvatarRequest request = TestDataFactory.createUploadAvatarRequest(avatarUrl);
+        ProfileResponse response = TestDataFactory.createProfileResponse(username, "Moscow", "Test bio", avatarUrl);
+
+        when(profileService.uploadAvatar(any(UUID.class), any(ProfileUploadAvatarRequest.class))).thenReturn(response);
+
+        mockMvcUtils.performPatch("/profile/me/avatar", request,
+                        "X-User-Id", TEST_USER_ID.toString())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value(username))
+                .andExpect(jsonPath("$.avatarUrl").value(avatarUrl));
+
+        verify(profileService, times(1)).uploadAvatar(any(UUID.class), any(ProfileUploadAvatarRequest.class));
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", authorities = "ROLE_USER")
+    @DisplayName("Загрузка аватарки - пустой URL")
+    void uploadAvatar_whenUrlIsBlank() throws Exception {
+        ProfileUploadAvatarRequest request = TestDataFactory.createUploadAvatarRequest("");
+
+        mockMvcUtils.performPatch("/profile/me/avatar", request,
+                        "X-User-Id", TEST_USER_ID.toString())
+                .andExpect(status().isBadRequest());
+
+        verify(profileService, never()).uploadAvatar(any(UUID.class), any(ProfileUploadAvatarRequest.class));
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", authorities = "ROLE_USER")
+    @DisplayName("Загрузка аватарки - профиль не найден")
+    void uploadAvatar_whenProfileNotFound() throws Exception {
+        String avatarUrl = "https://example.com/avatar.jpg";
+        ProfileUploadAvatarRequest request = TestDataFactory.createUploadAvatarRequest(avatarUrl);
+
+        when(profileService.uploadAvatar(any(UUID.class), any(ProfileUploadAvatarRequest.class)))
+                .thenThrow(new ProfileNotFoundException("Профиль не найден"));
+
+        mockMvcUtils.performPatch("/profile/me/avatar", request,
+                        "X-User-Id", TEST_USER_ID.toString())
+                .andExpect(status().isNotFound());
+
+        verify(profileService, times(1)).uploadAvatar(any(UUID.class), any(ProfileUploadAvatarRequest.class));
+    }
+
+    @Test
+    @WithMockUser(username = "testUser", authorities = "ROLE_USER")
+    @DisplayName("Загрузка аватарки - без заголовка X-User-Id")
+    void uploadAvatar_whenMissingUserIdHeader() throws Exception {
+        String avatarUrl = "https://example.com/avatar.jpg";
+        ProfileUploadAvatarRequest request = TestDataFactory.createUploadAvatarRequest(avatarUrl);
+
+        mockMvcUtils.performPatch("/profile/me/avatar", request)
+                .andExpect(status().isBadRequest());
+
+        verify(profileService, never()).uploadAvatar(any(UUID.class), any(ProfileUploadAvatarRequest.class));
     }
 }
