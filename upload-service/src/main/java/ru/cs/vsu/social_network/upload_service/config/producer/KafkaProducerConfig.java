@@ -60,7 +60,11 @@ public class KafkaProducerConfig {
     @Bean
     public ProducerFactory<String, AvatarUploadedEvent> avatarUploadedEventProducerFactory() {
         log.info("KAFKA_PRODUCER_FACTORY_СОЗДАНИЕ: тип=AvatarUploadedEvent");
-        return new DefaultKafkaProducerFactory<>(producerConfig());
+
+        Map<String, Object> config = producerConfig();
+        config.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
+
+        return new DefaultKafkaProducerFactory<>(config);
     }
 
     /**

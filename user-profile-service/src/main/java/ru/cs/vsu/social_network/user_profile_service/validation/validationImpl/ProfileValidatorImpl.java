@@ -1,4 +1,4 @@
-package ru.cs.vsu.social_network.user_profile_service.validation;
+package ru.cs.vsu.social_network.user_profile_service.validation.validationImpl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +8,7 @@ import ru.cs.vsu.social_network.user_profile_service.exceptions.profile.ProfileB
 import ru.cs.vsu.social_network.user_profile_service.exceptions.profile.ProfileCityTooLongException;
 import ru.cs.vsu.social_network.user_profile_service.provider.ProfileEntityProvider;
 import ru.cs.vsu.social_network.user_profile_service.utils.constants.MessageConstants;
+import ru.cs.vsu.social_network.user_profile_service.validation.ProfileValidator;
 
 import java.util.UUID;
 

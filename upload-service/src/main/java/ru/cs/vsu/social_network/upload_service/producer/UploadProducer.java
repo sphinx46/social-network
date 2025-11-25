@@ -11,6 +11,7 @@ import ru.cs.vsu.social_network.upload_service.mapping.EntityMapper;
 
 import java.util.concurrent.CompletableFuture;
 
+
 /**
  * Сервис для отправки событий в Kafka.
  * Отвечает за публикацию событий, связанных с загрузкой медиа-файлов.
@@ -25,7 +26,7 @@ public final class UploadProducer {
     private final KafkaTemplate<String, AvatarUploadedEvent> avatarUploadedEventKafkaTemplate;
     private final EntityMapper mapper;
 
-    private static final String AVATAR_TOPIC = "avatar.events";
+    private static final String AVATAR_TOPIC = "avatar-uploaded";
 
     /**
      * Отправляет событие загрузки аватара в Kafka.

@@ -10,7 +10,7 @@ public class KafkaTopicConfig {
 
     @Bean
     public NewTopic avatarUploadedTopic() {
-        return TopicBuilder.name("avatar.events")
+        return TopicBuilder.name("avatar-uploaded")
                 .build();
     }
 }

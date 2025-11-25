@@ -743,7 +743,7 @@ services:
       - social-network
 
   kafka:
-    container_name: kafka-broker
+    container_name: kafka
     image: apache/kafka:latest
     hostname: kafka
     restart: unless-stopped
