@@ -18,6 +18,8 @@ spring:
   cloud:
     discovery:
       enabled: false
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
 
 eureka:
   client:
