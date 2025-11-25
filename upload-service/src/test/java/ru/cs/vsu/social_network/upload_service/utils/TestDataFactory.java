@@ -166,4 +166,80 @@ public final class TestDataFactory {
         entity.setUpdatedAt(LocalDateTime.now());
         return entity;
     }
+
+    /**
+     * Создает тестовый файл для загрузки аватара.
+     *
+     * @param filename имя файла
+     * @param contentType MIME-тип файла
+     * @param content содержимое файла
+     * @return новый экземпляр MockMultipartFile
+     */
+    public static MockMultipartFile createAvatarFile(final String filename,
+                                                     final String contentType,
+                                                     final byte[] content) {
+        return new MockMultipartFile("file", filename, contentType, content);
+    }
+
+    /**
+     * Создает тестовый запрос на загрузку аватара.
+     *
+     * @param file загружаемый файл
+     * @param description описание аватара
+     * @return новый экземпляр MediaUploadRequest для аватара
+     */
+    public static MediaUploadRequest createAvatarUploadRequest(final MockMultipartFile file,
+                                                               final String description) {
+        return MediaUploadRequest.builder()
+                .file(file)
+                .category("AVATAR")
+                .description(description)
+                .build();
+    }
+
+    /**
+     * Создает тестовый ответ для загруженного аватара.
+     *
+     * @param mediaId уникальный идентификатор медиа
+     * @param ownerId идентификатор владельца
+     * @return новый экземпляр MediaResponse для аватара
+     */
+    public static MediaResponse createAvatarResponse(final UUID mediaId, final UUID ownerId) {
+        return MediaResponse.builder()
+                .id(mediaId)
+                .ownerId(ownerId)
+                .publicUrl("http://localhost/media/avatar.png")
+                .objectName("avatar.png")
+                .mimeType("image/png")
+                .size(1024L)
+                .category("AVATAR")
+                .description("Profile avatar")
+                .originalFileName("avatar.png")
+                .build();
+    }
+
+    /**
+     * Создает тестовую сущность медиа для аватара.
+     *
+     * @param mediaId уникальный идентификатор медиа
+     * @param ownerId идентификатор владельца
+     * @return новый экземпляр MediaEntity для аватара
+     */
+    public static MediaEntity createAvatarEntity(final UUID mediaId, final UUID ownerId) {
+        MediaEntity entity = MediaEntity.builder()
+                .ownerId(ownerId)
+                .category("AVATAR")
+                .description("Profile avatar")
+                .objectName("avatar.png")
+                .originalFileName("avatar.png")
+                .mimeType("image/png")
+                .size(1024L)
+                .bucketName("media")
+                .publicUrl("http://localhost/media/avatar.png")
+                .build();
+        entity.setId(mediaId);
+        entity.setCreatedAt(LocalDateTime.now());
+        entity.setUpdatedAt(LocalDateTime.now());
+        return entity;
+    }
 }

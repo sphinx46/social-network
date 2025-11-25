@@ -25,7 +25,7 @@ import ru.cs.vsu.social_network.upload_service.exception.MinioOperationException
 import ru.cs.vsu.social_network.upload_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.upload_service.provider.MediaEntityProvider;
 import ru.cs.vsu.social_network.upload_service.repository.MediaRepository;
-import ru.cs.vsu.social_network.upload_service.service.serviceImpl.MediaServiceImpl;
+import ru.cs.vsu.social_network.upload_service.service.serviceImpl.BaseMediaServiceImpl;
 import ru.cs.vsu.social_network.upload_service.storage.MediaStorageClient;
 import ru.cs.vsu.social_network.upload_service.utils.GeneratorObjectName;
 import ru.cs.vsu.social_network.upload_service.utils.TestDataFactory;
@@ -40,8 +40,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+/**
+ * Unit тесты для {@link BaseMediaServiceImpl}.
+ * Проверяет корректность работы сервиса загрузки файлов, работы с MiniO.
+ */
 @ExtendWith(MockitoExtension.class)
-class MediaServiceImplTest {
+class BaseMediaServiceImplTest {
 
     private static final UUID MEDIA_ID = UUID.fromString("1be3e6d7-ec6f-49ad-95ac-6c752ad8172e");
     private static final UUID OWNER_ID = UUID.fromString("e0d8a734-6f6c-4ab4-b4fe-e93cc63d8406");
@@ -64,7 +68,7 @@ class MediaServiceImplTest {
     private GeneratorObjectName generatorObjectName;
 
     @InjectMocks
-    private MediaServiceImpl mediaService;
+    private BaseMediaServiceImpl mediaService;
 
     @Test
     @DisplayName("Загрузка файла - успешно")

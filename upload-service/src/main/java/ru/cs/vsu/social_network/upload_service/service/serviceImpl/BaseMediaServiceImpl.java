@@ -27,7 +27,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MediaServiceImpl implements MediaService {
+public class BaseMediaServiceImpl implements MediaService {
 
     private final MediaRepository mediaRepository;
     private final EntityMapper mapper;
