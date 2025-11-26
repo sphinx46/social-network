@@ -4,8 +4,6 @@ server:
 spring:
   application:
     name: api-gateway
-
-  
   data:
     redis:
       host: ${REDIS_HOST:redis}
@@ -17,16 +15,42 @@ spring:
           max-active: 8
           max-idle: 8
           min-idle: 0
-  
   session:
     store-type: redis
     redis:
       namespace: spring:session:api-gateway
     timeout: 30m
-  
   cloud:
     gateway:
       routes:
+        - id: content-service-posts
+          uri: lb://content-service
+          predicates:
+            - Path=/api/content/post/**
+          filters:
+            - name: UserContextFilter
+              args:
+                enabled: true
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.requestedTokens: 1
+            - TokenRelay=
+            - RewritePath=/api/content/post/(?<segment>.*), /api/content/post/${segment}
+          metadata:
+            response-timeout: 15000
+            connect-timeout: 5000
+        - id: content-service-actuator
+          uri: lb://content-service
+          predicates:
+            - Path=/api/content/actuator/**
+          filters:
+            - RewritePath=/api/content/actuator/(?<segment>.*), /api/content/actuator/${segment}
+          metadata:
+            response-timeout: 10000
+            connect-timeout: 5000
         - id: user-profile-service-auth
           uri: lb://user-profile-service
           predicates:
@@ -65,28 +89,6 @@ spring:
           metadata:
             response-timeout: 10000
             connect-timeout: 5000
-        - id: swagger-ui
-          uri: http://localhost:8082
-          predicates:
-            - Path=/swagger-ui.html
-          ilters:
-            - SetPath=/swagger-ui.html
-
-
-        - id: swagger-resources
-          uri: http://localhost:8082
-          predicates:
-            - Path=/swagger-ui/**
-          filters:
-            - RewritePath=/swagger-ui/(?<path>.*), /swagger-ui/${path}
-
-
-        - id: api-docs
-          uri: http://localhost:8082
-          predicates:
-            - Path=/api-docs, /v3/api-docs
-          filters:
-            - SetPath=/v3/api-docs
         - id: user-profile-service-public
           uri: lb://user-profile-service
           predicates:
@@ -135,6 +137,24 @@ spring:
             - Path=/eureka/**
           filters:
             - AddRequestHeader=X-Gateway, api-gateway
+        - id: swagger-ui
+          uri: http://localhost:8082
+          predicates:
+            - Path=/swagger-ui.html
+          filters:
+            - SetPath=/swagger-ui.html
+        - id: swagger-resources
+          uri: http://localhost:8082
+          predicates:
+            - Path=/swagger-ui/**
+          filters:
+            - RewritePath=/swagger-ui/(?<path>.*), /swagger-ui/${path}
+        - id: api-docs
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api-docs, /v3/api-docs
+          filters:
+            - SetPath=/v3/api-docs
       discovery:
         locator:
           enabled: true
@@ -167,7 +187,6 @@ spring:
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
         - AddResponseHeader=X-Gateway-Version, 1.0.0
-  
   security:
     oauth2:
       resourceserver:
@@ -278,4 +297,3 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-

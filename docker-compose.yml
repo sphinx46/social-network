@@ -21,6 +21,7 @@ services:
       - KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/social-network
       - KEYCLOAK_CLIENT_ID=api-gateway
       - KEYCLOAK_CLIENT_SECRET=${KEYCLOAK_CLIENT_SECRET}
+      - SIGNATURE_KEY_SECRET=${SIGNATURE_KEY_SECRET}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
