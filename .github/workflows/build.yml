@@ -50,6 +50,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Clean existing build artifacts
+        run: |
+          find . -name "target" -type d -exec rm -rf {} + 2>/dev/null || true
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -114,6 +118,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Clean existing build artifacts
+        run: |
+          find . -name "target" -type d -exec rm -rf {} + 2>/dev/null || true
+          find . -name "*.class" -delete || true
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -170,6 +179,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-owasp-
 
+      - name: Clean before OWASP compilation
+        run: mvn clean -q -pl '!monolith' --no-transfer-progress
+
       - name: Compile projects for OWASP
         run: |
           mvn compile -DskipTests -pl '!monolith' --no-transfer-progress
@@ -206,6 +218,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Clean existing build artifacts
+        run: |
+          find . -name "target" -type d -exec rm -rf {} + 2>/dev/null || true
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -271,6 +287,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Clean existing build artifacts
+        run: |
+          find . -name "target" -type d -exec rm -rf {} + 2>/dev/null || true
 
       - name: Setup Java
         uses: actions/setup-java@v4
