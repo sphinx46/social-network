@@ -168,14 +168,15 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository/org/owasp/dependency-check-data
-          key: ${{ runner.os }}-owasp-${{ hashFiles('**/pom.xml') }}
+          # Use a rolling key strategy independent of pom.xml to reuse the database across commits
+          key: ${{ runner.os }}-owasp-data-${{ github.run_id }}
           restore-keys: |
-            ${{ runner.os }}-owasp-
+            ${{ runner.os }}-owasp-data-
 
       - name: Run OWASP dependency check
         if: github.event_name == 'pull_request'
         run: |
-          mvn org.owasp:dependency-check-maven:check -DskipTests -pl '!monolith'
+          mvn -B compile org.owasp:dependency-check-maven:check -DskipTests -pl '!monolith'
 
       - name: Check for vulnerable dependencies
         uses: aquasecurity/trivy-action@master
