@@ -19,7 +19,6 @@ jobs:
       matrix:
         service: [eureka-server, api-gateway, user-profile-service, upload-service]
         java-version: [21]
-      fail-fast: false
 
     services:
       postgres:
@@ -50,10 +49,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Clean existing build artifacts
-        run: |
-          find . -name "target" -type d -exec rm -rf {} + 2>/dev/null || true
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -70,7 +65,7 @@ jobs:
 
       - name: Run unit tests with coverage
         run: |
-          mvn -B clean verify -pl ${{ matrix.service }} -am -Djacoco.skip=false --no-transfer-progress
+          mvn -B clean verify -pl ${{ matrix.service }} -am -Djacoco.skip=false
         env:
           SPRING_PROFILES_ACTIVE: test
           SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false
@@ -85,6 +80,8 @@ jobs:
         run: |
           echo "Checking for JaCoCo reports in ${{ matrix.service }}..."
           find . -name "jacoco.xml" -o -name "jacoco.csv" -o -name "index.html" | head -10 || echo "No JaCoCo reports found"
+          ls -la ${{ matrix.service }}/target/site/ 2>/dev/null || echo "No site directory in ${{ matrix.service }}"
+          ls -la ${{ matrix.service }}/target/ 2>/dev/null || echo "No target directory in ${{ matrix.service }}"
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -117,11 +114,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Clean existing build artifacts
-        run: |
-          find . -name "target" -type d -exec rm -rf {} + 2>/dev/null || true
-          find . -name "*.class" -delete || true
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -172,6 +164,7 @@ jobs:
         run: rm -f .codacy.yml
 
       - name: Cache OWASP dependency data
+        if: github.event_name == 'pull_request'
         uses: actions/cache@v4
         with:
           path: ~/.m2/repository/org/owasp/dependency-check-data
@@ -179,16 +172,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-owasp-
 
-      - name: Clean before OWASP compilation
-        run: mvn clean -q -pl '!monolith' --no-transfer-progress
-
-      - name: Compile projects for OWASP
-        run: |
-          mvn compile -DskipTests -pl '!monolith' --no-transfer-progress
-
       - name: Run OWASP dependency check
+        if: github.event_name == 'pull_request'
         run: |
-          mvn org.owasp:dependency-check-maven:check -DskipTests -pl '!monolith' --no-transfer-progress
+          mvn org.owasp:dependency-check-maven:check -DskipTests -pl '!monolith'
 
       - name: Check for vulnerable dependencies
         uses: aquasecurity/trivy-action@master
@@ -219,10 +206,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Clean existing build artifacts
-        run: |
-          find . -name "target" -type d -exec rm -rf {} + 2>/dev/null || true
-
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -251,7 +234,7 @@ jobs:
 
       - name: Build service artifact
         run: |
-          mvn -B -pl ${{ matrix.service }} -am package -DskipTests -Djacoco.skip=true --no-transfer-progress
+          mvn -B -pl ${{ matrix.service }} -am package -DskipTests -Djacoco.skip=true
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
@@ -288,10 +271,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Clean existing build artifacts
-        run: |
-          find . -name "target" -type d -exec rm -rf {} + 2>/dev/null || true
-
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -300,7 +279,7 @@ jobs:
 
       - name: Run integration tests
         run: |
-          mvn -B -pl api-gateway,eureka-server,user-profile-service,upload-service -am verify -DskipUnitTests=true -Djacoco.skip=true --no-transfer-progress
+          mvn -B -pl api-gateway,eureka-server,user-profile-service,upload-service -am verify -DskipUnitTests=true -Djacoco.skip=true
         env:
           SPRING_PROFILES_ACTIVE: test
           SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false
