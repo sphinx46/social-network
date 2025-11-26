@@ -1,0 +1,68 @@
+package ru.cs.vsu.social_network.contents_service.service;
+
+import ru.cs.vsu.social_network.contents_service.dto.request.pageable.PageRequest;
+import ru.cs.vsu.social_network.contents_service.dto.request.post.PostCreateRequest;
+import ru.cs.vsu.social_network.contents_service.dto.request.post.PostEditRequest;
+import ru.cs.vsu.social_network.contents_service.dto.request.post.PostRemoveImageRequest;
+import ru.cs.vsu.social_network.contents_service.dto.request.post.PostUploadImageRequest;
+import ru.cs.vsu.social_network.contents_service.dto.response.pageable.PageResponse;
+import ru.cs.vsu.social_network.contents_service.dto.response.post.PostResponse;
+
+import java.util.UUID;
+
+/**
+ * Сервис для управления постами.
+ * Предоставляет методы для создания, редактирования, получения и управления изображениями постов.
+ */
+public interface PostService {
+
+    /**
+     * Создает новый пост для указанного пользователя.
+     *
+     * @param keycloakUserId идентификатор пользователя в Keycloak
+     * @param request данные для создания поста
+     * @return созданный пост
+     */
+    PostResponse create(UUID keycloakUserId, PostCreateRequest request);
+
+    /**
+     * Редактирует существующий пост.
+     *
+     * @param request данные для редактирования поста
+     * @return отредактированный пост
+     */
+    PostResponse editPost(PostEditRequest request);
+
+    /**
+     * Загружает изображение для поста.
+     *
+     * @param request данные для загрузки изображения
+     * @return пост с обновленным изображением
+     */
+    PostResponse uploadImage(PostUploadImageRequest request);
+
+    /**
+     * Удаляет изображение из поста.
+     *
+     * @param request данные для удаления изображения
+     * @return пост без изображения
+     */
+    PostResponse removeImage(PostRemoveImageRequest request);
+
+    /**
+     * Получает пост по его идентификатору.
+     *
+     * @param postId идентификатор поста
+     * @return найденный пост
+     */
+    PostResponse getPostById(UUID postId);
+
+    /**
+     * Получает все посты пользователя с пагинацией.
+     *
+     * @param keycloakUserId идентификатор пользователя в Keycloak
+     * @param pageRequest параметры пагинации
+     * @return страница с постами пользователя
+     */
+    PageResponse<PostResponse> getAllPostsByUser(UUID keycloakUserId, PageRequest pageRequest);
+}
