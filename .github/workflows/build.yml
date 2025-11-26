@@ -173,10 +173,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-owasp-data-
 
+      - name: Fix permissions
+        if: github.event_name == 'pull_request'
+        run: sudo chown -R $USER:$USER .
+
       - name: Run OWASP dependency check
         if: github.event_name == 'pull_request'
         run: |
-          mvn -B compile org.owasp:dependency-check-maven:check -DskipTests -pl '!monolith'
+          mvn -B clean compile org.owasp:dependency-check-maven:check -DskipTests -pl '!monolith'
 
       - name: Check for vulnerable dependencies
         uses: aquasecurity/trivy-action@master
