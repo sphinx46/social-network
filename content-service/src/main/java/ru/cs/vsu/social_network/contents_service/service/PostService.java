@@ -28,26 +28,29 @@ public interface PostService {
     /**
      * Редактирует существующий пост.
      *
+     * @param keycloakUserId идентификатор пользователя в Keycloak
      * @param request данные для редактирования поста
      * @return отредактированный пост
      */
-    PostResponse editPost(PostEditRequest request);
+    PostResponse editPost(UUID keycloakUserId, PostEditRequest request);
 
     /**
      * Загружает изображение для поста.
      *
+     * @param keycloakUserId идентификатор пользователя в Keycloak
      * @param request данные для загрузки изображения
      * @return пост с обновленным изображением
      */
-    PostResponse uploadImage(PostUploadImageRequest request);
+    PostResponse uploadImage(UUID keycloakUserId, PostUploadImageRequest request);
 
     /**
      * Удаляет изображение из поста.
      *
+     * @param keycloakUserId идентификатор пользователя в Keycloak
      * @param request данные для удаления изображения
      * @return пост без изображения
      */
-    PostResponse removeImage(PostRemoveImageRequest request);
+    PostResponse removeImage(UUID keycloakUserId, PostRemoveImageRequest request);
 
     /**
      * Получает пост по его идентификатору.

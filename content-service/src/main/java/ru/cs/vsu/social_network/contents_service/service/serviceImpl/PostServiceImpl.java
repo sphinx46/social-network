@@ -20,6 +20,7 @@ import ru.cs.vsu.social_network.contents_service.repository.PostRepository;
 import ru.cs.vsu.social_network.contents_service.service.PostService;
 import ru.cs.vsu.social_network.contents_service.utils.MessageConstants;
 import ru.cs.vsu.social_network.contents_service.utils.factory.PostFactory;
+import ru.cs.vsu.social_network.contents_service.validation.PostValidator;
 
 import java.util.UUID;
 
@@ -34,49 +35,74 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final PostFactory postFactory;
     private final PostEntityProvider postEntityProvider;
+    private final PostValidator postValidator;
 
-    public PostServiceImpl(EntityMapper mapper, PostRepository postRepository, PostFactory postFactory, PostEntityProvider postEntityProvider) {
+    public PostServiceImpl(EntityMapper mapper, PostRepository postRepository,
+                           PostFactory postFactory, PostEntityProvider postEntityProvider,
+                           PostValidator postValidator) {
         this.mapper = mapper;
         this.postRepository = postRepository;
         this.postFactory = postFactory;
         this.postEntityProvider = postEntityProvider;
+        this.postValidator = postValidator;
     }
 
     /** {@inheritDoc} */
     @Override
     public PostResponse create(final UUID keycloakUserId, final PostCreateRequest request) {
-        log.info("ПОСТ_СЕРВИС_СОЗДАНИЕ_НАЧАЛО: создание поста для пользователя: {}", keycloakUserId);
+        log.info("ПОСТ_СЕРВИС_СОЗДАНИЕ_НАЧАЛО: " +
+                        "создание поста для пользователя: {}, длина контента: {}",
+                keycloakUserId, request.getContent().length());
 
         Post post = postFactory.create(keycloakUserId, request);
-        postRepository.save(post);
+        Post savedPost = postRepository.save(post);
 
-        log.info("ПОСТ_СЕРВИС_СОЗДАНИЕ_УСПЕХ: пост успешно создан с ID: {}", post.getId());
-        return mapper.map(post, PostResponse.class);
+        log.info("ПОСТ_СЕРВИС_СОЗДАНИЕ_УСПЕХ: " +
+                        "пост успешно создан с ID: {} для пользователя: {}",
+                savedPost.getId(), keycloakUserId);
+
+        return mapper.map(savedPost, PostResponse.class);
     }
 
     /** {@inheritDoc} */
     @Override
-    public PostResponse editPost(final PostEditRequest request) {
-        log.info("ПОСТ_СЕРВИС_РЕДАКТИРОВАНИЕ_НАЧАЛО: редактирование поста с ID: {}", request.getId());
+    public PostResponse editPost(final UUID keycloakUserId,
+                                 final PostEditRequest request) {
+        log.info("ПОСТ_СЕРВИС_РЕДАКТИРОВАНИЕ_НАЧАЛО: " +
+                        "редактирование поста с ID: {} пользователем: {}, " +
+                        "новая длина контента: {}",
+                request.getPostId(), keycloakUserId, request.getContent().length());
 
-        Post post = postEntityProvider.getById(request.getId());
+        postValidator.validateOwnership(keycloakUserId, request.getPostId());
+
+        Post post = postEntityProvider.getById(request.getPostId());
         post.setContent(request.getContent());
         Post updatedPost = postRepository.save(post);
 
-        log.info("ПОСТ_СЕРВИС_РЕДАКТИРОВАНИЕ_УСПЕХ: пост с ID: {} успешно обновлен", request.getId());
+        log.info("ПОСТ_СЕРВИС_РЕДАКТИРОВАНИЕ_УСПЕХ: " +
+                        "пост с ID: {} успешно обновлен пользователем: {}",
+                request.getPostId(), keycloakUserId);
+
         return mapper.map(updatedPost, PostResponse.class);
     }
 
     /** {@inheritDoc} */
     @Override
-    public PostResponse uploadImage(final PostUploadImageRequest request) {
-        log.info("ПОСТ_СЕРВИС_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_НАЧАЛО: загрузка изображения для поста с ID: {}", request.getPostId());
+    public PostResponse uploadImage(final UUID keycloakUserId,
+                                    final PostUploadImageRequest request) {
+        log.info("ПОСТ_СЕРВИС_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_НАЧАЛО: " +
+                        "загрузка изображения для поста с ID: {} пользователем: {}",
+                request.getPostId(), keycloakUserId);
+
+        postValidator.validateOwnership(keycloakUserId, request.getPostId());
 
         Post post = postEntityProvider.getById(request.getPostId());
         String imageUrl = request.getImageUrl();
 
         if (!StringUtils.hasText(imageUrl)) {
-            log.error("ПОСТ_СЕРВИС_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_ОШИБКА: URL изображения пустой для поста с ID: {}", request.getPostId());
+            log.error("ПОСТ_СЕРВИС_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_ОШИБКА: " +
+                            "URL изображения пустой для поста с ID: {}, пользователь: {}",
+                    request.getPostId(), keycloakUserId);
             throw new PostUploadImageException(MessageConstants.POST_UPLOAD_IMAGE_FAILURE);
         }
 
@@ -84,31 +110,44 @@ public class PostServiceImpl implements PostService {
         post.setImageUrl(imageUrl);
         Post updatedPost = postRepository.save(post);
 
-        log.info("ПОСТ_СЕРВИС_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_УСПЕХ: изображение загружено для поста с ID: {}", request.getPostId());
+        log.info("ПОСТ_СЕРВИС_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_УСПЕХ: " +
+                        "изображение загружено для поста с ID: {}, URL: {}",
+                request.getPostId(), imageUrl);
+
         return mapper.map(updatedPost, PostResponse.class);
     }
 
     /** {@inheritDoc} */
     @Override
-    public PostResponse removeImage(final PostRemoveImageRequest request) {
-        log.info("ПОСТ_СЕРВИС_УДАЛЕНИЕ_ИЗОБРАЖЕНИЯ_НАЧАЛО: удаление изображения у поста с ID: {}", request.getPostId());
+    public PostResponse removeImage(final UUID keycloakUserId,
+                                    final PostRemoveImageRequest request) {
+        log.info("ПОСТ_СЕРВИС_УДАЛЕНИЕ_ИЗОБРАЖЕНИЯ_НАЧАЛО: " +
+                        "удаление изображения у поста с ID: {} пользователем: {}",
+                request.getPostId(), keycloakUserId);
+
+        postValidator.validateOwnership(keycloakUserId, request.getPostId());
 
         Post post = postEntityProvider.getById(request.getPostId());
         post.setImageUrl(null);
         Post updatedPost = postRepository.save(post);
 
-        log.info("ПОСТ_СЕРВИС_УДАЛЕНИЕ_ИЗОБРАЖЕНИЯ_УСПЕХ: изображение удалено у поста с ID: {}", request.getPostId());
+        log.info("ПОСТ_СЕРВИС_УДАЛЕНИЕ_ИЗОБРАЖЕНИЯ_УСПЕХ: " +
+                        "изображение удалено у поста с ID: {} пользователем: {}",
+                request.getPostId(), keycloakUserId);
+
         return mapper.map(updatedPost, PostResponse.class);
     }
 
     /** {@inheritDoc} */
     @Override
-    public PostResponse getPostById(UUID postId) {
+    public PostResponse getPostById(final UUID postId) {
         log.info("ПОСТ_СЕРВИС_ПОЛУЧЕНИЕ_ПО_ID_НАЧАЛО: запрос поста с ID: {}", postId);
 
         Post post = postEntityProvider.getById(postId);
 
-        log.info("ПОСТ_СЕРВИС_ПОЛУЧЕНИЕ_ПО_ID_УСПЕХ: пост с ID: {} найден", postId);
+        log.info("ПОСТ_СЕРВИС_ПОЛУЧЕНИЕ_ПО_ID_УСПЕХ: " +
+                "пост с ID: {} найден, владелец: {}", postId, post.getOwnerId());
+
         return mapper.map(post, PostResponse.class);
     }
 
@@ -116,14 +155,19 @@ public class PostServiceImpl implements PostService {
     @Override
     public PageResponse<PostResponse> getAllPostsByUser(final UUID keycloakUserId,
                                                         final PageRequest pageRequest) {
-        log.info("ПОСТ_СЕРВИС_ПОЛУЧЕНИЕ_ПОЛЬЗОВАТЕЛЯ_НАЧАЛО: запрос постов пользователя: {}, страница: {}, размер: {}",
-                keycloakUserId, pageRequest.getPageNumber(), pageRequest.getSize());
+        log.info("ПОСТ_СЕРВИС_ПОЛУЧЕНИЕ_ПОЛЬЗОВАТЕЛЯ_НАЧАЛО: " +
+                        "запрос постов пользователя: {}, " +
+                        "страница: {}, размер: {}, сортировка: {}",
+                keycloakUserId, pageRequest.getPageNumber(),
+                pageRequest.getSize(), pageRequest.getSortBy());
 
         Pageable pageable = pageRequest.toPageable();
         Page<Post> postsPage = postRepository.findAllByOwnerId(keycloakUserId, pageable);
 
-        log.info("ПОСТ_СЕРВИС_ПОЛУЧЕНИЕ_ПОЛЬЗОВАТЕЛЯ_УСПЕХ: найдено {} постов для пользователя: {}",
-                postsPage.getTotalElements(), keycloakUserId);
+        log.info("ПОСТ_СЕРВИС_ПОЛУЧЕНИЕ_ПОЛЬЗОВАТЕЛЯ_УСПЕХ: " +
+                        "найдено {} постов для пользователя: {}, всего страниц: {}",
+                postsPage.getTotalElements(), keycloakUserId, postsPage.getTotalPages());
+
         return PageResponse.of(postsPage.map(
                 post -> mapper.map(post, PostResponse.class)));
     }

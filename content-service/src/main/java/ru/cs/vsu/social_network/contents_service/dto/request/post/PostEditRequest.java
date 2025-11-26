@@ -17,7 +17,7 @@ import java.util.UUID;
 public class PostEditRequest {
     @Schema(description = "Идентификатор поста")
     @NotNull(message = "ID поста не может быть пустым")
-    private UUID id;
+    private UUID postId;
 
     @Schema(description = "Новое содержание поста")
     @NotBlank(message = "Содержание не может быть пустым")
