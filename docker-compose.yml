@@ -222,35 +222,6 @@ services:
     networks:
       - social-network
 
-  content-postgres:
-    image: postgres:17-alpine
-    container_name: content-postgres
-    environment:
-      POSTGRES_USER: content
-      POSTGRES_PASSWORD: content
-      POSTGRES_DB: content
-      POSTGRES_SHARED_BUFFERS: 128MB
-      POSTGRES_EFFECTIVE_CACHE_SIZE: 256MB
-    volumes:
-      - ./infrastructure/databases/content:/docker-entrypoint-initdb.d:ro
-    ports:
-      - "5436:5432"
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: '1.0'
-        reservations:
-          memory: 256M
-          cpus: '0.5'
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U content -d content" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - social-network
-
   feed-postgres:
     image: postgres:17-alpine
     container_name: feed-postgres
@@ -398,27 +369,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    networks:
-      - social-network
-
-  content-postgres-exporter:
-    image: prometheuscommunity/postgres-exporter:latest
-    container_name: content-postgres-exporter
-    depends_on:
-      content-postgres:
-        condition: service_healthy
-    environment:
-      DATA_SOURCE_NAME: "postgresql://content:content@content-postgres:5432/content?sslmode=disable"
-    ports:
-      - "9182:9187"
-    deploy:
-      resources:
-        limits:
-          memory: 64M
-          cpus: '0.1'
-        reservations:
-          memory: 32M
-          cpus: '0.05'
     networks:
       - social-network
 
@@ -765,6 +715,89 @@ services:
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS_INTERNAL}
     volumes:
       - kafka_data:/kafka/data
+    networks:
+      - social-network
+
+  content-service:
+    build:
+      context: ./content-service
+      dockerfile: Dockerfile
+    container_name: content-service
+    ports:
+      - "${CONTENT_SERVICE_PORT:-8083}:8083"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      JAVA_OPTS: "-Xms256m -Xmx512m"
+      EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE:-http://eureka-server:8761/eureka/}
+      SIGNATURE_KEY_SECRET: ${SIGNATURE_KEY_SECRET}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS_INTERNAL:-kafka:29092}
+      CONTENT_DB_URL: ${CONTENT_DB_URL:-jdbc:postgresql://content-postgres:5432/content}
+      CONTENT_DB_USERNAME: ${CONTENT_DB_USERNAME:-content}
+      CONTENT_DB_PASSWORD: ${CONTENT_DB_PASSWORD:-content}
+      EUREKA_INSTANCE_HOSTNAME: ${EUREKA_INSTANCE_HOSTNAME:-content-service}
+    depends_on:
+      content-postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+      kafka:
+        condition: service_started
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8083/api/content/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - social-network
+
+  content-postgres:
+    image: postgres:17-alpine
+    container_name: content-postgres
+    environment:
+      POSTGRES_USER: ${CONTENT_DB_USERNAME:-content}
+      POSTGRES_PASSWORD: ${CONTENT_DB_PASSWORD:-content}
+      POSTGRES_DB: content
+      POSTGRES_SHARED_BUFFERS: 128MB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 256MB
+    volumes:
+      - ./infrastructure/databases/content:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "${CONTENT_DB_EXTERNAL_PORT:-5436}:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '1.0'
+        reservations:
+          memory: 256M
+          cpus: '0.5'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${CONTENT_DB_USERNAME:-content} -d content" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - social-network
+
+  content-postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: content-postgres-exporter
+    depends_on:
+      content-postgres:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${CONTENT_DB_USERNAME:-content}:${CONTENT_DB_PASSWORD:-content}@content-postgres:5432/content?sslmode=disable"
+    ports:
+      - "${CONTENT_POSTGRES_EXPORTER_PORT:-9182}:9187"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+        reservations:
+          memory: 32M
+          cpus: '0.05'
     networks:
       - social-network
 
