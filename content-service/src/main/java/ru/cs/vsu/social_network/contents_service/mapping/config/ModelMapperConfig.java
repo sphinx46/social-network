@@ -7,8 +7,12 @@ import org.modelmapper.PropertyMap;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import ru.cs.vsu.social_network.contents_service.dto.response.content.CommentResponse;
+import ru.cs.vsu.social_network.contents_service.dto.response.content.LikeCommentResponse;
+import ru.cs.vsu.social_network.contents_service.dto.response.content.LikePostResponse;
 import ru.cs.vsu.social_network.contents_service.dto.response.content.PostResponse;
 import ru.cs.vsu.social_network.contents_service.entity.Comment;
+import ru.cs.vsu.social_network.contents_service.entity.LikeComment;
+import ru.cs.vsu.social_network.contents_service.entity.LikePost;
 import ru.cs.vsu.social_network.contents_service.entity.Post;
 
 /**
@@ -35,6 +39,8 @@ public class ModelMapperConfig {
 
         configurePostMappings(modelMapper);
         configureCommentMappings(modelMapper);
+        configureLikeCommentMappings(modelMapper);
+        configureLikePostMappings(modelMapper);
 
         modelMapper.getConfiguration()
                 .setFieldMatchingEnabled(true)
@@ -72,6 +78,30 @@ public class ModelMapperConfig {
                 map().setImageUrl(source.getImageUrl());
                 map().setCreatedAt(source.getCreatedAt());
                 map().setUpdatedAt(source.getUpdatedAt());
+            }
+        });
+    }
+
+    private void configureLikeCommentMappings(final ModelMapper modelMapper) {
+        modelMapper.addMappings(new PropertyMap<LikeComment, LikeCommentResponse>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getId());
+                map().setOwnerId(source.getOwnerId());
+                map().setCommentId(source.getComment().getId());
+                map().setCreatedAt(source.getCreatedAt());
+            }
+        });
+    }
+
+    private void configureLikePostMappings(final ModelMapper modelMapper) {
+        modelMapper.addMappings(new PropertyMap<LikePost, LikePostResponse>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getId());
+                map().setOwnerId(source.getOwnerId());
+                map().setPostId(source.getPost().getId());
+                map().setCreatedAt(source.getCreatedAt());
             }
         });
     }

@@ -5,15 +5,18 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import ru.cs.vsu.social_network.contents_service.dto.request.comment.*;
 import ru.cs.vsu.social_network.contents_service.dto.request.pageable.PageRequest;
 import ru.cs.vsu.social_network.contents_service.dto.response.content.CommentResponse;
 import ru.cs.vsu.social_network.contents_service.dto.response.pageable.PageResponse;
 import ru.cs.vsu.social_network.contents_service.entity.Comment;
+import ru.cs.vsu.social_network.contents_service.exception.post.PostUploadImageException;
 import ru.cs.vsu.social_network.contents_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.contents_service.provider.CommentEntityProvider;
 import ru.cs.vsu.social_network.contents_service.repository.CommentRepository;
 import ru.cs.vsu.social_network.contents_service.service.CommentService;
+import ru.cs.vsu.social_network.contents_service.utils.MessageConstants;
 import ru.cs.vsu.social_network.contents_service.utils.factory.CommentFactory;
 import ru.cs.vsu.social_network.contents_service.validation.CommentValidator;
 
@@ -225,7 +228,16 @@ public class CommentServiceImpl implements CommentService {
         commentValidator.validateOwnership(keycloakUserId, request.getCommentId());
 
         final Comment comment = commentEntityProvider.getById(request.getCommentId());
-        comment.setImageUrl(request.getImageUrl());
+
+        final String imageUrl = request.getImageUrl();
+        if (!StringUtils.hasText(imageUrl)) {
+            log.error("КОММЕНТАРИЙ_СЕРВИС_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_ОШИБКА: " +
+                            "URL изображения пустой для комментария с ID: {}, пользователь: {}",
+                    request.getCommentId(), keycloakUserId);
+            throw new PostUploadImageException(MessageConstants.COMMENT_UPLOAD_IMAGE_FAILURE);
+        }
+
+        comment.setImageUrl(imageUrl);
         final Comment updatedComment = commentRepository.save(comment);
 
         log.info("КОММЕНТАРИЙ_СЕРВИС_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_УСПЕХ: " +

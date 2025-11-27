@@ -1,21 +1,10 @@
 package ru.cs.vsu.social_network.contents_service.validation;
 
-
-import java.util.UUID;
+import ru.cs.vsu.social_network.contents_service.entity.Comment;
 
 /**
  * Валидатор для проверки прав доступа к комментариям.
  * Обеспечивает проверку владения и прав доступа пользователей к операциям с комментариями.
  */
-public interface CommentValidator {
-
-    /**
-     * Проверяет, является ли пользователь владельцем комментария.
-     *
-     * @param keycloakUserId идентификатор пользователя для проверки
-     * @param commentId идентификатор комментария для проверки прав доступа
-     * @throws org.springframework.security.access.AccessDeniedException,
-     * если пользователь не является владельцем комментария
-     */
-    void validateOwnership(UUID keycloakUserId, UUID commentId);
+public interface CommentValidator extends ContentValidator<Comment> {
 }

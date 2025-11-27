@@ -15,9 +15,10 @@ import ru.cs.vsu.social_network.contents_service.utils.MessageConstants;
 @Component
 public final class PostEntityProviderImpl extends AbstractEntityProvider<Post>
         implements PostEntityProvider {
+    private static final String ENTITY_NAME = "ПОСТ";
 
     public PostEntityProviderImpl(PostRepository postRepository) {
-        super(postRepository, "ПОСТ", () ->
+        super(postRepository, ENTITY_NAME, () ->
                 new PostNotFoundException(MessageConstants.POST_NOT_FOUND_FAILURE));
     }
 }

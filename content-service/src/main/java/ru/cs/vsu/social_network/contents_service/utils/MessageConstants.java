@@ -18,4 +18,7 @@ public class MessageConstants {
     public static final String COMMENT_NOT_FOUND_FAILURE = "Ошибка! Комментарий не найден";
     public static final String COMMENT_UPLOAD_IMAGE_FAILURE =
             "Ошибка при загрузке изображения для комментария!";
+
+    // LIKE
+    public static final String LIKE_NOT_FOUND_FAILURE = "Ошибка! Лайк не найден";
 }

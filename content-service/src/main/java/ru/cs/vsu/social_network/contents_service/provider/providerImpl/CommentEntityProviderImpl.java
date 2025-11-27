@@ -15,9 +15,10 @@ import ru.cs.vsu.social_network.contents_service.utils.MessageConstants;
 @Component
 public final class CommentEntityProviderImpl extends AbstractEntityProvider<Comment>
         implements CommentEntityProvider {
+    private static final String ENTITY_NAME = "КОММЕНТАРИЙ";
 
     public CommentEntityProviderImpl(CommentRepository commentRepository) {
-        super(commentRepository, "КОММЕНТАРИЙ", () ->
+        super(commentRepository, ENTITY_NAME, () ->
                 new CommentNotFoundException(MessageConstants.COMMENT_NOT_FOUND_FAILURE));
     }
 }

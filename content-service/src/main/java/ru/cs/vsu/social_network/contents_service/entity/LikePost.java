@@ -11,7 +11,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "like")
-public class Like extends BaseEntity{
+public class LikePost extends BaseEntity {
     @Column(name = "owner_id")
     private UUID ownerId;
 
@@ -19,15 +19,11 @@ public class Like extends BaseEntity{
     @JoinColumn(name = "post_id")
     private Post post;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "comment_id")
-    private Comment comment;
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Like)) return false;
-        Like like = (Like) o;
+        if (!(o instanceof LikePost)) return false;
+        LikePost like = (LikePost) o;
         return getId() != null && getId().equals(like.getId());
     }
 

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.cs.vsu.social_network.contents_service.exception.comment.CommentNotFoundException;
 import ru.cs.vsu.social_network.contents_service.exception.comment.CommentUploadImageException;
+import ru.cs.vsu.social_network.contents_service.exception.like.LikeNotFoundException;
 import ru.cs.vsu.social_network.contents_service.exception.post.PostNotFoundException;
 import ru.cs.vsu.social_network.contents_service.exception.post.PostUploadImageException;
 
@@ -44,6 +45,24 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Обрабатывает исключение LikeNotFoundException.
+     *
+     * @param ex исключение
+     * @return ответ с ошибкой 404
+     */
+    @ExceptionHandler(LikeNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleLikeNotFoundException(
+            final LikeNotFoundException ex) {
+        log.warn("ЛАЙК_ОШИБКА_НЕ_НАЙДЕН: {}", ex.getMessage());
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.NOT_FOUND.value());
+        body.put("error", "Like Not Found");
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    /**
      * Обрабатывает исключение CommentNotFoundException.
      *
      * @param ex исключение
@@ -56,7 +75,7 @@ public class GlobalExceptionHandler {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.NOT_FOUND.value());
-        body.put("error", "Post Not Found");
+        body.put("error", "Comment Not Found");
         body.put("message", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
     }
@@ -106,7 +125,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MissingRequestHeaderException.class)
     public ResponseEntity<Map<String, Object>> handleMissingRequestHeaderException(
             final MissingRequestHeaderException ex) {
-        log.warn("ПОСТ_ОШИБКА_ОТСУТСТВУЕТ_ЗАГОЛОВОК: отсутствует обязательный заголовок - {}",
+        log.warn("КОНТЕНТ_ОШИБКА_ОТСУТСТВУЕТ_ЗАГОЛОВОК: " +
+                        "отсутствует обязательный заголовок - {}",
                 ex.getHeaderName());
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
@@ -125,7 +145,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationExceptions(
             final MethodArgumentNotValidException ex) {
-        log.warn("ПОСТ_ОШИБКА_ВАЛИДАЦИИ: {}", ex.getMessage());
+        log.warn("КОНТЕНТ_ОШИБКА_ВАЛИДАЦИИ: {}", ex.getMessage());
 
         String errorMessage = ex.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
@@ -149,7 +169,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGenericException(
             final Exception ex) {
-        log.error("ПОСТ_ОШИБКА_НЕОЖИДАННАЯ: неожиданная ошибка", ex);
+        log.error("КОНТЕНТ_ОШИБКА_НЕОЖИДАННАЯ: неожиданная ошибка", ex);
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
