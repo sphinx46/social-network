@@ -9,6 +9,7 @@ import ru.cs.vsu.social_network.upload_service.dto.response.MediaMetadataRespons
 import ru.cs.vsu.social_network.upload_service.dto.response.MediaResponse;
 import ru.cs.vsu.social_network.upload_service.entity.MediaEntity;
 import ru.cs.vsu.social_network.upload_service.event.AvatarUploadedEvent;
+import ru.cs.vsu.social_network.upload_service.event.PostImageUploadedEvent;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -39,6 +40,7 @@ public class ModelMapperConfig {
         configureMediaEntityMappings(modelMapper);
         configureMediaEntityWithMetadataMappings(modelMapper);
         configureAvatarUploadedEventWithMappings(modelMapper);
+        configurePostImageUploadedEventWithMappings(modelMapper);
 
         modelMapper.getConfiguration()
                 .setFieldMatchingEnabled(true)
@@ -108,6 +110,29 @@ public class ModelMapperConfig {
      */
     private void configureAvatarUploadedEventWithMappings(final ModelMapper modelMapper) {
         modelMapper.addMappings(new PropertyMap<MediaEntity, AvatarUploadedEvent>() {
+            @Override
+            protected void configure() {
+                map().setEventId(UUID.randomUUID());
+                map().setEventTimeStamp(LocalDateTime.now());
+                map().setOwnerId(source.getOwnerId());
+                map().setPublicUrl(source.getPublicUrl());
+                map().setObjectName(source.getObjectName());
+                map().setMimeType(source.getMimeType());
+                map().setSize(source.getSize());
+                map().setDescription(source.getDescription());
+                map().setOriginalFileName(source.getOriginalFileName());
+            }
+        });
+    }
+
+    /**
+     * Настраивает маппинг между MediaEntity и PostImageUploadedEvent.
+     * Автоматически генерирует eventId и eventTimeStamp для события.
+     *
+     * @param modelMapper экземпляр ModelMapper для настройки
+     */
+    private void configurePostImageUploadedEventWithMappings(final ModelMapper modelMapper) {
+        modelMapper.addMappings(new PropertyMap<MediaEntity, PostImageUploadedEvent>() {
             @Override
             protected void configure() {
                 map().setEventId(UUID.randomUUID());

@@ -13,4 +13,11 @@ public interface MediaEventPublisher {
      * @param mediaEntity сущность медиа с информацией об аватаре
      */
     void publishAvatarUploaded(MediaEntity mediaEntity);
+
+    /**
+     * Публикует событие загрузки изображения поста.
+     *
+     * @param mediaEntity сущность медиа с информацией об изображении поста
+     */
+    void publishPostImageUploaded(MediaEntity mediaEntity);
 }

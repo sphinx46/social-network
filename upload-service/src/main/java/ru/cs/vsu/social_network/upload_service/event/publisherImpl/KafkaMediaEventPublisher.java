@@ -40,4 +40,24 @@ public class KafkaMediaEventPublisher implements MediaEventPublisher {
         log.debug("KAFKA_AVATAR_EVENT_ПУБЛИКАЦИЯ_ЗАВЕРШЕНА: mediaId={}",
                 mediaEntity.getId());
     }
+
+    /**
+     * Публикует событие загрузки аватара пользователя в Kafka.
+     * Отправляет событие с информацией о загруженном изображении поста для уведомления
+     * заинтересованных сервисов (например, content-service).
+     * Обеспечивает асинхронную отправку с обработкой ошибок на уровне продюсера.
+     *
+     * @param mediaEntity сущность медиа, содержащая метаданные загруженного изображения поста
+     * @throws RuntimeException если произошла критическая ошибка при отправке события
+     */
+    @Override
+    public void publishPostImageUploaded(final MediaEntity mediaEntity) {
+        log.info("KAFKA_POST_IMAGE_EVENT_ПУБЛИКАЦИЯ_НАЧАЛО: mediaId={} ownerId={}",
+                mediaEntity.getId(), mediaEntity.getOwnerId());
+
+        uploadProducer.sendPostImageUploadedEvent(mediaEntity);
+
+        log.debug("KAFKA_POST_IMAGE_EVENT_ПУБЛИКАЦИЯ_ЗАВЕРШЕНА: mediaId={}",
+                mediaEntity.getId());
+    }
 }

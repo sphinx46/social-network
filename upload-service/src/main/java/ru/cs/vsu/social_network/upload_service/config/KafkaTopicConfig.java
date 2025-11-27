@@ -13,4 +13,10 @@ public class KafkaTopicConfig {
         return TopicBuilder.name("avatar-uploaded")
                 .build();
     }
+
+    @Bean
+    public NewTopic postImageUploadedTopic() {
+        return TopicBuilder.name("post_image-uploaded")
+                .build();
+    }
 }

@@ -11,6 +11,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import ru.cs.vsu.social_network.upload_service.event.AvatarUploadedEvent;
+import ru.cs.vsu.social_network.upload_service.event.PostImageUploadedEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -79,6 +80,38 @@ public class KafkaProducerConfig {
     public KafkaTemplate<String, AvatarUploadedEvent> avatarUploadedEventKafkaTemplate(
             final ProducerFactory<String, AvatarUploadedEvent> producerFactory) {
         log.info("KAFKA_TEMPLATE_СОЗДАНИЕ: тип=AvatarUploadedEvent");
+        return new KafkaTemplate<>(producerFactory);
+    }
+
+    /**
+     * Создает фабрику Producer'ов для событий загрузки аватаров.
+     * Использует JsonSerializer для сериализации объектов PostImageUploadedEvent.
+     * Гарантирует thread-safe создание экземпляров Producer.
+     *
+     * @return фабрика Producer'ов для PostImageUploadedEvent
+     */
+    @Bean
+    public ProducerFactory<String, PostImageUploadedEvent> PostImageUploadedEventProducerFactory() {
+        log.info("KAFKA_PRODUCER_FACTORY_СОЗДАНИЕ: тип=PostImageUploadedEvent");
+
+        Map<String, Object> config = producerConfig();
+        config.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
+
+        return new DefaultKafkaProducerFactory<>(config);
+    }
+
+    /**
+     * Создает KafkaTemplate для отправки событий загрузки аватаров.
+     * Предоставляет высокоуровневый API для асинхронной отправки сообщений.
+     * Поддерживает callback'и для обработки результатов отправки.
+     *
+     * @param producerFactory фабрика Producer'ов для создания экземпляров
+     * @return настроенный KafkaTemplate для работы PostImageUploadedEvent
+     */
+    @Bean
+    public KafkaTemplate<String, PostImageUploadedEvent> PostImageUploadedEventKafkaTemplate(
+            final ProducerFactory<String, PostImageUploadedEvent> producerFactory) {
+        log.info("KAFKA_TEMPLATE_СОЗДАНИЕ: тип=PostImageUploadedEvent");
         return new KafkaTemplate<>(producerFactory);
     }
 }
