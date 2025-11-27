@@ -19,7 +19,8 @@ public class PostFactoryImpl implements PostFactory {
     /** {@inheritDoc} */
     @Override
     public Post create(UUID keycloakUserId, PostCreateRequest request) {
-        log.info("ПОСТ_ФАБРИКА_СОЗДАНИЕ_НАЧАЛО: создание поста для пользователя: {}", keycloakUserId);
+        log.info("ПОСТ_ФАБРИКА_СОЗДАНИЕ_НАЧАЛО: " +
+                "создание поста для пользователя: {}", keycloakUserId);
 
         Post post = Post.builder()
                 .ownerId(keycloakUserId)
@@ -27,7 +28,8 @@ public class PostFactoryImpl implements PostFactory {
                 .imageUrl(null)
                 .build();
 
-        log.info("ПОСТ_ФАБРИКА_СОЗДАНИЕ_УСПЕХ: пост создан для пользователя: {}", keycloakUserId);
+        log.info("ПОСТ_ФАБРИКА_СОЗДАНИЕ_УСПЕХ:" +
+                " пост создан для пользователя: {}", keycloakUserId);
         return post;
     }
 }

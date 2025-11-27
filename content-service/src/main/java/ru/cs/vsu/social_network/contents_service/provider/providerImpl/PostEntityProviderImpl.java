@@ -26,11 +26,13 @@ public class PostEntityProviderImpl implements PostEntityProvider {
     /** {@inheritDoc} */
     @Override
     public Post getById(UUID id) {
-        log.info("ПОСТ_ПРОВАЙДЕР_ПОЛУЧЕНИЕ_НАЧАЛО: запрос поста с ID: {}", id);
+        log.info("ПОСТ_ПРОВАЙДЕР_ПОЛУЧЕНИЕ_НАЧАЛО: " +
+                "запрос поста с ID: {}", id);
 
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> {
-                    log.error("ПОСТ_ПРОВАЙДЕР_ПОЛУЧЕНИЕ_ОШИБКА: пост с ID: {} не найден", id);
+                    log.error("ПОСТ_ПРОВАЙДЕР_ПОЛУЧЕНИЕ_ОШИБКА: " +
+                            "пост с ID: {} не найден", id);
                     return new PostNotFoundException(MessageConstants.POST_NOT_FOUND_FAILURE);
                 });
 

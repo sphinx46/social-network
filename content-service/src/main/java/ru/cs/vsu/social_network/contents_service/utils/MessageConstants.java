@@ -8,8 +8,14 @@ public class MessageConstants {
 
     // POST
     public static final String POST_NOT_FOUND_FAILURE = "Ошибка! Пост не найден";
-    public static final String POST_UPLOAD_IMAGE_FAILURE = "Ошибка при загрузке изображения для поста!";
+    public static final String POST_UPLOAD_IMAGE_FAILURE =
+            "Ошибка при загрузке изображения для поста!";
 
     // SECURITY
     public static final String ACCESS_DENIED = "Доступ запрещен";
+
+    // COMMENT
+    public static final String COMMENT_NOT_FOUND_FAILURE = "Ошибка! Комментарий не найден";
+    public static final String COMMENT_UPLOAD_IMAGE_FAILURE =
+            "Ошибка при загрузке изображения для комментария!";
 }

@@ -13,7 +13,8 @@ public interface PostValidator {
      *
      * @param keycloakUserId идентификатор пользователя для проверки
      * @param postId идентификатор поста для проверки прав доступа
-     * @throws org.springframework.security.access.AccessDeniedException если пользователь не является владельцем поста
+     * @throws org.springframework.security.access.AccessDeniedException,
+     * если пользователь не является владельцем поста
      */
     void validateOwnership(UUID keycloakUserId, UUID postId);
 }

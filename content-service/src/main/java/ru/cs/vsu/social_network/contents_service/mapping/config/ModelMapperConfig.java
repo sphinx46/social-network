@@ -67,6 +67,7 @@ public class ModelMapperConfig {
             protected void configure() {
                 map().setId(source.getId());
                 map().setOwnerId(source.getOwnerId());
+                map().setPostId(source.getPostId());
                 map().setContent(source.getContent());
                 map().setImageUrl(source.getImageUrl());
                 map().setCreatedAt(source.getCreatedAt());

@@ -21,6 +21,9 @@ public class CommentResponse {
     @Schema(description = "ID создателя")
     private UUID ownerId;
 
+    @Schema(description = "ID поста")
+    private UUID postId;
+
     @Schema(description = "Содержимое комментария", example = "Сегодня прекрасный день!")
     private String content;
 

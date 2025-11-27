@@ -33,8 +33,10 @@ public class PostValidatorImpl implements PostValidator {
 
         if (!post.getOwnerId().equals(keycloakUserId)) {
             log.warn("ПОСТ_ВАЛИДАТОР_ОШИБКА_ДОСТУПА: " +
-                            "пользователь {} пытается получить доступ к чужому посту {} (владелец: {})",
+                            "пользователь {} пытается получить доступ " +
+                            "к чужому посту {} (владелец: {})",
                     keycloakUserId, postId, post.getOwnerId());
+
             throw new AccessDeniedException(MessageConstants.ACCESS_DENIED);
         }
 
