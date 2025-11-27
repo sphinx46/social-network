@@ -7,7 +7,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.cs.vsu.social_network.user_profile_service.dto.request.ProfileEditRequest;
-import ru.cs.vsu.social_network.user_profile_service.dto.request.ProfileUploadAvatarRequest;
 import ru.cs.vsu.social_network.user_profile_service.dto.response.ProfileResponse;
 import ru.cs.vsu.social_network.user_profile_service.entity.Profile;
 import ru.cs.vsu.social_network.user_profile_service.exceptions.profile.ProfileBioTooLongException;
@@ -152,43 +151,98 @@ public class ProfileServiceImplTest {
     }
 
     @Test
-    @DisplayName("Загрузка аватарки - успешно")
+    @DisplayName("Загрузка аватара - успешно")
     void uploadAvatar_whenRequestIsValid() {
         String username = "testUser";
-        ProfileUploadAvatarRequest request = TestDataFactory.createUploadAvatarRequest("testPublicUrl");
-
+        String avatarUrl = "https://storage.example.com/avatars/user123.jpg";
         Profile profile = TestDataFactory.createTestProfile(username, TEST_USER_ID);
-
         Profile updatedProfile = TestDataFactory.createTestProfile(username, TEST_USER_ID);
-        updatedProfile.setAvatarUrl(request.getPublicUrl());
-        ProfileResponse expectedResponse = TestDataFactory.createProfileResponse(username, null, null, "testPublicUrl");
+        updatedProfile.setAvatarUrl(avatarUrl);
+        ProfileResponse expectedResponse = TestDataFactory.createProfileResponse(username, null, null, avatarUrl);
 
         when(provider.getByKeycloakUserId(TEST_USER_ID)).thenReturn(profile);
-        when(profileRepository.save(profile)).thenReturn(updatedProfile);
-        when(mapper.map(updatedProfile, ProfileResponse.class)).thenReturn(expectedResponse);
+        when(profileRepository.save(any(Profile.class))).thenReturn(updatedProfile);
+        when(mapper.map(any(Profile.class), eq(ProfileResponse.class))).thenReturn(expectedResponse);
 
-        ProfileResponse result = profileServiceImpl.uploadAvatar(TEST_USER_ID, request);
+        ProfileResponse result = profileServiceImpl.uploadAvatar(TEST_USER_ID,
+                TestDataFactory.createUploadAvatarRequest(avatarUrl));
 
         assertNotNull(result);
-        assertEquals(request.getPublicUrl(), result.getAvatarUrl());
-
+        assertEquals(avatarUrl, result.getAvatarUrl());
         verify(provider).getByKeycloakUserId(TEST_USER_ID);
-        verify(profileRepository).save(profile);
+        verify(profileRepository).save(any(Profile.class));
         verify(mapper).map(updatedProfile, ProfileResponse.class);
     }
 
     @Test
-    @DisplayName("Загрузка аватара - пустой URL")
-    void uploadAvatar_whenUrlIsBlank() {
-        ProfileUploadAvatarRequest request = TestDataFactory.createUploadAvatarRequest("");
+    @DisplayName("Загрузка аватара - когда URL пустой")
+    void uploadAvatar_whenUrlIsEmpty() {
+        String emptyUrl = "";
 
-        ProfileUploadAvatarException exception = assertThrows(
-                ProfileUploadAvatarException.class,
-                () -> profileServiceImpl.uploadAvatar(TEST_USER_ID, request));
+        ProfileUploadAvatarException exception = assertThrows(ProfileUploadAvatarException.class,
+                () -> profileServiceImpl.uploadAvatar(TEST_USER_ID,
+                        TestDataFactory.createUploadAvatarRequest(emptyUrl)));
 
         assertEquals(MessageConstants.FAILURE_PROFILE_UPLOAD_AVATAR, exception.getMessage());
+
         verify(provider, never()).getByKeycloakUserId(any(UUID.class));
         verify(profileRepository, never()).save(any(Profile.class));
-        verify(mapper, never()).map(any(Profile.class), eq(ProfileResponse.class));
+        verify(mapper, never()).map(any(Profile.class), any(Class.class));
+    }
+
+    @Test
+    @DisplayName("Загрузка аватара - когда URL состоит из пробелов")
+    void uploadAvatar_whenUrlIsBlank() {
+        String blankUrl = "   ";
+
+        ProfileUploadAvatarException exception = assertThrows(ProfileUploadAvatarException.class,
+                () -> profileServiceImpl.uploadAvatar(TEST_USER_ID,
+                        TestDataFactory.createUploadAvatarRequest(blankUrl)));
+
+        assertEquals(MessageConstants.FAILURE_PROFILE_UPLOAD_AVATAR, exception.getMessage());
+
+        verify(provider, never()).getByKeycloakUserId(any(UUID.class));
+        verify(profileRepository, never()).save(any(Profile.class));
+        verify(mapper, never()).map(any(Profile.class), any(Class.class));
+    }
+
+    @Test
+    @DisplayName("Загрузка аватара - когда URL null")
+    void uploadAvatar_whenUrlIsNull() {
+        ProfileUploadAvatarException exception = assertThrows(ProfileUploadAvatarException.class,
+                () -> profileServiceImpl.uploadAvatar(TEST_USER_ID,
+                        TestDataFactory.createUploadAvatarRequest(null)));
+
+        assertEquals(MessageConstants.FAILURE_PROFILE_UPLOAD_AVATAR, exception.getMessage());
+
+        verify(provider, never()).getByKeycloakUserId(any(UUID.class));
+        verify(profileRepository, never()).save(any(Profile.class));
+        verify(mapper, never()).map(any(Profile.class), any(Class.class));
+    }
+
+    @Test
+    @DisplayName("Загрузка аватара - обновление существующего аватара")
+    void uploadAvatar_whenReplacingExistingAvatar() {
+        String username = "testUser";
+        String oldAvatarUrl = "https://storage.example.com/avatars/old.jpg";
+        String newAvatarUrl = "https://storage.example.com/avatars/new.jpg";
+        Profile profile = TestDataFactory.createTestProfile(username, TEST_USER_ID);
+        profile.setAvatarUrl(oldAvatarUrl);
+        Profile updatedProfile = TestDataFactory.createTestProfile(username, TEST_USER_ID);
+        updatedProfile.setAvatarUrl(newAvatarUrl);
+        ProfileResponse expectedResponse = TestDataFactory.createProfileResponse(username, null, null, newAvatarUrl);
+
+        when(provider.getByKeycloakUserId(TEST_USER_ID)).thenReturn(profile);
+        when(profileRepository.save(any(Profile.class))).thenReturn(updatedProfile);
+        when(mapper.map(any(Profile.class), eq(ProfileResponse.class))).thenReturn(expectedResponse);
+
+        ProfileResponse result = profileServiceImpl.uploadAvatar(TEST_USER_ID,
+                TestDataFactory.createUploadAvatarRequest(newAvatarUrl));
+
+        assertNotNull(result);
+        assertEquals(newAvatarUrl, result.getAvatarUrl());
+        verify(provider).getByKeycloakUserId(TEST_USER_ID);
+        verify(profileRepository).save(any(Profile.class));
+        verify(mapper).map(updatedProfile, ProfileResponse.class);
     }
 }

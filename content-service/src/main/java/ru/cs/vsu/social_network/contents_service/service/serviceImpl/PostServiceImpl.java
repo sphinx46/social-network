@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import ru.cs.vsu.social_network.contents_service.dto.request.pageable.PageRequest;
 import ru.cs.vsu.social_network.contents_service.dto.request.post.PostCreateRequest;
@@ -88,37 +89,6 @@ public class PostServiceImpl implements PostService {
 
     /** {@inheritDoc} */
     @Override
-    public PostResponse uploadImage(final UUID keycloakUserId,
-                                    final PostUploadImageRequest request) {
-        log.info("ПОСТ_СЕРВИС_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_НАЧАЛО: " +
-                        "загрузка изображения для поста с ID: {} пользователем: {}",
-                request.getPostId(), keycloakUserId);
-
-        postValidator.validateOwnership(keycloakUserId, request.getPostId());
-
-        Post post = postEntityProvider.getById(request.getPostId());
-        String imageUrl = request.getImageUrl();
-
-        if (!StringUtils.hasText(imageUrl)) {
-            log.error("ПОСТ_СЕРВИС_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_ОШИБКА: " +
-                            "URL изображения пустой для поста с ID: {}, пользователь: {}",
-                    request.getPostId(), keycloakUserId);
-            throw new PostUploadImageException(MessageConstants.POST_UPLOAD_IMAGE_FAILURE);
-        }
-
-        imageUrl = imageUrl.trim();
-        post.setImageUrl(imageUrl);
-        Post updatedPost = postRepository.save(post);
-
-        log.info("ПОСТ_СЕРВИС_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_УСПЕХ: " +
-                        "изображение загружено для поста с ID: {}, URL: {}",
-                request.getPostId(), imageUrl);
-
-        return mapper.map(updatedPost, PostResponse.class);
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public PostResponse removeImage(final UUID keycloakUserId,
                                     final PostRemoveImageRequest request) {
         log.info("ПОСТ_СЕРВИС_УДАЛЕНИЕ_ИЗОБРАЖЕНИЯ_НАЧАЛО: " +
@@ -170,5 +140,36 @@ public class PostServiceImpl implements PostService {
 
         return PageResponse.of(postsPage.map(
                 post -> mapper.map(post, PostResponse.class)));
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    @Transactional
+    public PostResponse uploadPostImage(final UUID keycloakUserId,
+                                        final PostUploadImageRequest request) {
+        log.info("ПОСТ_СЕРВИС_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_НАЧАЛО: " +
+                        "загрузка изображения для поста с ID: {} пользователем: {}, URL: {}",
+                request.getPostId(), keycloakUserId, request.getImageUrl());
+
+        postValidator.validateOwnership(keycloakUserId, request.getPostId());
+
+        final Post post = postEntityProvider.getById(request.getPostId());
+        final String imageUrl = request.getImageUrl();
+
+        if (!StringUtils.hasText(imageUrl)) {
+            log.error("ПОСТ_СЕРВИС_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_ОШИБКА: " +
+                            "URL изображения пустой для поста с ID: {}, пользователь: {}",
+                    request.getPostId(), keycloakUserId);
+            throw new PostUploadImageException(MessageConstants.POST_UPLOAD_IMAGE_FAILURE);
+        }
+
+        post.setImageUrl(imageUrl.trim());
+        final Post updatedPost = postRepository.save(post);
+
+        log.info("ПОСТ_СЕРВИС_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_УСПЕХ: " +
+                        "изображение загружено для поста с ID: {}, URL: {}",
+                request.getPostId(), imageUrl);
+
+        return mapper.map(updatedPost, PostResponse.class);
     }
 }

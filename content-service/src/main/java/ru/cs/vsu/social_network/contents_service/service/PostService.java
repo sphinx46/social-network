@@ -35,15 +35,6 @@ public interface PostService {
     PostResponse editPost(UUID keycloakUserId, PostEditRequest request);
 
     /**
-     * Загружает изображение для поста.
-     *
-     * @param keycloakUserId идентификатор пользователя в Keycloak
-     * @param request данные для загрузки изображения
-     * @return пост с обновленным изображением
-     */
-    PostResponse uploadImage(UUID keycloakUserId, PostUploadImageRequest request);
-
-    /**
      * Удаляет изображение из поста.
      *
      * @param keycloakUserId идентификатор пользователя в Keycloak
@@ -59,6 +50,16 @@ public interface PostService {
      * @return найденный пост
      */
     PostResponse getPostById(UUID postId);
+
+    /**
+     * Загружает изображение для поста.
+     * Обновляет URL изображения для указанного поста после проверки прав доступа.
+     *
+     * @param keycloakUserId идентификатор пользователя в Keycloak
+     * @param request данные для загрузки изображения поста
+     * @return пост с обновленным изображением
+     */
+    PostResponse uploadPostImage(UUID keycloakUserId, PostUploadImageRequest request);
 
     /**
      * Получает все посты пользователя с пагинацией.

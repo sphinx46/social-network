@@ -36,4 +36,13 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     Page<Comment> findAllByOwnerIdAndPostId(UUID ownerId,
                                             UUID postId,
                                             Pageable pageable);
+    /**
+     * Находит все комментарии к определённому посту с пагинацией.
+     *
+     * @param postId идентификатор поста
+     * @param pageable параметры пагинации и сортировки
+     * @return страница с комментариями пользователей к указанному посту
+     */
+    Page<Comment> findAllByPostId(UUID postId,
+                                  Pageable pageable);
 }

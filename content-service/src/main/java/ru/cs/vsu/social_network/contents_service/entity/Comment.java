@@ -16,9 +16,9 @@ public class Comment extends BaseEntity {
     @Column(name = "owner_id")
     private UUID ownerId;
 
-    @ManyToOne(optional = false, targetEntity = Post.class)
-    @JoinColumn(name = "post_id", referencedColumnName = "id")
-    private UUID postId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id")
+    private Post post;
 
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;

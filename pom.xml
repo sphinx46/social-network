@@ -20,6 +20,7 @@
 		<module>eureka-server</module>
 		<module>user-profile-service</module>
 		<module>upload-service</module>
+        <module>content-service</module>
 	</modules>
 
 	<properties>

@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.cs.vsu.social_network.contents_service.dto.request.comment.CommentCreateRequest;
 import ru.cs.vsu.social_network.contents_service.entity.Comment;
+import ru.cs.vsu.social_network.contents_service.entity.Post;
+import ru.cs.vsu.social_network.contents_service.provider.PostEntityProvider;
 import ru.cs.vsu.social_network.contents_service.utils.factory.CommentFactory;
 
 import java.util.UUID;
@@ -15,6 +17,11 @@ import java.util.UUID;
 @Slf4j
 @Component
 public class CommentFactoryImpl implements CommentFactory {
+    private final PostEntityProvider postEntityProvider;
+
+    public CommentFactoryImpl(PostEntityProvider postEntityProvider) {
+        this.postEntityProvider = postEntityProvider;
+    }
 
     /** {@inheritDoc} */
     @Override
@@ -22,9 +29,11 @@ public class CommentFactoryImpl implements CommentFactory {
         log.info("КОММЕНТАРИЙ_ФАБРИКА_СОЗДАНИЕ_НАЧАЛО: " +
                 "создание комментария для пользователя: {}", keycloakUserId);
 
+        Post post = postEntityProvider.getById(request.getPostId());
+
         Comment comment = Comment.builder()
                 .ownerId(keycloakUserId)
-                .postId(request.getPostId())
+                .post(post)
                 .content(request.getContent())
                 .imageUrl(null)
                 .build();

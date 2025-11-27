@@ -13,7 +13,6 @@ import ru.cs.vsu.social_network.contents_service.dto.request.pageable.PageReques
 import ru.cs.vsu.social_network.contents_service.dto.request.post.PostCreateRequest;
 import ru.cs.vsu.social_network.contents_service.dto.request.post.PostEditRequest;
 import ru.cs.vsu.social_network.contents_service.dto.request.post.PostRemoveImageRequest;
-import ru.cs.vsu.social_network.contents_service.dto.request.post.PostUploadImageRequest;
 import ru.cs.vsu.social_network.contents_service.dto.response.content.PostResponse;
 import ru.cs.vsu.social_network.contents_service.dto.response.pageable.PageResponse;
 import ru.cs.vsu.social_network.contents_service.service.PostService;
@@ -69,23 +68,6 @@ public class PostController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "Загрузка изображения для поста")
-    @PatchMapping("/uploadImage")
-    public ResponseEntity<PostResponse> uploadImage(
-            @RequestHeader("X-User-Id") final UUID keycloakUserId,
-            @Valid @RequestBody final PostUploadImageRequest postUploadImageRequest) {
-
-        log.info("ПОСТ_КОНТРОЛЛЕР_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_НАЧАЛО: "
-                        + "загрузка изображения для поста с ID: {} пользователем: {}",
-                postUploadImageRequest.getPostId(), keycloakUserId);
-
-        PostResponse response = postService.uploadImage(keycloakUserId, postUploadImageRequest);
-
-        log.info("ПОСТ_КОНТРОЛЛЕР_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_УСПЕХ: "
-                        + "изображение загружено для поста с ID: {}",
-                response.getId());
-        return ResponseEntity.ok(response);
-    }
 
     @Operation(summary = "Удаление изображения с поста")
     @PatchMapping("/deleteImage")

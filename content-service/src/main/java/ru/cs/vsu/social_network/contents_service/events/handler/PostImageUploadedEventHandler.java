@@ -44,7 +44,7 @@ public class PostImageUploadedEventHandler implements EventHandler<PostImageUplo
             final PostUploadImageRequest request = mapper.map(event, PostUploadImageRequest.class);
             log.debug("СОБЫТИЕ_ИЗОБРАЖЕНИЯ_ПОСТА_ПРЕОБРАЗОВАНИЕ_УСПЕХ: eventId={}", event.getEventId());
 
-            postService.uploadImage(event.getOwnerId(), request);
+            postService.uploadPostImage(event.getOwnerId(), request);
 
             log.info("СОБЫТИЕ_ИЗОБРАЖЕНИЯ_ПОСТА_ОБРАБОТКА_УСПЕХ: eventId={}, userId={}",
                     event.getEventId(), event.getOwnerId());

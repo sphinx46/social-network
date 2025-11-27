@@ -28,15 +28,6 @@ public interface ProfileService {
     ProfileResponse editProfile(UUID id, ProfileEditRequest request);
 
     /**
-     * Создаёт профиль с настройками по умолчанию.
-     *
-     * @param keycloakUserId идентификатор пользователя в Keycloak
-     * @param username имя пользователя
-     * @return созданный профиль
-     */
-    ProfileResponse createDefaultProfile(UUID keycloakUserId, String username);
-
-    /**
      * Обновляет ссылку на аватар пользователя.
      *
      * @param keycloakUserId идентификатор пользователя
@@ -44,4 +35,13 @@ public interface ProfileService {
      * @return профиль с новым аватаром
      */
     ProfileResponse uploadAvatar(UUID keycloakUserId, ProfileUploadAvatarRequest request);
+
+    /**
+     * Создаёт профиль с настройками по умолчанию.
+     *
+     * @param keycloakUserId идентификатор пользователя в Keycloak
+     * @param username имя пользователя
+     * @return созданный профиль
+     */
+    ProfileResponse createDefaultProfile(UUID keycloakUserId, String username);
 }

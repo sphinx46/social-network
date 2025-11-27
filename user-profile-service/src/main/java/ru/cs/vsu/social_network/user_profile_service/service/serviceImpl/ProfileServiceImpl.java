@@ -128,6 +128,49 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     /**
+     * Обновляет поля профиля на основе данных из запроса.
+     *
+     * @param profile сущность профиля для обновления
+     * @param request запрос с данными для обновления
+     */
+    private void updateProfileFromRequest(
+            final Profile profile, final ProfileEditRequest request) {
+        boolean hasChanges = false;
+
+        if (request.getCity() != null
+                && !request.getCity().equals(profile.getCity())) {
+            log.debug("ПРОФИЛЬ_ОБНОВЛЕНИЕ_ГОРОД: "
+                            + "обновление города с '{}' на '{}'",
+                    profile.getCity(), request.getCity());
+            profile.setCity(request.getCity());
+            hasChanges = true;
+        }
+
+        if (request.getDateOfBirth() != null
+                && !request.getDateOfBirth().equals(profile.getDateOfBirth())) {
+            log.debug("ПРОФИЛЬ_ОБНОВЛЕНИЕ_ДАТА_РОЖДЕНИЯ: "
+                            + "обновление даты рождения с {} на {}",
+                    profile.getDateOfBirth(), request.getDateOfBirth());
+            profile.setDateOfBirth(request.getDateOfBirth());
+            hasChanges = true;
+        }
+
+        if (request.getBio() != null
+                && !request.getBio().equals(profile.getBio())) {
+            log.debug("ПРОФИЛЬ_ОБНОВЛЕНИЕ_БИО: "
+                            + "обновление био, длина: {} символов",
+                    request.getBio().length());
+            profile.setBio(request.getBio());
+            hasChanges = true;
+        }
+
+        if (!hasChanges) {
+            log.debug("ПРОФИЛЬ_ОБНОВЛЕНИЕ_ИЗМЕНЕНИЙ_НЕТ: "
+                    + "изменения в профиле отсутствуют");
+        }
+    }
+
+    /**
      * Загружает аватар пользователя и обновляет URL в профиле.
      *
      * @param keycloakUserId идентификатор пользователя из Keycloak
@@ -179,48 +222,5 @@ public class ProfileServiceImpl implements ProfileService {
                 keycloakUserId);
 
         return response;
-    }
-
-    /**
-     * Обновляет поля профиля на основе данных из запроса.
-     *
-     * @param profile сущность профиля для обновления
-     * @param request запрос с данными для обновления
-     */
-    private void updateProfileFromRequest(
-            final Profile profile, final ProfileEditRequest request) {
-        boolean hasChanges = false;
-
-        if (request.getCity() != null
-                && !request.getCity().equals(profile.getCity())) {
-            log.debug("ПРОФИЛЬ_ОБНОВЛЕНИЕ_ГОРОД: "
-                            + "обновление города с '{}' на '{}'",
-                    profile.getCity(), request.getCity());
-            profile.setCity(request.getCity());
-            hasChanges = true;
-        }
-
-        if (request.getDateOfBirth() != null
-                && !request.getDateOfBirth().equals(profile.getDateOfBirth())) {
-            log.debug("ПРОФИЛЬ_ОБНОВЛЕНИЕ_ДАТА_РОЖДЕНИЯ: "
-                            + "обновление даты рождения с {} на {}",
-                    profile.getDateOfBirth(), request.getDateOfBirth());
-            profile.setDateOfBirth(request.getDateOfBirth());
-            hasChanges = true;
-        }
-
-        if (request.getBio() != null
-                && !request.getBio().equals(profile.getBio())) {
-            log.debug("ПРОФИЛЬ_ОБНОВЛЕНИЕ_БИО: "
-                            + "обновление био, длина: {} символов",
-                    request.getBio().length());
-            profile.setBio(request.getBio());
-            hasChanges = true;
-        }
-
-        if (!hasChanges) {
-            log.debug("ПРОФИЛЬ_ОБНОВЛЕНИЕ_ИЗМЕНЕНИЙ_НЕТ: "
-                    + "изменения в профиле отсутствуют");
-        }
     }
 }

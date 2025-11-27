@@ -7,7 +7,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.cs.vsu.social_network.user_profile_service.dto.request.ProfileEditRequest;
-import ru.cs.vsu.social_network.user_profile_service.dto.request.ProfileUploadAvatarRequest;
 import ru.cs.vsu.social_network.user_profile_service.dto.response.ProfileResponse;
 import ru.cs.vsu.social_network.user_profile_service.service.ProfileService;
 
@@ -104,34 +103,6 @@ public class ProfileController {
                 keycloakUserId);
         log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_ПОЛУЧЕНИЕ_ПО_ID_УСПЕХ: "
                 + "профиль получен для keycloakUserId: {}", keycloakUserId);
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Загружает URL аватара для текущего аутентифицированного пользователя.
-     * Используется upload-service для обновления ссылки на аватар после загрузки файла.
-     *
-     * @param keycloakUserId идентификатор текущего пользователя из Keycloak (из заголовка)
-     *  @param request данные для загрузки аватарки
-     * @return обновленный профиль пользователя с новым URL аватара
-     */
-    @Operation(summary = "Загрузить аватарку для текущего пользователя")
-    @PatchMapping("/me/avatar")
-    public ResponseEntity<ProfileResponse> uploadAvatar(
-            @RequestHeader("X-User-Id") final UUID keycloakUserId,
-            @Valid @RequestBody final ProfileUploadAvatarRequest request) {
-        String publicUrl = request.getPublicUrl();
-        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_АВАТАР_ЗАГРУЗКА_НАЧАЛО: "
-                        + "начало загрузки аватара для пользователя {}, "
-                        + "длина URL: {} символов",
-                keycloakUserId, publicUrl != null ? publicUrl.length() : 0);
-
-        ProfileResponse response = profileService.uploadAvatar(keycloakUserId, request);
-
-        log.info("ПРОФИЛЬ_КОНТРОЛЛЕР_АВАТАР_ЗАГРУЗКА_УСПЕХ: "
-                + "аватар успешно загружен для пользователя {}, "
-                + "новый URL установлен", keycloakUserId);
-
         return ResponseEntity.ok(response);
     }
 }
