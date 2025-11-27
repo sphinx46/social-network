@@ -6,7 +6,9 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.cs.vsu.social_network.contents_service.dto.response.content.CommentResponse;
 import ru.cs.vsu.social_network.contents_service.dto.response.content.PostResponse;
+import ru.cs.vsu.social_network.contents_service.entity.Comment;
 import ru.cs.vsu.social_network.contents_service.entity.Post;
 
 /**
@@ -32,6 +34,7 @@ public class ModelMapperConfig {
         final ModelMapper modelMapper = new ModelMapper();
 
         configurePostMappings(modelMapper);
+        configureCommentMappings(modelMapper);
 
         modelMapper.getConfiguration()
                 .setFieldMatchingEnabled(true)
@@ -46,6 +49,20 @@ public class ModelMapperConfig {
 
     private void configurePostMappings(final ModelMapper modelMapper) {
         modelMapper.addMappings(new PropertyMap<Post, PostResponse>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getId());
+                map().setOwnerId(source.getOwnerId());
+                map().setContent(source.getContent());
+                map().setImageUrl(source.getImageUrl());
+                map().setCreatedAt(source.getCreatedAt());
+                map().setUpdatedAt(source.getUpdatedAt());
+            }
+        });
+    }
+
+    private void configureCommentMappings(final ModelMapper modelMapper) {
+        modelMapper.addMappings(new PropertyMap<Comment, CommentResponse>() {
             @Override
             protected void configure() {
                 map().setId(source.getId());
