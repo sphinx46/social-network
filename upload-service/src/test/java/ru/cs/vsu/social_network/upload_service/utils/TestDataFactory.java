@@ -318,4 +318,82 @@ public final class TestDataFactory {
         entity.setUpdatedAt(LocalDateTime.now());
         return entity;
     }
+
+    /**
+     * Создает тестовый файл для загрузки изображения комментария.
+     *
+     * @param filename имя файла
+     * @param contentType MIME-тип файла
+     * @param content содержимое файла
+     * @return новый экземпляр MockMultipartFile
+     */
+    public static MockMultipartFile createCommentImageFile(final String filename,
+                                                           final String contentType,
+                                                           final byte[] content) {
+        return new MockMultipartFile("file", filename, contentType, content);
+    }
+
+    /**
+     * Создает тестовый запрос на загрузку изображения комментария.
+     *
+     * @param file загружаемый файл
+     * @param description описание изображения комментария
+     * @return новый экземпляр MediaUploadRequest для изображения комментария
+     */
+    public static MediaUploadRequest createCommentImageUploadRequest(final MockMultipartFile file,
+                                                                     final String description) {
+        return MediaUploadRequest.builder()
+                .file(file)
+                .category("COMMENT_IMAGE")
+                .description(description)
+                .build();
+    }
+
+    /**
+     * Создает тестовый ответ для загруженного изображения комментария.
+     *
+     * @param mediaId уникальный идентификатор медиа
+     * @param ownerId идентификатор владельца
+     * @return новый экземпляр MediaResponse для изображения комментария
+     */
+    public static MediaResponse createCommentImageResponse(final UUID mediaId,
+                                                           final UUID ownerId) {
+        return MediaResponse.builder()
+                .id(mediaId)
+                .ownerId(ownerId)
+                .publicUrl("http://localhost/media/comment-image.jpg")
+                .objectName("comment-image.jpg")
+                .mimeType("image/jpeg")
+                .size(1536L)
+                .category("COMMENT_IMAGE")
+                .description("Comment content image")
+                .originalFileName("comment-image.jpg")
+                .build();
+    }
+
+    /**
+     * Создает тестовую сущность медиа для изображения комментария.
+     *
+     * @param mediaId уникальный идентификатор медиа
+     * @param ownerId идентификатор владельца
+     * @return новый экземпляр MediaEntity для изображения комментария
+     */
+    public static MediaEntity createCommentImageEntity(final UUID mediaId,
+                                                       final UUID ownerId) {
+        MediaEntity entity = MediaEntity.builder()
+                .ownerId(ownerId)
+                .category("COMMENT_IMAGE")
+                .description("Comment content image")
+                .objectName("comment-image.jpg")
+                .originalFileName("comment-image.jpg")
+                .mimeType("image/jpeg")
+                .size(1536L)
+                .bucketName("media")
+                .publicUrl("http://localhost/media/comment-image.jpg")
+                .build();
+        entity.setId(mediaId);
+        entity.setCreatedAt(LocalDateTime.now());
+        entity.setUpdatedAt(LocalDateTime.now());
+        return entity;
+    }
 }

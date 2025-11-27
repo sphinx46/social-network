@@ -17,6 +17,7 @@ import ru.cs.vsu.social_network.upload_service.dto.response.MediaContentResponse
 import ru.cs.vsu.social_network.upload_service.dto.response.MediaMetadataResponse;
 import ru.cs.vsu.social_network.upload_service.dto.response.MediaResponse;
 import ru.cs.vsu.social_network.upload_service.service.AvatarMediaService;
+import ru.cs.vsu.social_network.upload_service.service.CommentImageMediaService;
 import ru.cs.vsu.social_network.upload_service.service.MediaService;
 import ru.cs.vsu.social_network.upload_service.service.PostImageMediaService;
 
@@ -40,6 +41,7 @@ public class MediaController {
     private final MediaService mediaService;
     private final AvatarMediaService avatarMediaService;
     private final PostImageMediaService postImageMediaService;
+    private final CommentImageMediaService commentImageMediaService;
 
     /**
      * Загружает медиа-файл общего назначения.
@@ -152,5 +154,30 @@ public class MediaController {
                 .build());
 
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Загружает изображение комментария.
+     * Включает специфичную валидацию и отправку событий для обновления контента.
+     *
+     * @param request параметры загрузки изображения комментария
+     * @param commentId идентификатор комментария
+     * @param postId идентификатор поста
+     * @return данные сохранённого изображения комментария
+     */
+    @Operation(summary = "Загрузка изображения комментария")
+    @PostMapping(value = "/comment-images/{commentId}/post/{postId}",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MediaResponse> uploadCommentImage(
+            @Valid @ModelAttribute final MediaUploadRequest request,
+            @PathVariable final UUID commentId,
+            @PathVariable final UUID postId) {
+
+        log.info("МЕДИА_CONTROLLER_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_КОММЕНТАРИЯ: " +
+                "commentId={}, postId={}", commentId, postId);
+
+        final MediaResponse response = commentImageMediaService.
+                uploadCommentImage(request, commentId, postId);
+        return ResponseEntity.status(201).body(response);
     }
 }

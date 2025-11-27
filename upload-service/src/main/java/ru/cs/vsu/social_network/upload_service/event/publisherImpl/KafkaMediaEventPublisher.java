@@ -9,13 +9,6 @@ import ru.cs.vsu.social_network.upload_service.producer.UploadProducer;
 
 import java.util.UUID;
 
-/**
- * Реализация публикатора событий медиа с использованием Kafka.
- * Отвечает за отправку событий, связанных с операциями над медиа-файлами,
- * в соответствующие топики Kafka для уведомления других сервисов системы.
- * Инкапсулирует детали реализации работы с Kafka брокером.
- *
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -55,12 +48,39 @@ public class KafkaMediaEventPublisher implements MediaEventPublisher {
      */
     @Override
     public void publishPostImageUploaded(final MediaEntity mediaEntity, final UUID postId) {
-        log.info("KAFKA_POST_IMAGE_EVENT_ПУБЛИКАЦИЯ_НАЧАЛО: mediaId={} ownerId={} postId={}",
+        log.info("KAFKA_POST_IMAGE_EVENT_ПУБЛИКАЦИЯ_НАЧАЛО: " +
+                        "mediaId={} ownerId={} postId={}",
                 mediaEntity.getId(), mediaEntity.getOwnerId(), postId);
 
         uploadProducer.sendPostImageUploadedEvent(mediaEntity, postId);
 
         log.debug("KAFKA_POST_IMAGE_EVENT_ПУБЛИКАЦИЯ_ЗАВЕРШЕНА: mediaId={} postId={}",
                 mediaEntity.getId(), postId);
+    }
+
+    /**
+     * Публикует событие загрузки изображения комментария в Kafka.
+     * Отправляет событие с информацией о загруженном изображении комментария для уведомления
+     * заинтересованных сервисов (например, content-service).
+     * Обеспечивает асинхронную отправку с обработкой ошибок на уровне продюсера.
+     *
+     * @param mediaEntity сущность медиа, содержащая метаданные загруженного изображения комментария
+     * @param commentId идентификатор комментария
+     * @param postId идентификатор поста
+     * @throws RuntimeException если произошла критическая ошибка при отправке события
+     */
+    @Override
+    public void publishCommentImageUploaded(final MediaEntity mediaEntity,
+                                            final UUID commentId,
+                                            final UUID postId) {
+        log.info("KAFKA_COMMENT_IMAGE_EVENT_ПУБЛИКАЦИЯ_НАЧАЛО: " +
+                        "mediaId={} ownerId={} commentId={} postId={}",
+                mediaEntity.getId(), mediaEntity.getOwnerId(), commentId, postId);
+
+        uploadProducer.sendCommentImageUploadedEvent(mediaEntity, commentId, postId);
+
+        log.debug("KAFKA_COMMENT_IMAGE_EVENT_ПУБЛИКАЦИЯ_ЗАВЕРШЕНА: " +
+                        "mediaId={} commentId={} postId={}",
+                mediaEntity.getId(), commentId, postId);
     }
 }

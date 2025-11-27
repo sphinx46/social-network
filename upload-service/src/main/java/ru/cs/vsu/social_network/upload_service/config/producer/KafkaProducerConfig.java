@@ -12,16 +12,11 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import ru.cs.vsu.social_network.upload_service.event.AvatarUploadedEvent;
 import ru.cs.vsu.social_network.upload_service.event.PostImageUploadedEvent;
+import ru.cs.vsu.social_network.upload_service.event.CommentImageUploadedEvent;
 
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Конфигурационный класс для настройки Kafka Producer.
- * Создает и настраивает бины для отправки событий в Kafka.
- * Обеспечивает надежную доставку сообщений с гарантией идемпотентности.
- *
- */
 @Slf4j
 @Configuration
 public class KafkaProducerConfig {
@@ -84,14 +79,14 @@ public class KafkaProducerConfig {
     }
 
     /**
-     * Создает фабрику Producer'ов для событий загрузки аватаров.
+     * Создает фабрику Producer'ов для событий загрузки изображений постов.
      * Использует JsonSerializer для сериализации объектов PostImageUploadedEvent.
      * Гарантирует thread-safe создание экземпляров Producer.
      *
      * @return фабрика Producer'ов для PostImageUploadedEvent
      */
     @Bean
-    public ProducerFactory<String, PostImageUploadedEvent> PostImageUploadedEventProducerFactory() {
+    public ProducerFactory<String, PostImageUploadedEvent> postImageUploadedEventProducerFactory() {
         log.info("KAFKA_PRODUCER_FACTORY_СОЗДАНИЕ: тип=PostImageUploadedEvent");
 
         Map<String, Object> config = producerConfig();
@@ -101,17 +96,49 @@ public class KafkaProducerConfig {
     }
 
     /**
-     * Создает KafkaTemplate для отправки событий загрузки аватаров.
+     * Создает KafkaTemplate для отправки событий загрузки изображений постов.
      * Предоставляет высокоуровневый API для асинхронной отправки сообщений.
      * Поддерживает callback'и для обработки результатов отправки.
      *
      * @param producerFactory фабрика Producer'ов для создания экземпляров
-     * @return настроенный KafkaTemplate для работы PostImageUploadedEvent
+     * @return настроенный KafkaTemplate для работы с PostImageUploadedEvent
      */
     @Bean
-    public KafkaTemplate<String, PostImageUploadedEvent> PostImageUploadedEventKafkaTemplate(
+    public KafkaTemplate<String, PostImageUploadedEvent> postImageUploadedEventKafkaTemplate(
             final ProducerFactory<String, PostImageUploadedEvent> producerFactory) {
         log.info("KAFKA_TEMPLATE_СОЗДАНИЕ: тип=PostImageUploadedEvent");
+        return new KafkaTemplate<>(producerFactory);
+    }
+
+    /**
+     * Создает фабрику Producer'ов для событий загрузки изображений комментариев.
+     * Использует JsonSerializer для сериализации объектов CommentImageUploadedEvent.
+     * Гарантирует thread-safe создание экземпляров Producer.
+     *
+     * @return фабрика Producer'ов для CommentImageUploadedEvent
+     */
+    @Bean
+    public ProducerFactory<String, CommentImageUploadedEvent> commentImageUploadedEventProducerFactory() {
+        log.info("KAFKA_PRODUCER_FACTORY_СОЗДАНИЕ: тип=CommentImageUploadedEvent");
+
+        Map<String, Object> config = producerConfig();
+        config.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
+
+        return new DefaultKafkaProducerFactory<>(config);
+    }
+
+    /**
+     * Создает KafkaTemplate для отправки событий загрузки изображений комментариев.
+     * Предоставляет высокоуровневый API для асинхронной отправки сообщений.
+     * Поддерживает callback'и для обработки результатов отправки.
+     *
+     * @param producerFactory фабрика Producer'ов для создания экземпляров
+     * @return настроенный KafkaTemplate для работы с CommentImageUploadedEvent
+     */
+    @Bean
+    public KafkaTemplate<String, CommentImageUploadedEvent> commentImageUploadedEventKafkaTemplate(
+            final ProducerFactory<String, CommentImageUploadedEvent> producerFactory) {
+        log.info("KAFKA_TEMPLATE_СОЗДАНИЕ: тип=CommentImageUploadedEvent");
         return new KafkaTemplate<>(producerFactory);
     }
 }

@@ -10,6 +10,7 @@ public class KafkaTopicConfig {
 
     private static final String AVATAR_TOPIC = "avatar-uploaded";
     private static final String POST_IMAGE_TOPIC = "post-image-uploaded";
+    private static final String COMMENT_IMAGE_TOPIC = "comment-image-uploaded";
 
     @Bean
     public NewTopic avatarUploadedTopic() {
@@ -20,6 +21,12 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic postImageUploadedTopic() {
         return TopicBuilder.name(POST_IMAGE_TOPIC)
+                .build();
+    }
+
+    @Bean
+    public NewTopic commentImageUploadedTopic() {
+        return TopicBuilder.name(COMMENT_IMAGE_TOPIC)
                 .build();
     }
 }

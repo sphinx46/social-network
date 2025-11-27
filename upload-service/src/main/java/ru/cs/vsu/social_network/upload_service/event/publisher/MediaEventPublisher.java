@@ -29,4 +29,15 @@ public interface MediaEventPublisher {
      * @param postId идентификатор поста
      */
     void publishPostImageUploaded(MediaEntity mediaEntity, UUID postId);
+
+    /**
+     * Публикует событие загрузки изображения комментария.
+     * Отправляет событие с информацией о загруженном изображении комментария для уведомления
+     * заинтересованных сервисов (например, content-service).
+     *
+     * @param mediaEntity сущность медиа, содержащая метаданные загруженного изображения комментария
+     * @param commentId идентификатор комментария
+     * @param postId идентификатор поста
+     */
+    void publishCommentImageUploaded(MediaEntity mediaEntity, UUID commentId, UUID postId);
 }

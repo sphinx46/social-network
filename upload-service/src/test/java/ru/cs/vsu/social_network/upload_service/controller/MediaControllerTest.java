@@ -18,6 +18,7 @@ import ru.cs.vsu.social_network.upload_service.exception.MediaNotFoundException;
 import ru.cs.vsu.social_network.upload_service.exception.MinioOperationException;
 import ru.cs.vsu.social_network.upload_service.exception.handler.UploadExceptionHandler;
 import ru.cs.vsu.social_network.upload_service.service.AvatarMediaService;
+import ru.cs.vsu.social_network.upload_service.service.CommentImageMediaService;
 import ru.cs.vsu.social_network.upload_service.service.MediaService;
 import ru.cs.vsu.social_network.upload_service.service.PostImageMediaService;
 import ru.cs.vsu.social_network.upload_service.utils.MessageConstants;
@@ -38,6 +39,7 @@ class MediaControllerTest extends BaseControllerTest {
     private static final UUID MEDIA_ID = UUID.fromString("a111da2d-c9ec-4705-85bb-28accf5b17b9");
     private static final UUID OWNER_ID = UUID.fromString("5c308f33-5bf1-4e35-ad87-0c87f74bb89c");
     private static final UUID POST_ID = UUID.fromString("38908454-6f03-45d4-9fd7-8fe6cfad9768");
+    private static final UUID COMMENT_ID = UUID.fromString("33eae3d1-26ea-4a63-8c6a-50ce04f0546f");
 
     @Mock
     private MediaService mediaService;
@@ -46,11 +48,15 @@ class MediaControllerTest extends BaseControllerTest {
     private AvatarMediaService avatarMediaService;
 
     @Mock
+    private CommentImageMediaService commentImageMediaService;
+
+    @Mock
     private PostImageMediaService postImageMediaService;
 
     @Override
     protected Object controllerUnderTest() {
-        return new MediaController(mediaService, avatarMediaService, postImageMediaService);
+        return new MediaController(mediaService, avatarMediaService,
+                postImageMediaService, commentImageMediaService);
     }
 
     @Override
@@ -319,5 +325,125 @@ class MediaControllerTest extends BaseControllerTest {
                 .andExpect(status().isBadRequest());
 
         verify(postImageMediaService).uploadPostImage(any(MediaUploadRequest.class), eq(POST_ID));
+    }
+
+    @Test
+    @DisplayName("Загрузка изображения комментария - успешно")
+    void uploadCommentImage_whenRequestIsValid_shouldReturnCreated() throws Exception {
+        final MockMultipartFile file = TestDataFactory.createCommentImageFile(
+                "comment-image.jpg", MediaType.IMAGE_JPEG_VALUE, "comment-image-content".getBytes());
+        final MediaResponse response = TestDataFactory.createCommentImageResponse(MEDIA_ID, OWNER_ID);
+
+        when(commentImageMediaService.uploadCommentImage(any(MediaUploadRequest.class), eq(COMMENT_ID), eq(POST_ID)))
+                .thenReturn(response);
+
+        mockMvcUtils.performMultipart("/media/comment-images/" + COMMENT_ID + "/post/" + POST_ID, file,
+                        Map.of("category", "COMMENT_IMAGE", "description", "Comment content image"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(MEDIA_ID.toString()))
+                .andExpect(jsonPath("$.publicUrl").value("http://localhost/media/comment-image.jpg"))
+                .andExpect(jsonPath("$.category").value("COMMENT_IMAGE"));
+
+        verify(commentImageMediaService).uploadCommentImage(any(MediaUploadRequest.class), eq(COMMENT_ID), eq(POST_ID));
+    }
+
+    @Test
+    @DisplayName("Загрузка изображения комментария - неверный тип файла")
+    void uploadCommentImage_whenInvalidFileType_shouldReturnBadRequest() throws Exception {
+        final MockMultipartFile file = TestDataFactory.createCommentImageFile(
+                "script.exe", "application/x-msdownload", "malicious".getBytes());
+
+        when(commentImageMediaService.uploadCommentImage(any(MediaUploadRequest.class), eq(COMMENT_ID), eq(POST_ID)))
+                .thenThrow(new InvalidFileException("Недопустимый тип файла для изображения комментария"));
+
+        mockMvcUtils.performMultipart("/media/comment-images/" + COMMENT_ID + "/post/" + POST_ID, file,
+                        Map.of("category", "COMMENT_IMAGE", "description", "Comment content image"))
+                .andExpect(status().isBadRequest());
+
+        verify(commentImageMediaService).uploadCommentImage(any(MediaUploadRequest.class), eq(COMMENT_ID), eq(POST_ID));
+    }
+
+    @Test
+    @DisplayName("Загрузка изображения комментария - обязательная категория отсутствует")
+    void uploadCommentImage_whenCategoryMissing_shouldReturnBadRequest() throws Exception {
+        final MockMultipartFile file = TestDataFactory.createCommentImageFile(
+                "comment-image.jpg", MediaType.IMAGE_JPEG_VALUE, "image-content".getBytes());
+
+        mockMvcUtils.performMultipart("/media/comment-images/" + COMMENT_ID + "/post/" + POST_ID, file, Map.of())
+                .andExpect(status().isBadRequest());
+
+        verify(commentImageMediaService, never()).uploadCommentImage(any(MediaUploadRequest.class), any(), any());
+    }
+
+    @Test
+    @DisplayName("Загрузка изображения комментария - слишком большой файл")
+    void uploadCommentImage_whenFileTooLarge_shouldReturnBadRequest() throws Exception {
+        final MockMultipartFile file = TestDataFactory.createCommentImageFile(
+                "large-image.jpg", MediaType.IMAGE_JPEG_VALUE, new byte[20 * 1024 * 1024]);
+
+        when(commentImageMediaService.uploadCommentImage(any(MediaUploadRequest.class), eq(COMMENT_ID), eq(POST_ID)))
+                .thenThrow(new InvalidFileException("Размер файла превышает допустимый лимит"));
+
+        mockMvcUtils.performMultipart("/media/comment-images/" + COMMENT_ID + "/post/" + POST_ID, file,
+                        Map.of("category", "COMMENT_IMAGE", "description", "Large comment image"))
+                .andExpect(status().isBadRequest());
+
+        verify(commentImageMediaService).uploadCommentImage(any(MediaUploadRequest.class), eq(COMMENT_ID), eq(POST_ID));
+    }
+
+    @Test
+    @DisplayName("Загрузка изображения комментария - ошибка валидации файла")
+    void uploadCommentImage_whenFileValidationFails_shouldReturnBadRequest() throws Exception {
+        final MockMultipartFile file = TestDataFactory.createCommentImageFile(
+                "corrupted-image.jpg", MediaType.IMAGE_JPEG_VALUE, "corrupted".getBytes());
+
+        when(commentImageMediaService.uploadCommentImage(any(MediaUploadRequest.class), eq(COMMENT_ID), eq(POST_ID)))
+                .thenThrow(new InvalidFileException("Файл поврежден или имеет неверный формат"));
+
+        mockMvcUtils.performMultipart("/media/comment-images/" + COMMENT_ID + "/post/" + POST_ID, file,
+                        Map.of("category", "COMMENT_IMAGE", "description", "Corrupted image"))
+                .andExpect(status().isBadRequest());
+
+        verify(commentImageMediaService).uploadCommentImage(any(MediaUploadRequest.class), eq(COMMENT_ID), eq(POST_ID));
+    }
+
+    @Test
+    @DisplayName("Загрузка изображения комментария - успешно с PNG форматом")
+    void uploadCommentImage_whenPngFormat_shouldReturnCreated() throws Exception {
+        final MockMultipartFile file = TestDataFactory.createCommentImageFile(
+                "comment-image.png", MediaType.IMAGE_PNG_VALUE, "png-content".getBytes());
+        final MediaResponse response = TestDataFactory.createCommentImageResponse(MEDIA_ID, OWNER_ID);
+
+        when(commentImageMediaService.uploadCommentImage(any(MediaUploadRequest.class), eq(COMMENT_ID), eq(POST_ID)))
+                .thenReturn(response);
+
+        mockMvcUtils.performMultipart("/media/comment-images/" + COMMENT_ID + "/post/" + POST_ID, file,
+                        Map.of("category", "COMMENT_IMAGE", "description", "PNG comment image"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(MEDIA_ID.toString()))
+                .andExpect(jsonPath("$.publicUrl").value("http://localhost/media/comment-image.jpg"))
+                .andExpect(jsonPath("$.category").value("COMMENT_IMAGE"));
+
+        verify(commentImageMediaService).uploadCommentImage(any(MediaUploadRequest.class), eq(COMMENT_ID), eq(POST_ID));
+    }
+
+    @Test
+    @DisplayName("Загрузка изображения комментария - успешно с WEBP форматом")
+    void uploadCommentImage_whenWebpFormat_shouldReturnCreated() throws Exception {
+        final MockMultipartFile file = TestDataFactory.createCommentImageFile(
+                "comment-image.webp", "image/webp", "webp-content".getBytes());
+        final MediaResponse response = TestDataFactory.createCommentImageResponse(MEDIA_ID, OWNER_ID);
+
+        when(commentImageMediaService.uploadCommentImage(any(MediaUploadRequest.class), eq(COMMENT_ID), eq(POST_ID)))
+                .thenReturn(response);
+
+        mockMvcUtils.performMultipart("/media/comment-images/" + COMMENT_ID + "/post/" + POST_ID, file,
+                        Map.of("category", "COMMENT_IMAGE", "description", "WEBP comment image"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(MEDIA_ID.toString()))
+                .andExpect(jsonPath("$.publicUrl").value("http://localhost/media/comment-image.jpg"))
+                .andExpect(jsonPath("$.category").value("COMMENT_IMAGE"));
+
+        verify(commentImageMediaService).uploadCommentImage(any(MediaUploadRequest.class), eq(COMMENT_ID), eq(POST_ID));
     }
 }
