@@ -98,6 +98,7 @@ services:
       JAVA_OPTS: "-Xms256m -Xmx512m"
       EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE: http://eureka-server:8761/eureka/
       REDIS_HOST: ${REDIS_HOST}
+      SIGNATURE_KEY_SECRET: ${SIGNATURE_KEY_SECRET}
       REDIS_PORT: ${REDIS_PORT}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_TIMEOUT: ${REDIS_TIMEOUT}
@@ -136,7 +137,7 @@ services:
       MINIO_SECRET_KEY: minioadmin
       MINIO_BUCKET_NAME: media
       MINIO_PUBLIC_URL: http://localhost:9000/media
-      SIGNATURE_KEY_SECRET: dev-shared-signature-secret
+      SIGNATURE_KEY_SECRET: ${SIGNATURE_KEY_SECRET}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS_INTERNAL}
     depends_on:
       upload-postgres:

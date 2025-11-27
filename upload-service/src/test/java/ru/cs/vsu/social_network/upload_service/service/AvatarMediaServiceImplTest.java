@@ -24,15 +24,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit тесты для {@link AvatarMediaServiceImpl}.
- * Проверяет корректность работы сервиса загрузки аватаров, включая валидацию и публикацию событий.
- */
 @ExtendWith(MockitoExtension.class)
 class AvatarMediaServiceImplTest {
 
-    private static final UUID MEDIA_ID = UUID.fromString("1be3e6d7-ec6f-49ad-95ac-6c752ad8172e");
-    private static final UUID OWNER_ID = UUID.fromString("e0d8a734-6f6c-4ab4-b4fe-e93cc63d8406");
+    private static final UUID MEDIA_ID = UUID.fromString("ad8809a2-a0e0-422b-bcc9-368f0f4d4a1c");
+    private static final UUID OWNER_ID = UUID.fromString("510b39ce-fff5-4c87-96d0-8e55758018bb");
 
     @Mock
     private MediaService mediaService;
@@ -51,7 +47,7 @@ class AvatarMediaServiceImplTest {
 
     @Test
     @DisplayName("Загрузка аватара - успешно")
-    void uploadAvatar_whenRequestIsValid_shouldReturnResponseAndPublishEvent() {
+    void uploadAvatar_whenRequestIsValid_shouldReturnResponse() {
         MockMultipartFile file = TestDataFactory.createAvatarFile(
                 "avatar.png", MediaType.IMAGE_PNG_VALUE, "image".getBytes());
         MediaUploadRequest request = TestDataFactory.createAvatarUploadRequest(file, "Profile avatar");
@@ -61,7 +57,6 @@ class AvatarMediaServiceImplTest {
         doNothing().when(mediaValidator).validateFile(file);
         when(mediaService.uploadFile(request)).thenReturn(expectedResponse);
         when(mediaEntityProvider.findByMediaId(MEDIA_ID)).thenReturn(mediaEntity);
-        doNothing().when(eventPublisher).publishAvatarUploaded(mediaEntity);
 
         MediaResponse actualResponse = avatarMediaService.uploadAvatar(request);
 
@@ -87,22 +82,72 @@ class AvatarMediaServiceImplTest {
 
         verify(mediaValidator).validateFile(file);
         verify(mediaService, never()).uploadFile(any());
-        verify(mediaEntityProvider, never()).findByMediaId(any());
         verify(eventPublisher, never()).publishAvatarUploaded(any());
     }
 
     @Test
-    @DisplayName("Загрузка аватара - ошибка публикации события")
-    void uploadAvatar_whenEventPublishingFails_shouldReturnResponse() {
+    @DisplayName("Загрузка аватара - слишком большой файл")
+    void uploadAvatar_whenFileTooLarge_shouldThrowException() {
         MockMultipartFile file = TestDataFactory.createAvatarFile(
-                "avatar.png", MediaType.IMAGE_PNG_VALUE, "image".getBytes());
-        MediaUploadRequest request = TestDataFactory.createAvatarUploadRequest(file, "Profile avatar");
+                "large-avatar.png", MediaType.IMAGE_PNG_VALUE, new byte[20 * 1024 * 1024]);
+        MediaUploadRequest request = TestDataFactory.createAvatarUploadRequest(file, "Large avatar");
+
+        doThrow(new InvalidFileException("Размер файла превышает допустимый лимит"))
+                .when(mediaValidator).validateFile(file);
+
+        assertThrows(InvalidFileException.class, () -> avatarMediaService.uploadAvatar(request));
+
+        verify(mediaValidator).validateFile(file);
+        verify(mediaService, never()).uploadFile(any());
+        verify(eventPublisher, never()).publishAvatarUploaded(any());
+    }
+
+    @Test
+    @DisplayName("Загрузка аватара - поврежденный файл")
+    void uploadAvatar_whenCorruptedFile_shouldThrowException() {
+        MockMultipartFile file = TestDataFactory.createAvatarFile(
+                "corrupted-avatar.png", MediaType.IMAGE_PNG_VALUE, "corrupted".getBytes());
+        MediaUploadRequest request = TestDataFactory.createAvatarUploadRequest(file, "Corrupted avatar");
+
+        doThrow(new InvalidFileException("Файл поврежден или имеет неверный формат"))
+                .when(mediaValidator).validateFile(file);
+
+        assertThrows(InvalidFileException.class, () -> avatarMediaService.uploadAvatar(request));
+
+        verify(mediaValidator).validateFile(file);
+        verify(mediaService, never()).uploadFile(any());
+        verify(eventPublisher, never()).publishAvatarUploaded(any());
+    }
+
+    @Test
+    @DisplayName("Загрузка аватара - неподдерживаемый формат")
+    void uploadAvatar_whenUnsupportedFormat_shouldThrowException() {
+        MockMultipartFile file = TestDataFactory.createAvatarFile(
+                "document.pdf", MediaType.APPLICATION_PDF_VALUE, "pdf-content".getBytes());
+        MediaUploadRequest request = TestDataFactory.createAvatarUploadRequest(file, "PDF document");
+
+        doThrow(new InvalidFileException("Неподдерживаемый формат файла для аватара"))
+                .when(mediaValidator).validateFile(file);
+
+        assertThrows(InvalidFileException.class, () -> avatarMediaService.uploadAvatar(request));
+
+        verify(mediaValidator).validateFile(file);
+        verify(mediaService, never()).uploadFile(any());
+        verify(eventPublisher, never()).publishAvatarUploaded(any());
+    }
+
+    @Test
+    @DisplayName("Загрузка аватара - успешно с JPEG форматом")
+    void uploadAvatar_whenJpegFormat_shouldReturnResponse() {
+        MockMultipartFile file = TestDataFactory.createAvatarFile(
+                "avatar.jpg", MediaType.IMAGE_JPEG_VALUE, "jpeg-content".getBytes());
+        MediaUploadRequest request = TestDataFactory.createAvatarUploadRequest(file, "JPEG avatar");
         MediaResponse expectedResponse = TestDataFactory.createAvatarResponse(MEDIA_ID, OWNER_ID);
+        MediaEntity mediaEntity = TestDataFactory.createAvatarEntity(MEDIA_ID, OWNER_ID);
 
         doNothing().when(mediaValidator).validateFile(file);
         when(mediaService.uploadFile(request)).thenReturn(expectedResponse);
-        when(mediaEntityProvider.findByMediaId(MEDIA_ID))
-                .thenThrow(new RuntimeException("Ошибка получения медиа"));
+        when(mediaEntityProvider.findByMediaId(MEDIA_ID)).thenReturn(mediaEntity);
 
         MediaResponse actualResponse = avatarMediaService.uploadAvatar(request);
 
@@ -111,6 +156,6 @@ class AvatarMediaServiceImplTest {
         verify(mediaValidator).validateFile(file);
         verify(mediaService).uploadFile(request);
         verify(mediaEntityProvider).findByMediaId(MEDIA_ID);
-        verify(eventPublisher, never()).publishAvatarUploaded(any());
+        verify(eventPublisher).publishAvatarUploaded(mediaEntity);
     }
 }

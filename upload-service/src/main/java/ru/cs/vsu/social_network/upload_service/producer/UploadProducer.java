@@ -10,6 +10,7 @@ import ru.cs.vsu.social_network.upload_service.event.AvatarUploadedEvent;
 import ru.cs.vsu.social_network.upload_service.event.PostImageUploadedEvent;
 import ru.cs.vsu.social_network.upload_service.mapping.EntityMapper;
 
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -29,7 +30,7 @@ public final class UploadProducer {
     private final EntityMapper mapper;
 
     private static final String AVATAR_TOPIC = "avatar-uploaded";
-    private static final String POST_IMAGE_TOPIC = "post_image-uploaded";
+    private static final String POST_IMAGE_TOPIC = "post-image-uploaded";
 
     /**
      * Отправляет событие загрузки аватара в Kafka.
@@ -79,12 +80,14 @@ public final class UploadProducer {
      * @param entity сущность медиа-файла, содержащая информацию о загруженном изображении поста
      * @throws RuntimeException если произошла критическая ошибка при подготовке или отправке сообщения
      */
-    public void sendPostImageUploadedEvent(final MediaEntity entity) {
+    public void sendPostImageUploadedEvent(final MediaEntity entity,
+                                           final UUID postId) {
         try {
             log.info("POST_IMAGE_EVENT_ОТПРАВКА_НАЧАЛО: mediaId={} ownerId={}",
                     entity.getId(), entity.getOwnerId());
 
             final PostImageUploadedEvent event = mapper.map(entity, PostImageUploadedEvent.class);
+            event.setPostId(postId);
             final String key = event.getOwnerId().toString();
 
             final CompletableFuture<SendResult<String, PostImageUploadedEvent>> future =

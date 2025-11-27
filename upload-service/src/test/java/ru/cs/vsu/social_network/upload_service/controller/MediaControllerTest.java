@@ -19,6 +19,7 @@ import ru.cs.vsu.social_network.upload_service.exception.MinioOperationException
 import ru.cs.vsu.social_network.upload_service.exception.handler.UploadExceptionHandler;
 import ru.cs.vsu.social_network.upload_service.service.AvatarMediaService;
 import ru.cs.vsu.social_network.upload_service.service.MediaService;
+import ru.cs.vsu.social_network.upload_service.service.PostImageMediaService;
 import ru.cs.vsu.social_network.upload_service.utils.MessageConstants;
 import ru.cs.vsu.social_network.upload_service.utils.TestDataFactory;
 
@@ -31,17 +32,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * Тесты для контроллера работы с медиа-файлами.
- * Проверяет корректность обработки HTTP-запросов, включая специализированные операции с аватарами.
- * Охватывает позитивные и негативные сценарии для всех endpoint'ов контроллера.
- *
- */
 @ExtendWith(MockitoExtension.class)
 class MediaControllerTest extends BaseControllerTest {
 
-    private static final UUID MEDIA_ID = UUID.fromString("86a29781-1d48-4fca-b9bf-6c50d71bb657");
-    private static final UUID OWNER_ID = UUID.fromString("1a1b7bde-8d81-4f0d-a0e9-22a397e3db48");
+    private static final UUID MEDIA_ID = UUID.fromString("a111da2d-c9ec-4705-85bb-28accf5b17b9");
+    private static final UUID OWNER_ID = UUID.fromString("5c308f33-5bf1-4e35-ad87-0c87f74bb89c");
+    private static final UUID POST_ID = UUID.fromString("38908454-6f03-45d4-9fd7-8fe6cfad9768");
 
     @Mock
     private MediaService mediaService;
@@ -49,9 +45,12 @@ class MediaControllerTest extends BaseControllerTest {
     @Mock
     private AvatarMediaService avatarMediaService;
 
+    @Mock
+    private PostImageMediaService postImageMediaService;
+
     @Override
     protected Object controllerUnderTest() {
-        return new MediaController(mediaService, avatarMediaService);
+        return new MediaController(mediaService, avatarMediaService, postImageMediaService);
     }
 
     @Override
@@ -62,17 +61,14 @@ class MediaControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("Загрузка аватара - успешно")
     void uploadAvatar_whenRequestIsValid_shouldReturnCreated() throws Exception {
-        final MockMultipartFile file = new MockMultipartFile(
-                "file", "avatar.png", MediaType.IMAGE_PNG_VALUE, "avatar-image".getBytes());
-        final MediaResponse response = TestDataFactory.createMediaResponse(
-                MEDIA_ID, OWNER_ID, "http://localhost/media/avatar.png",
-                "avatar.png", MediaType.IMAGE_PNG_VALUE, 1024L,
-                "AVATAR", "User avatar", "avatar.png");
+        final MockMultipartFile file = TestDataFactory.createAvatarFile(
+                "avatar.png", MediaType.IMAGE_PNG_VALUE, "avatar-image".getBytes());
+        final MediaResponse response = TestDataFactory.createAvatarResponse(MEDIA_ID, OWNER_ID);
 
         when(avatarMediaService.uploadAvatar(any(MediaUploadRequest.class))).thenReturn(response);
 
         mockMvcUtils.performMultipart("/media/avatars", file,
-                        Map.of("category", "AVATAR", "description", "User avatar"))
+                        Map.of("category", "AVATAR", "description", "Profile avatar"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(MEDIA_ID.toString()))
                 .andExpect(jsonPath("$.publicUrl").value("http://localhost/media/avatar.png"))
@@ -84,14 +80,14 @@ class MediaControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("Загрузка аватара - неверный тип файла")
     void uploadAvatar_whenInvalidFileType_shouldReturnBadRequest() throws Exception {
-        final MockMultipartFile file = new MockMultipartFile(
-                "file", "script.exe", "application/x-msdownload", "malicious".getBytes());
+        final MockMultipartFile file = TestDataFactory.createAvatarFile(
+                "script.exe", "application/x-msdownload", "malicious".getBytes());
 
         when(avatarMediaService.uploadAvatar(any(MediaUploadRequest.class)))
                 .thenThrow(new InvalidFileException("Недопустимый тип файла для аватара"));
 
         mockMvcUtils.performMultipart("/media/avatars", file,
-                        Map.of("category", "AVATAR", "description", "User avatar"))
+                        Map.of("category", "AVATAR", "description", "Profile avatar"))
                 .andExpect(status().isBadRequest());
 
         verify(avatarMediaService).uploadAvatar(any(MediaUploadRequest.class));
@@ -100,8 +96,8 @@ class MediaControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("Загрузка аватара - обязательная категория отсутствует")
     void uploadAvatar_whenCategoryMissing_shouldReturnBadRequest() throws Exception {
-        final MockMultipartFile file = new MockMultipartFile(
-                "file", "avatar.png", MediaType.IMAGE_PNG_VALUE, "avatar-image".getBytes());
+        final MockMultipartFile file = TestDataFactory.createAvatarFile(
+                "avatar.png", MediaType.IMAGE_PNG_VALUE, "avatar-image".getBytes());
 
         mockMvcUtils.performMultipart("/media/avatars", file, Map.of())
                 .andExpect(status().isBadRequest());
@@ -244,5 +240,84 @@ class MediaControllerTest extends BaseControllerTest {
                 .andExpect(status().isBadRequest());
 
         verify(mediaService).deleteFile(any());
+    }
+
+    @Test
+    @DisplayName("Загрузка изображения поста - успешно")
+    void uploadPostImage_whenRequestIsValid_shouldReturnCreated() throws Exception {
+        final MockMultipartFile file = TestDataFactory.createPostImageFile(
+                "post-image.jpg", MediaType.IMAGE_JPEG_VALUE, "post-image-content".getBytes());
+        final MediaResponse response = TestDataFactory.createPostImageResponse(MEDIA_ID, OWNER_ID);
+
+        when(postImageMediaService.uploadPostImage(any(MediaUploadRequest.class), eq(POST_ID))).thenReturn(response);
+
+        mockMvcUtils.performMultipart("/media/post-images/" + POST_ID, file,
+                        Map.of("category", "POST_IMAGE", "description", "Post content image"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(MEDIA_ID.toString()))
+                .andExpect(jsonPath("$.publicUrl").value("http://localhost/media/post-image.jpg"))
+                .andExpect(jsonPath("$.category").value("POST_IMAGE"));
+
+        verify(postImageMediaService).uploadPostImage(any(MediaUploadRequest.class), eq(POST_ID));
+    }
+
+    @Test
+    @DisplayName("Загрузка изображения поста - неверный тип файла")
+    void uploadPostImage_whenInvalidFileType_shouldReturnBadRequest() throws Exception {
+        final MockMultipartFile file = TestDataFactory.createPostImageFile(
+                "script.exe", "application/x-msdownload", "malicious".getBytes());
+
+        when(postImageMediaService.uploadPostImage(any(MediaUploadRequest.class), eq(POST_ID)))
+                .thenThrow(new InvalidFileException("Недопустимый тип файла для изображения поста"));
+
+        mockMvcUtils.performMultipart("/media/post-images/" + POST_ID, file,
+                        Map.of("category", "POST_IMAGE", "description", "Post content image"))
+                .andExpect(status().isBadRequest());
+
+        verify(postImageMediaService).uploadPostImage(any(MediaUploadRequest.class), eq(POST_ID));
+    }
+
+    @Test
+    @DisplayName("Загрузка изображения поста - обязательная категория отсутствует")
+    void uploadPostImage_whenCategoryMissing_shouldReturnBadRequest() throws Exception {
+        final MockMultipartFile file = TestDataFactory.createPostImageFile(
+                "post-image.jpg", MediaType.IMAGE_JPEG_VALUE, "image-content".getBytes());
+
+        mockMvcUtils.performMultipart("/media/post-images/" + POST_ID, file, Map.of())
+                .andExpect(status().isBadRequest());
+
+        verify(postImageMediaService, never()).uploadPostImage(any(MediaUploadRequest.class), any());
+    }
+
+    @Test
+    @DisplayName("Загрузка изображения поста - слишком большой файл")
+    void uploadPostImage_whenFileTooLarge_shouldReturnBadRequest() throws Exception {
+        final MockMultipartFile file = TestDataFactory.createPostImageFile(
+                "large-image.jpg", MediaType.IMAGE_JPEG_VALUE, new byte[20 * 1024 * 1024]);
+
+        when(postImageMediaService.uploadPostImage(any(MediaUploadRequest.class), eq(POST_ID)))
+                .thenThrow(new InvalidFileException("Размер файла превышает допустимый лимит"));
+
+        mockMvcUtils.performMultipart("/media/post-images/" + POST_ID, file,
+                        Map.of("category", "POST_IMAGE", "description", "Large post image"))
+                .andExpect(status().isBadRequest());
+
+        verify(postImageMediaService).uploadPostImage(any(MediaUploadRequest.class), eq(POST_ID));
+    }
+
+    @Test
+    @DisplayName("Загрузка изображения поста - ошибка валидации файла")
+    void uploadPostImage_whenFileValidationFails_shouldReturnBadRequest() throws Exception {
+        final MockMultipartFile file = TestDataFactory.createPostImageFile(
+                "corrupted-image.jpg", MediaType.IMAGE_JPEG_VALUE, "corrupted".getBytes());
+
+        when(postImageMediaService.uploadPostImage(any(MediaUploadRequest.class), eq(POST_ID)))
+                .thenThrow(new InvalidFileException("Файл поврежден или имеет неверный формат"));
+
+        mockMvcUtils.performMultipart("/media/post-images/" + POST_ID, file,
+                        Map.of("category", "POST_IMAGE", "description", "Corrupted image"))
+                .andExpect(status().isBadRequest());
+
+        verify(postImageMediaService).uploadPostImage(any(MediaUploadRequest.class), eq(POST_ID));
     }
 }

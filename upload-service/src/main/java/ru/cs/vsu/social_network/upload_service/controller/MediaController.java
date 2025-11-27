@@ -9,13 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.cs.vsu.social_network.upload_service.dto.request.MediaDeleteRequest;
 import ru.cs.vsu.social_network.upload_service.dto.request.MediaDownloadRequest;
 import ru.cs.vsu.social_network.upload_service.dto.request.MediaUploadRequest;
@@ -24,6 +18,7 @@ import ru.cs.vsu.social_network.upload_service.dto.response.MediaMetadataRespons
 import ru.cs.vsu.social_network.upload_service.dto.response.MediaResponse;
 import ru.cs.vsu.social_network.upload_service.service.AvatarMediaService;
 import ru.cs.vsu.social_network.upload_service.service.MediaService;
+import ru.cs.vsu.social_network.upload_service.service.PostImageMediaService;
 
 import java.util.UUID;
 
@@ -44,6 +39,7 @@ public class MediaController {
 
     private final MediaService mediaService;
     private final AvatarMediaService avatarMediaService;
+    private final PostImageMediaService postImageMediaService;
 
     /**
      * Загружает медиа-файл общего назначения.
@@ -74,6 +70,24 @@ public class MediaController {
             @Valid @ModelAttribute final MediaUploadRequest request) {
         log.info("МЕДИА_CONTROLLER_ЗАГРУЗКА_АВАТАРА: пользовательский запрос");
         final MediaResponse response = avatarMediaService.uploadAvatar(request);
+        return ResponseEntity.status(201).body(response);
+    }
+
+    /**
+     * Загружает изображение поста.
+     * Включает специфичную валидацию и отправку событий для обновления контента.
+     *
+     * @param request параметры загрузки изображения поста
+     * @param postId идентификатор поста
+     * @return данные сохранённого изображения поста
+     */
+    @Operation(summary = "Загрузка изображения поста")
+    @PostMapping(value = "/post-images/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MediaResponse> uploadPostImage(
+            @Valid @ModelAttribute final MediaUploadRequest request,
+            @PathVariable final UUID postId) {
+        log.info("МЕДИА_CONTROLLER_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_ПОСТА: postId={}", postId);
+        final MediaResponse response = postImageMediaService.uploadPostImage(request, postId);
         return ResponseEntity.status(201).body(response);
     }
 
@@ -140,5 +154,3 @@ public class MediaController {
         return ResponseEntity.noContent().build();
     }
 }
-
-

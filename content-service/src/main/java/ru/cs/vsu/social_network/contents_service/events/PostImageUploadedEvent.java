@@ -1,4 +1,4 @@
-package ru.cs.vsu.social_network.upload_service.event;
+package ru.cs.vsu.social_network.contents_service.events;
 
 import lombok.*;
 

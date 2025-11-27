@@ -9,41 +9,44 @@ import ru.cs.vsu.social_network.upload_service.dto.response.MediaResponse;
 import ru.cs.vsu.social_network.upload_service.entity.MediaEntity;
 import ru.cs.vsu.social_network.upload_service.event.publisher.MediaEventPublisher;
 import ru.cs.vsu.social_network.upload_service.provider.MediaEntityProvider;
-import ru.cs.vsu.social_network.upload_service.service.AvatarMediaService;
 import ru.cs.vsu.social_network.upload_service.service.MediaService;
+import ru.cs.vsu.social_network.upload_service.service.PostImageMediaService;
 import ru.cs.vsu.social_network.upload_service.validation.MediaValidator;
 
+import java.util.UUID;
+
 /**
- * Реализация сервиса для работы с аватарами пользователей.
+ * Реализация сервиса для работы с изображениями постов.
  * Использует композицию для делегирования базовых операций.
- * Добавляет специфичную логику для аватаров и отправку событий в Kafka.
+ * Добавляет специфичную логику для изображений постов.
  */
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AvatarMediaServiceImpl implements AvatarMediaService {
+public class PostImageMediaServiceImpl implements PostImageMediaService {
 
     private final MediaService mediaService;
     private final MediaValidator mediaValidator;
-    private final MediaEntityProvider mediaEntityProvider;
     private final MediaEventPublisher eventPublisher;
+    private final MediaEntityProvider mediaEntityProvider;
 
     /**
      * {@inheritDoc}
      */
     @Override
     @Transactional
-    public MediaResponse uploadAvatar(final MediaUploadRequest request) {
-        log.info("АВАТАР_ЗАГРУЗКА_НАЧАЛО: category={}", request.getCategory());
+    public MediaResponse uploadPostImage(final MediaUploadRequest request, final UUID postId) {
+        log.info("ИЗОБРАЖЕНИЕ_ПОСТА_ЗАГРУЗКА_НАЧАЛО: category={}, postId={}", request.getCategory(), postId);
 
         mediaValidator.validateFile(request.getFile());
         final MediaResponse response = mediaService.uploadFile(request);
 
-        MediaEntity mediaEntity = mediaEntityProvider.findByMediaId(response.getId());
+        final MediaEntity mediaEntity = mediaEntityProvider.findByMediaId(response.getId());
 
-        eventPublisher.publishAvatarUploaded(mediaEntity);
+        eventPublisher.publishPostImageUploaded(mediaEntity, postId);
 
-        log.info("АВАТАР_ЗАГРУЗКА_УСПЕХ: mediaId={}", response.getId());
+        log.info("ИЗОБРАЖЕНИЕ_ПОСТА_ЗАГРУЗКА_УСПЕХ: mediaId={}, postId={}",
+                response.getId(), postId);
 
         return response;
     }

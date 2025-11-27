@@ -242,4 +242,80 @@ public final class TestDataFactory {
         entity.setUpdatedAt(LocalDateTime.now());
         return entity;
     }
+
+    /**
+     * Создает тестовый файл для загрузки изображения поста.
+     *
+     * @param filename имя файла
+     * @param contentType MIME-тип файла
+     * @param content содержимое файла
+     * @return новый экземпляр MockMultipartFile
+     */
+    public static MockMultipartFile createPostImageFile(final String filename,
+                                                        final String contentType,
+                                                        final byte[] content) {
+        return new MockMultipartFile("file", filename, contentType, content);
+    }
+
+    /**
+     * Создает тестовый запрос на загрузку изображения поста.
+     *
+     * @param file загружаемый файл
+     * @param description описание изображения поста
+     * @return новый экземпляр MediaUploadRequest для изображения поста
+     */
+    public static MediaUploadRequest createPostImageUploadRequest(final MockMultipartFile file,
+                                                                  final String description) {
+        return MediaUploadRequest.builder()
+                .file(file)
+                .category("POST_IMAGE")
+                .description(description)
+                .build();
+    }
+
+    /**
+     * Создает тестовый ответ для загруженного изображения поста.
+     *
+     * @param mediaId уникальный идентификатор медиа
+     * @param ownerId идентификатор владельца
+     * @return новый экземпляр MediaResponse для изображения поста
+     */
+    public static MediaResponse createPostImageResponse(final UUID mediaId, final UUID ownerId) {
+        return MediaResponse.builder()
+                .id(mediaId)
+                .ownerId(ownerId)
+                .publicUrl("http://localhost/media/post-image.jpg")
+                .objectName("post-image.jpg")
+                .mimeType("image/jpeg")
+                .size(2048L)
+                .category("POST_IMAGE")
+                .description("Post content image")
+                .originalFileName("post-image.jpg")
+                .build();
+    }
+
+    /**
+     * Создает тестовую сущность медиа для изображения поста.
+     *
+     * @param mediaId уникальный идентификатор медиа
+     * @param ownerId идентификатор владельца
+     * @return новый экземпляр MediaEntity для изображения поста
+     */
+    public static MediaEntity createPostImageEntity(final UUID mediaId, final UUID ownerId) {
+        MediaEntity entity = MediaEntity.builder()
+                .ownerId(ownerId)
+                .category("POST_IMAGE")
+                .description("Post content image")
+                .objectName("post-image.jpg")
+                .originalFileName("post-image.jpg")
+                .mimeType("image/jpeg")
+                .size(2048L)
+                .bucketName("media")
+                .publicUrl("http://localhost/media/post-image.jpg")
+                .build();
+        entity.setId(mediaId);
+        entity.setCreatedAt(LocalDateTime.now());
+        entity.setUpdatedAt(LocalDateTime.now());
+        return entity;
+    }
 }

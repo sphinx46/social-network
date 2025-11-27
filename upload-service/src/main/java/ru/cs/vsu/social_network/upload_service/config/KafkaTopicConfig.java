@@ -8,15 +8,18 @@ import org.springframework.kafka.config.TopicBuilder;
 @Configuration
 public class KafkaTopicConfig {
 
+    private static final String AVATAR_TOPIC = "avatar-uploaded";
+    private static final String POST_IMAGE_TOPIC = "post-image-uploaded";
+
     @Bean
     public NewTopic avatarUploadedTopic() {
-        return TopicBuilder.name("avatar-uploaded")
+        return TopicBuilder.name(AVATAR_TOPIC)
                 .build();
     }
 
     @Bean
     public NewTopic postImageUploadedTopic() {
-        return TopicBuilder.name("post_image-uploaded")
+        return TopicBuilder.name(POST_IMAGE_TOPIC)
                 .build();
     }
 }
