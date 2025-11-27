@@ -11,8 +11,7 @@ public interface EntityProvider<T> {
      * Получает сущность по идентификатору.
      *
      * @param id идентификатор сущности
-     * @return найденный пост
-     * @throws NotFoundException если сущность не найдена
+     * @return найденная сущность
      */
     T getById(UUID id);
 }
