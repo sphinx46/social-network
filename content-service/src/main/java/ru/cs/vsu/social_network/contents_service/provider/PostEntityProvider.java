@@ -1,6 +1,7 @@
 package ru.cs.vsu.social_network.contents_service.provider;
 
 import ru.cs.vsu.social_network.contents_service.entity.Post;
+import ru.cs.vsu.social_network.contents_service.exception.post.PostNotFoundException;
 
 import java.util.UUID;
 
@@ -15,7 +16,7 @@ public interface PostEntityProvider {
      *
      * @param id идентификатор поста
      * @return найденный пост
-     * @throws ru.cs.vsu.social_network.contents_service.exception.PostNotFoundException если пост не найден
+     * @throws PostNotFoundException если пост не найден
      */
     Post getById(UUID id);
 }

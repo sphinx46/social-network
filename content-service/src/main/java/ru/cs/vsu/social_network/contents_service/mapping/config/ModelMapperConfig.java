@@ -6,7 +6,7 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.cs.vsu.social_network.contents_service.dto.response.post.PostResponse;
+import ru.cs.vsu.social_network.contents_service.dto.response.content.PostResponse;
 import ru.cs.vsu.social_network.contents_service.entity.Post;
 
 /**

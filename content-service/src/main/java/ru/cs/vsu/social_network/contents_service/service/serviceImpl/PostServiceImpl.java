@@ -10,10 +10,10 @@ import ru.cs.vsu.social_network.contents_service.dto.request.post.PostCreateRequ
 import ru.cs.vsu.social_network.contents_service.dto.request.post.PostEditRequest;
 import ru.cs.vsu.social_network.contents_service.dto.request.post.PostRemoveImageRequest;
 import ru.cs.vsu.social_network.contents_service.dto.request.post.PostUploadImageRequest;
+import ru.cs.vsu.social_network.contents_service.dto.response.content.PostResponse;
 import ru.cs.vsu.social_network.contents_service.dto.response.pageable.PageResponse;
-import ru.cs.vsu.social_network.contents_service.dto.response.post.PostResponse;
 import ru.cs.vsu.social_network.contents_service.entity.Post;
-import ru.cs.vsu.social_network.contents_service.exception.PostUploadImageException;
+import ru.cs.vsu.social_network.contents_service.exception.post.PostUploadImageException;
 import ru.cs.vsu.social_network.contents_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.contents_service.provider.PostEntityProvider;
 import ru.cs.vsu.social_network.contents_service.repository.PostRepository;

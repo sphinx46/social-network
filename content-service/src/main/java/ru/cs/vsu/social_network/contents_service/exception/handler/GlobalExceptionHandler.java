@@ -8,8 +8,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.cs.vsu.social_network.contents_service.exception.PostNotFoundException;
-import ru.cs.vsu.social_network.contents_service.exception.PostUploadImageException;
+import ru.cs.vsu.social_network.contents_service.exception.comment.CommentNotFoundException;
+import ru.cs.vsu.social_network.contents_service.exception.comment.CommentUploadImageException;
+import ru.cs.vsu.social_network.contents_service.exception.post.PostNotFoundException;
+import ru.cs.vsu.social_network.contents_service.exception.post.PostUploadImageException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -42,6 +44,24 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Обрабатывает исключение CommentNotFoundException.
+     *
+     * @param ex исключение
+     * @return ответ с ошибкой 404
+     */
+    @ExceptionHandler(CommentNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleCommentNotFoundException(
+            final CommentNotFoundException ex) {
+        log.warn("КОММЕНТАРИЙ_ОШИБКА_НЕ_НАЙДЕН: {}", ex.getMessage());
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.NOT_FOUND.value());
+        body.put("error", "Post Not Found");
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    /**
      * Обрабатывает исключение PostUploadImageException.
      *
      * @param ex исключение
@@ -51,6 +71,24 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handlePostUploadImageException(
             final PostUploadImageException ex) {
         log.warn("ПОСТ_ОШИБКА_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ: {}", ex.getMessage());
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Bad Request");
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    /**
+     * Обрабатывает исключение CommentUploadImageException.
+     *
+     * @param ex исключение
+     * @return ответ с ошибкой 400
+     */
+    @ExceptionHandler(CommentUploadImageException.class)
+    public ResponseEntity<Map<String, Object>> handleCommentUploadImageException(
+            final CommentUploadImageException ex) {
+        log.warn("КОММЕНТАРИЙ_ОШИБКА_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ: {}", ex.getMessage());
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.BAD_REQUEST.value());

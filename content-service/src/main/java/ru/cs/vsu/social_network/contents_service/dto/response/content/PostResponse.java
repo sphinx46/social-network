@@ -1,4 +1,4 @@
-package ru.cs.vsu.social_network.contents_service.dto.response.post;
+package ru.cs.vsu.social_network.contents_service.dto.response.content;
 
 
 import io.swagger.v3.oas.annotations.media.Schema;

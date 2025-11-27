@@ -14,8 +14,8 @@ import ru.cs.vsu.social_network.contents_service.dto.request.post.PostCreateRequ
 import ru.cs.vsu.social_network.contents_service.dto.request.post.PostEditRequest;
 import ru.cs.vsu.social_network.contents_service.dto.request.post.PostRemoveImageRequest;
 import ru.cs.vsu.social_network.contents_service.dto.request.post.PostUploadImageRequest;
+import ru.cs.vsu.social_network.contents_service.dto.response.content.PostResponse;
 import ru.cs.vsu.social_network.contents_service.dto.response.pageable.PageResponse;
-import ru.cs.vsu.social_network.contents_service.dto.response.post.PostResponse;
 import ru.cs.vsu.social_network.contents_service.service.PostService;
 
 import java.util.UUID;
