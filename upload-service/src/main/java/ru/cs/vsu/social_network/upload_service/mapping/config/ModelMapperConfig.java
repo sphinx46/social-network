@@ -9,6 +9,7 @@ import ru.cs.vsu.social_network.upload_service.dto.response.MediaMetadataRespons
 import ru.cs.vsu.social_network.upload_service.dto.response.MediaResponse;
 import ru.cs.vsu.social_network.upload_service.entity.MediaEntity;
 import ru.cs.vsu.social_network.upload_service.event.AvatarUploadedEvent;
+import ru.cs.vsu.social_network.upload_service.event.CommentImageUploadedEvent;
 import ru.cs.vsu.social_network.upload_service.event.PostImageUploadedEvent;
 
 import java.time.LocalDateTime;
@@ -41,6 +42,7 @@ public class ModelMapperConfig {
         configureMediaEntityWithMetadataMappings(modelMapper);
         configureAvatarUploadedEventWithMappings(modelMapper);
         configurePostImageUploadedEventWithMappings(modelMapper);
+        configureCommentImageUploadedEventWithMappings(modelMapper);
 
         modelMapper.getConfiguration()
                 .setFieldMatchingEnabled(true)
@@ -133,6 +135,30 @@ public class ModelMapperConfig {
      */
     private void configurePostImageUploadedEventWithMappings(final ModelMapper modelMapper) {
         modelMapper.addMappings(new PropertyMap<MediaEntity, PostImageUploadedEvent>() {
+            @Override
+            protected void configure() {
+                map().setEventId(UUID.randomUUID());
+                map().setEventTimeStamp(LocalDateTime.now());
+                map().setOwnerId(source.getOwnerId());
+                map().setPublicUrl(source.getPublicUrl());
+                map().setObjectName(source.getObjectName());
+                map().setMimeType(source.getMimeType());
+                map().setSize(source.getSize());
+                map().setDescription(source.getDescription());
+                map().setOriginalFileName(source.getOriginalFileName());
+            }
+        });
+    }
+
+    /**
+     * Настраивает маппинг между MediaEntity и CommentImageUploadedEvent.
+     * Автоматически генерирует eventId и eventTimeStamp для события.
+     * Определяет соответствие полей сущности медиа и события загрузки изображения комментария.
+     *
+     * @param modelMapper экземпляр ModelMapper для настройки
+     */
+    private void configureCommentImageUploadedEventWithMappings(final ModelMapper modelMapper) {
+        modelMapper.addMappings(new PropertyMap<MediaEntity, CommentImageUploadedEvent>() {
             @Override
             protected void configure() {
                 map().setEventId(UUID.randomUUID());

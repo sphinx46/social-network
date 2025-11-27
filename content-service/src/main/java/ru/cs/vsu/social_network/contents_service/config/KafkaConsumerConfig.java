@@ -15,6 +15,7 @@ import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import ru.cs.vsu.social_network.contents_service.events.PostImageUploadedEvent;
+import ru.cs.vsu.social_network.contents_service.events.CommentImageUploadedEvent;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -115,7 +116,24 @@ public class KafkaConsumerConfig {
     public KafkaListenerContainerFactory
             <ConcurrentMessageListenerContainer<String, PostImageUploadedEvent>>
     kafkaListenerContainerFactoryPostImageUpload() {
-        log.info("KAFKA_POST_IMAGE_LISTENER_FACTORY_СОЗДАНИЕ: инициализация фабрики для PostImageUploadedEvent");
+        log.info("KAFKA_POST_IMAGE_LISTENER_FACTORY_СОЗДАНИЕ: " +
+                "инициализация фабрики для PostImageUploadedEvent");
         return createFactory(PostImageUploadedEvent.class);
+    }
+
+    /**
+     * Создает KafkaListenerContainerFactory для обработки событий загрузки изображений комментариев.
+     * Предоставляет высокоуровневый API для асинхронного потребления сообщений.
+     * Поддерживает конкурентную обработку событий с гарантией доставки.
+     *
+     * @return настроенный KafkaListenerContainerFactory для работы с CommentImageUploadedEvent
+     */
+    @Bean
+    public KafkaListenerContainerFactory
+            <ConcurrentMessageListenerContainer<String, CommentImageUploadedEvent>>
+    kafkaListenerContainerFactoryCommentImageUpload() {
+        log.info("KAFKA_COMMENT_IMAGE_LISTENER_FACTORY_СОЗДАНИЕ: " +
+                "инициализация фабрики для CommentImageUploadedEvent");
+        return createFactory(CommentImageUploadedEvent.class);
     }
 }
