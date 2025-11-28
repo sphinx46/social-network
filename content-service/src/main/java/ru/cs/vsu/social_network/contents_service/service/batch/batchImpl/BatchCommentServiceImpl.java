@@ -78,7 +78,8 @@ public class BatchCommentServiceImpl implements BatchCommentService {
                 "для поста {} с лимитом {}", postId, limit);
 
         final List<Comment> comments = commentRepository
-                .findByPostIdOrderByCreatedAtDesc(postId, PageRequest.of(0, limit));
+                .findByPostIdOrderByCreatedAtDesc(postId, PageRequest.of(0, limit))
+                .getContent();
 
         final List<CommentResponse> commentResponses = comments.stream()
                 .map(comment -> entityMapper.map(comment, CommentResponse.class))

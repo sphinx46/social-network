@@ -9,7 +9,7 @@ import ru.cs.vsu.social_network.contents_service.entity.LikePost;
 import ru.cs.vsu.social_network.contents_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.contents_service.provider.LikePostEntityProvider;
 import ru.cs.vsu.social_network.contents_service.repository.LikePostRepository;
-import ru.cs.vsu.social_network.contents_service.service.batch.BatchLikeService;
+import ru.cs.vsu.social_network.contents_service.service.batch.BatchLikePostService;
 
 import java.util.List;
 import java.util.Map;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class BatchLikeServiceImpl implements BatchLikeService {
+public class BatchLikePostServiceImpl implements BatchLikePostService {
 
     private final LikePostRepository likePostRepository;
     private final LikePostEntityProvider likePostEntityProvider;

@@ -42,6 +42,25 @@ spring:
           metadata:
             response-timeout: 15000
             connect-timeout: 5000
+        - id: content-service-comment-details
+          uri: lb://content-service
+          predicates:
+            - Path=/api/content/comment-details/**
+          filters:
+            - name: UserContextFilter
+              args:
+                enabled: true
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 15
+                redis-rate-limiter.burstCapacity: 30
+                redis-rate-limiter.requestedTokens: 1
+            - TokenRelay=
+            - RewritePath=/api/content/comment-details/(?<segment>.*), /api/content/comment-details/${segment}
+          metadata:
+            response-timeout: 10000
+            connect-timeout: 5000
         - id: content-service-posts
           uri: lb://content-service
           predicates:

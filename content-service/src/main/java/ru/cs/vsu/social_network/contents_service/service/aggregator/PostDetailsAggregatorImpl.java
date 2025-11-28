@@ -13,7 +13,7 @@ import ru.cs.vsu.social_network.contents_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.contents_service.provider.CommentEntityProvider;
 import ru.cs.vsu.social_network.contents_service.provider.LikePostEntityProvider;
 import ru.cs.vsu.social_network.contents_service.service.batch.BatchCommentService;
-import ru.cs.vsu.social_network.contents_service.service.batch.BatchLikeService;
+import ru.cs.vsu.social_network.contents_service.service.batch.BatchLikePostService;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,7 +31,7 @@ public class PostDetailsAggregatorImpl implements PostDetailsAggregator {
     private final CommentEntityProvider commentEntityProvider;
     private final LikePostEntityProvider likePostEntityProvider;
     private final BatchCommentService batchCommentService;
-    private final BatchLikeService batchLikeService;
+    private final BatchLikePostService batchLikePostService;
 
     /** {@inheritDoc} */
     @Override
@@ -63,7 +63,7 @@ public class PostDetailsAggregatorImpl implements PostDetailsAggregator {
 
         if (includeLikes) {
             final List<LikePostResponse> likes =
-                    batchLikeService.getLikesForPost(postId, likesLimit);
+                    batchLikePostService.getLikesForPost(postId, likesLimit);
             postDetailsResponse.setLikes(likes);
         } else {
             postDetailsResponse.setLikes(Collections.emptyList());
@@ -98,14 +98,14 @@ public class PostDetailsAggregatorImpl implements PostDetailsAggregator {
         final Map<UUID, Long> commentsCounts =
                 batchCommentService.getCommentsCountsForPosts(postIds);
         final Map<UUID, Long> likesCounts =
-                batchLikeService.getLikesCountsForPosts(postIds);
+                batchLikePostService.getLikesCountsForPosts(postIds);
 
         final Map<UUID, List<CommentResponse>> commentsMap = includeComments ?
                 batchCommentService.getCommentsForPosts(postIds, commentsLimit) :
                 Collections.emptyMap();
 
         final Map<UUID, List<LikePostResponse>> likesMap = includeLikes ?
-                batchLikeService.getLikesForPosts(postIds, likesLimit) :
+                batchLikePostService.getLikesForPosts(postIds, likesLimit) :
                 Collections.emptyMap();
 
         final List<PostDetailsResponse> detailedPosts = posts.stream()

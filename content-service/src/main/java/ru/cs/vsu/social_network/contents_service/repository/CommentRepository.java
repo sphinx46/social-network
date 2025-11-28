@@ -6,7 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import ru.cs.vsu.social_network.contents_service.entity.Comment;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -55,14 +54,25 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
      */
     long countByPostId(UUID postId);
 
+
     /**
-     * Находит топ N комментариев для поста с сортировкой по дате создания.
+     * Находит комментарии поста с пагинацией, отсортированные по дате создания (новые сначала)
      *
      * @param postId идентификатор поста
      * @param pageable параметры пагинации
-     * @return список комментариев
+     * @return страница с комментариями
      */
-    List<Comment> findByPostIdOrderByCreatedAtDesc(UUID postId,
+    Page<Comment> findByPostIdOrderByCreatedAtDesc(UUID postId,
                                                    Pageable pageable);
+
+    /**
+     * Находит комментарии пользователя с пагинацией, отсортированные по дате создания (новые сначала)
+     *
+     * @param ownerId идентификатор пользователя
+     * @param pageable параметры пагинации
+     * @return страница с комментариями
+     */
+    Page<Comment> findByOwnerIdOrderByCreatedAtDesc(UUID ownerId,
+                                                    Pageable pageable);
 
 }

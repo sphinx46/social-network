@@ -10,7 +10,7 @@ import java.util.UUID;
  * Сервис для пакетных операций с лайками.
  * Обеспечивает эффективное получение лайков для множества постов.
  */
-public interface BatchLikeService {
+public interface BatchLikePostService {
 
     /**
      * Получает количество лайков для списка постов.

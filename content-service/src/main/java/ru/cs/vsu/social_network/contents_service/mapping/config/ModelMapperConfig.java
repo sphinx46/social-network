@@ -38,6 +38,7 @@ public class ModelMapperConfig {
         configureLikeCommentMappings(modelMapper);
         configureLikePostMappings(modelMapper);
         configurePostDetailsMappings(modelMapper);
+        configureCommentDetailsMappings(modelMapper);
 
         modelMapper.getConfiguration()
                 .setFieldMatchingEnabled(true)
@@ -50,6 +51,12 @@ public class ModelMapperConfig {
         return modelMapper;
     }
 
+    /**
+     * Настраивает маппинг между сущностью Post и PostResponse.
+     * Определяет правила преобразования полей поста в DTO ответа.
+     *
+     * @param modelMapper экземпляр ModelMapper для настройки
+     */
     private void configurePostMappings(final ModelMapper modelMapper) {
         modelMapper.addMappings(new PropertyMap<Post, PostResponse>() {
             @Override
@@ -64,6 +71,13 @@ public class ModelMapperConfig {
         });
     }
 
+    /**
+     * Настраивает маппинг между сущностью Comment и CommentResponse.
+     * Определяет правила преобразования полей комментария в DTO ответа,
+     * включая извлечение ID связанного поста.
+     *
+     * @param modelMapper экземпляр ModelMapper для настройки
+     */
     private void configureCommentMappings(final ModelMapper modelMapper) {
         modelMapper.addMappings(new PropertyMap<Comment, CommentResponse>() {
             @Override
@@ -79,6 +93,13 @@ public class ModelMapperConfig {
         });
     }
 
+    /**
+     * Настраивает маппинг между сущностью LikeComment и LikeCommentResponse.
+     * Определяет правила преобразования полей лайка комментария в DTO ответа,
+     * включая извлечение ID связанного комментария.
+     *
+     * @param modelMapper экземпляр ModelMapper для настройки
+     */
     private void configureLikeCommentMappings(final ModelMapper modelMapper) {
         modelMapper.addMappings(new PropertyMap<LikeComment, LikeCommentResponse>() {
             @Override
@@ -91,6 +112,13 @@ public class ModelMapperConfig {
         });
     }
 
+    /**
+     * Настраивает маппинг между сущностью LikePost и LikePostResponse.
+     * Определяет правила преобразования полей лайка поста в DTO ответа,
+     * включая извлечение ID связанного поста.
+     *
+     * @param modelMapper экземпляр ModelMapper для настройки
+     */
     private void configureLikePostMappings(final ModelMapper modelMapper) {
         modelMapper.addMappings(new PropertyMap<LikePost, LikePostResponse>() {
             @Override
@@ -103,8 +131,36 @@ public class ModelMapperConfig {
         });
     }
 
+    /**
+     * Настраивает маппинг между сущностью Post и PostDetailsResponse.
+     * Определяет правила преобразования полей поста в расширенный DTO ответа
+     * с детальной информацией.
+     *
+     * @param modelMapper экземпляр ModelMapper для настройки
+     */
     private void configurePostDetailsMappings(final ModelMapper modelMapper) {
         modelMapper.addMappings(new PropertyMap<Post, PostDetailsResponse>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getId());
+                map().setOwnerId(source.getOwnerId());
+                map().setContent(source.getContent());
+                map().setImageUrl(source.getImageUrl());
+                map().setCreatedAt(source.getCreatedAt());
+                map().setUpdatedAt(source.getUpdatedAt());
+            }
+        });
+    }
+
+    /**
+     * Настраивает маппинг между CommentResponse и CommentDetailsResponse.
+     * Определяет правила преобразования базового DTO комментария в расширенный DTO
+     * с детальной информацией о лайках и другой связанной информацией.
+     *
+     * @param modelMapper экземпляр ModelMapper для настройки
+     */
+    private void configureCommentDetailsMappings(final ModelMapper modelMapper) {
+        modelMapper.addMappings(new PropertyMap<CommentResponse, CommentDetailsResponse>() {
             @Override
             protected void configure() {
                 map().setId(source.getId());
