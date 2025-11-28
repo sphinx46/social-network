@@ -61,6 +61,44 @@ spring:
           metadata:
             response-timeout: 10000
             connect-timeout: 5000
+        - id: content-service-like-post
+          uri: lb://content-service
+          predicates:
+            - Path=/api/content/like/post/**
+          filters:
+            - name: UserContextFilter
+              args:
+                enabled: true
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+                redis-rate-limiter.requestedTokens: 1
+            - TokenRelay=
+            - RewritePath=/api/content/like/post/(?<segment>.*), /api/content/like/post/${segment}
+          metadata:
+            response-timeout: 10000
+            connect-timeout: 5000
+        - id: content-service-like-comment
+          uri: lb://content-service
+          predicates:
+            - Path=/api/content/like/comment/**
+          filters:
+            - name: UserContextFilter
+              args:
+                enabled: true
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 20
+                redis-rate-limiter.burstCapacity: 40
+                redis-rate-limiter.requestedTokens: 1
+            - TokenRelay=
+            - RewritePath=/api/content/like/comment/(?<segment>.*), /api/content/like/comment/${segment}
+          metadata:
+            response-timeout: 10000
+            connect-timeout: 5000
         - id: content-service-actuator
           uri: lb://content-service
           predicates:

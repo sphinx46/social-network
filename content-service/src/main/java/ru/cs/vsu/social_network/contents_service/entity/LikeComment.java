@@ -10,7 +10,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "like")
+@Table(name = "like_comment")
 public class LikeComment extends BaseEntity {
     @Column(name = "owner_id")
     private UUID ownerId;
@@ -22,8 +22,8 @@ public class LikeComment extends BaseEntity {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof LikePost)) return false;
-        LikePost like = (LikePost) o;
+        if (!(o instanceof LikeComment)) return false;
+        LikeComment like = (LikeComment) o;
         return getId() != null && getId().equals(like.getId());
     }
 

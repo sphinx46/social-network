@@ -10,7 +10,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "like")
+@Table(name = "like_post")
 public class LikePost extends BaseEntity {
     @Column(name = "owner_id")
     private UUID ownerId;
