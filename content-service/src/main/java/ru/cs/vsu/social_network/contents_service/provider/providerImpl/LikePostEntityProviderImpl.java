@@ -9,8 +9,8 @@ import ru.cs.vsu.social_network.contents_service.provider.LikePostEntityProvider
 import ru.cs.vsu.social_network.contents_service.repository.LikePostRepository;
 import ru.cs.vsu.social_network.contents_service.utils.MessageConstants;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Реализация провайдера для получения сущности LikePost.
@@ -77,5 +77,32 @@ public final class LikePostEntityProviderImpl extends AbstractEntityProvider<Lik
                 ENTITY_NAME, exists ? "существует" : "не существует", ownerId, postId);
 
         return exists;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Map<UUID, Long> getLikesCountsForPosts(List<UUID> postIds) {
+        log.info("{}_ПРОВАЙДЕР_ПАКЕТНОЕ_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_НАЧАЛО: " +
+                "для {} постов", postIds.size());
+
+        if (postIds.isEmpty()) {
+            log.info("{}_ПРОВАЙДЕР_ПАКЕТНОЕ_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_ПУСТОЙ_СПИСОК", ENTITY_NAME);
+            return Collections.emptyMap();
+        }
+
+        final List<Object[]> counts = likePostRepository.findLikesCountByPostIds(postIds);
+
+        final Map<UUID, Long> result = counts.stream()
+                .collect(Collectors.toMap(
+                        tuple -> (UUID) tuple[0],
+                        tuple -> (Long) tuple[1]
+                ));
+
+        postIds.forEach(postId -> result.putIfAbsent(postId, 0L));
+
+        log.info("{}_ПРОВАЙДЕР_ПАКЕТНОЕ_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_УСПЕХ: " +
+                "получено количество лайков для {} постов", ENTITY_NAME, result.size());
+
+        return result;
     }
 }

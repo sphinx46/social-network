@@ -3,6 +3,7 @@ package ru.cs.vsu.social_network.contents_service.service.batch.batchImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.cs.vsu.social_network.contents_service.dto.response.content.CommentResponse;
 import ru.cs.vsu.social_network.contents_service.entity.Comment;
@@ -11,9 +12,7 @@ import ru.cs.vsu.social_network.contents_service.provider.CommentEntityProvider;
 import ru.cs.vsu.social_network.contents_service.repository.CommentRepository;
 import ru.cs.vsu.social_network.contents_service.service.batch.BatchCommentService;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -29,6 +28,8 @@ public class BatchCommentServiceImpl implements BatchCommentService {
     private final CommentEntityProvider commentEntityProvider;
     private final EntityMapper entityMapper;
 
+    private static final int MAX_BATCH_SIZE = 1000;
+
     /**
      * {@inheritDoc}
      */
@@ -37,11 +38,16 @@ public class BatchCommentServiceImpl implements BatchCommentService {
         log.debug("BATCH_COMMENT_SERVICE_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_КОММЕНТАРИЕВ_НАЧАЛО: " +
                 "для {} постов", postIds.size());
 
-        final Map<UUID, Long> result = postIds.stream()
-                .collect(Collectors.toMap(
-                        postId -> postId,
-                        commentEntityProvider::getCommentsCountByPost
-                ));
+        if (postIds.isEmpty()) {
+            log.debug("BATCH_COMMENT_SERVICE_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_КОММЕНТАРИЕВ_ПУСТОЙ_СПИСОК");
+            return Collections.emptyMap();
+        }
+
+        final List<UUID> batchPostIds = postIds.size() > MAX_BATCH_SIZE ?
+                postIds.subList(0, MAX_BATCH_SIZE) : postIds;
+
+        final Map<UUID, Long> result =
+                commentEntityProvider.getCommentsCountsForPosts(batchPostIds);
 
         log.debug("BATCH_COMMENT_SERVICE_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_КОММЕНТАРИЕВ_УСПЕХ: " +
                 "получено количество комментариев для {} постов", result.size());
@@ -57,11 +63,29 @@ public class BatchCommentServiceImpl implements BatchCommentService {
         log.debug("BATCH_COMMENT_SERVICE_ПОЛУЧЕНИЕ_КОММЕНТАРИЕВ_ДЛЯ_ПОСТОВ_НАЧАЛО: " +
                 "для {} постов с лимитом {}", postIds.size(), commentsLimit);
 
-        final Map<UUID, List<CommentResponse>> result = postIds.stream()
-                .collect(Collectors.toMap(
-                        postId -> postId,
-                        postId -> getCommentsForPost(postId, commentsLimit)
-                ));
+        if (postIds.isEmpty()) {
+            log.debug("BATCH_COMMENT_SERVICE_ПОЛУЧЕНИЕ_КОММЕНТАРИЕВ_ДЛЯ_ПОСТОВ_ПУСТОЙ_СПИСОК");
+            return Collections.emptyMap();
+        }
+
+        final List<UUID> batchPostIds = postIds.size() > MAX_BATCH_SIZE ?
+                postIds.subList(0, MAX_BATCH_SIZE) : postIds;
+
+        final Pageable pageable = PageRequest.of(0, commentsLimit);
+        final List<Comment> allComments = commentRepository
+                .findRecentCommentsForPosts(batchPostIds, pageable);
+
+        final Map<UUID, List<CommentResponse>> result = new HashMap<>();
+
+        batchPostIds.forEach(postId -> result.put(postId, new ArrayList<>()));
+
+        for (Comment comment : allComments) {
+            UUID postId = comment.getPost() != null ? comment.getPost().getId() : null;
+            if (postId != null && result.containsKey(postId)) {
+                CommentResponse response = entityMapper.map(comment, CommentResponse.class);
+                result.get(postId).add(response);
+            }
+        }
 
         log.debug("BATCH_COMMENT_SERVICE_ПОЛУЧЕНИЕ_КОММЕНТАРИЕВ_ДЛЯ_ПОСТОВ_УСПЕХ: " +
                 "получены комментарии для {} постов", result.size());

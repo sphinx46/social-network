@@ -2,6 +2,8 @@ package ru.cs.vsu.social_network.contents_service.provider;
 
 import ru.cs.vsu.social_network.contents_service.entity.LikePost;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,4 +38,12 @@ public interface LikePostEntityProvider extends EntityProvider<LikePost> {
      * @return true если лайк существует
      */
     boolean existsByOwnerIdAndPostId(UUID ownerId, UUID postId);
+
+    /**
+     * Получает количество лайков для списка постов в пакетном режиме.
+     *
+     * @param postIds список идентификаторов постов
+     * @return маппинг postId -> количество лайков
+     */
+    Map<UUID, Long> getLikesCountsForPosts(List<UUID> postIds);
 }

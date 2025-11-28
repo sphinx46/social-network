@@ -3,6 +3,7 @@ package ru.cs.vsu.social_network.contents_service.service.batch.batchImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.cs.vsu.social_network.contents_service.dto.response.content.LikeCommentResponse;
 import ru.cs.vsu.social_network.contents_service.entity.LikeComment;
@@ -11,9 +12,7 @@ import ru.cs.vsu.social_network.contents_service.provider.LikeCommentEntityProvi
 import ru.cs.vsu.social_network.contents_service.repository.LikeCommentRepository;
 import ru.cs.vsu.social_network.contents_service.service.batch.BatchLikeCommentService;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -29,6 +28,8 @@ public class BatchLikeCommentServiceImpl implements BatchLikeCommentService {
     private final LikeCommentEntityProvider likeCommentEntityProvider;
     private final EntityMapper entityMapper;
 
+    private static final int MAX_BATCH_SIZE = 1000;
+
     /**
      * {@inheritDoc}
      */
@@ -37,11 +38,16 @@ public class BatchLikeCommentServiceImpl implements BatchLikeCommentService {
         log.debug("BATCH_LIKE_COMMENT_SERVICE_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_ЛАЙКОВ_НАЧАЛО: " +
                 "для {} комментариев", commentIds.size());
 
-        final Map<UUID, Long> result = commentIds.stream()
-                .collect(Collectors.toMap(
-                        commentId -> commentId,
-                        likeCommentEntityProvider::getLikesCountByComment
-                ));
+        if (commentIds.isEmpty()) {
+            log.debug("BATCH_LIKE_COMMENT_SERVICE_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_ЛАЙКОВ_ПУСТОЙ_СПИСОК");
+            return Collections.emptyMap();
+        }
+
+        final List<UUID> batchCommentIds = commentIds.size() > MAX_BATCH_SIZE ?
+                commentIds.subList(0, MAX_BATCH_SIZE) : commentIds;
+
+        final Map<UUID, Long> result =
+                likeCommentEntityProvider.getLikesCountsForComments(batchCommentIds);
 
         log.debug("BATCH_LIKE_COMMENT_SERVICE_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_ЛАЙКОВ_УСПЕХ: " +
                 "получено количество лайков для {} комментариев", result.size());
@@ -57,11 +63,29 @@ public class BatchLikeCommentServiceImpl implements BatchLikeCommentService {
         log.debug("BATCH_LIKE_COMMENT_SERVICE_ПОЛУЧЕНИЕ_ЛАЙКОВ_ДЛЯ_КОММЕНТАРИЕВ_НАЧАЛО: " +
                 "для {} комментариев с лимитом {}", commentIds.size(), likesLimit);
 
-        final Map<UUID, List<LikeCommentResponse>> result = commentIds.stream()
-                .collect(Collectors.toMap(
-                        commentId -> commentId,
-                        commentId -> getLikesForComment(commentId, likesLimit)
-                ));
+        if (commentIds.isEmpty()) {
+            log.debug("BATCH_LIKE_COMMENT_SERVICE_ПОЛУЧЕНИЕ_ЛАЙКОВ_ДЛЯ_КОММЕНТАРИЕВ_ПУСТОЙ_СПИСОК");
+            return Collections.emptyMap();
+        }
+
+        final List<UUID> batchCommentIds = commentIds.size() > MAX_BATCH_SIZE ?
+                commentIds.subList(0, MAX_BATCH_SIZE) : commentIds;
+
+        final Pageable pageable = PageRequest.of(0, likesLimit);
+        final List<LikeComment> allLikes = likeCommentRepository
+                .findRecentLikesForComments(batchCommentIds, pageable);
+
+        final Map<UUID, List<LikeCommentResponse>> result = new HashMap<>();
+
+        batchCommentIds.forEach(commentId -> result.put(commentId, new ArrayList<>()));
+
+        for (LikeComment like : allLikes) {
+            UUID commentId = like.getComment() != null ? like.getComment().getId() : null;
+            if (commentId != null && result.containsKey(commentId)) {
+                LikeCommentResponse response = entityMapper.map(like, LikeCommentResponse.class);
+                result.get(commentId).add(response);
+            }
+        }
 
         log.debug("BATCH_LIKE_COMMENT_SERVICE_ПОЛУЧЕНИЕ_ЛАЙКОВ_ДЛЯ_КОММЕНТАРИЕВ_УСПЕХ: " +
                 "получены лайки для {} комментариев", result.size());

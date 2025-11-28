@@ -2,6 +2,8 @@ package ru.cs.vsu.social_network.contents_service.provider;
 
 import ru.cs.vsu.social_network.contents_service.entity.LikeComment;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,4 +38,12 @@ public interface LikeCommentEntityProvider extends EntityProvider<LikeComment> {
      * @return true если лайк существует
      */
     boolean existsByOwnerIdAndCommentId(UUID ownerId, UUID commentId);
+
+    /**
+     * Получает количество лайков для списка комментариев в пакетном режиме.
+     *
+     * @param commentIds список идентификаторов комментариев
+     * @return маппинг commentId -> количество лайков
+     */
+    Map<UUID, Long> getLikesCountsForComments(List<UUID> commentIds);
 }

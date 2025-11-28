@@ -9,8 +9,8 @@ import ru.cs.vsu.social_network.contents_service.provider.LikeCommentEntityProvi
 import ru.cs.vsu.social_network.contents_service.repository.LikeCommentRepository;
 import ru.cs.vsu.social_network.contents_service.utils.MessageConstants;
 
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Реализация провайдера для получения сущности LikeComment.
@@ -77,5 +77,32 @@ public final class LikeCommentEntityProviderImpl extends AbstractEntityProvider<
                 ENTITY_NAME, exists ? "существует" : "не существует", ownerId, commentId);
 
         return exists;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Map<UUID, Long> getLikesCountsForComments(List<UUID> commentIds) {
+        log.info("{}_ПРОВАЙДЕР_ПАКЕТНОЕ_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_НАЧАЛО: " +
+                "для {} комментариев", commentIds.size());
+
+        if (commentIds.isEmpty()) {
+            log.info("{}_ПРОВАЙДЕР_ПАКЕТНОЕ_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_ПУСТОЙ_СПИСОК", ENTITY_NAME);
+            return Collections.emptyMap();
+        }
+
+        final List<Object[]> counts = likeCommentRepository.findLikesCountByCommentIds(commentIds);
+
+        final Map<UUID, Long> result = counts.stream()
+                .collect(Collectors.toMap(
+                        tuple -> (UUID) tuple[0],
+                        tuple -> (Long) tuple[1]
+                ));
+
+        commentIds.forEach(commentId -> result.putIfAbsent(commentId, 0L));
+
+        log.info("{}_ПРОВАЙДЕР_ПАКЕТНОЕ_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_УСПЕХ: " +
+                "получено количество лайков для {} комментариев", ENTITY_NAME, result.size());
+
+        return result;
     }
 }

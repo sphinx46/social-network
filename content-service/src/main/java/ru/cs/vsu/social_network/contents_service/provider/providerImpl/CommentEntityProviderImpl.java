@@ -9,7 +9,8 @@ import ru.cs.vsu.social_network.contents_service.provider.CommentEntityProvider;
 import ru.cs.vsu.social_network.contents_service.repository.CommentRepository;
 import ru.cs.vsu.social_network.contents_service.utils.MessageConstants;
 
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Реализация провайдера для получения сущности Comment.
@@ -28,12 +29,8 @@ public final class CommentEntityProviderImpl extends AbstractEntityProvider<Comm
         this.commentRepository = commentRepository;
     }
 
-    /**
-     * Получает количество комментариев для поста.
-     *
-     * @param postId идентификатор поста
-     * @return количество комментариев
-     */
+    /** {@inheritDoc} */
+    @Override
     public Long getCommentsCountByPost(UUID postId) {
         log.info("{}_ПРОВАЙДЕР_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_ПО_ПОСТУ_НАЧАЛО: для поста с ID: {}",
                 ENTITY_NAME, postId);
@@ -45,5 +42,32 @@ public final class CommentEntityProviderImpl extends AbstractEntityProvider<Comm
                 ENTITY_NAME, postId, count);
 
         return count;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Map<UUID, Long> getCommentsCountsForPosts(List<UUID> postIds) {
+        log.info("{}_ПРОВАЙДЕР_ПАКЕТНОЕ_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_НАЧАЛО: " +
+                "для {} постов", postIds.size());
+
+        if (postIds.isEmpty()) {
+            log.info("{}_ПРОВАЙДЕР_ПАКЕТНОЕ_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_ПУСТОЙ_СПИСОК", ENTITY_NAME);
+            return Collections.emptyMap();
+        }
+
+        final List<Object[]> counts = commentRepository.findCommentsCountByPostIds(postIds);
+
+        final Map<UUID, Long> result = counts.stream()
+                .collect(Collectors.toMap(
+                        tuple -> (UUID) tuple[0],
+                        tuple -> (Long) tuple[1]
+                ));
+
+        postIds.forEach(postId -> result.putIfAbsent(postId, 0L));
+
+        log.info("{}_ПРОВАЙДЕР_ПАКЕТНОЕ_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_УСПЕХ: " +
+                "получено количество комментариев для {} постов", ENTITY_NAME, result.size());
+
+        return result;
     }
 }

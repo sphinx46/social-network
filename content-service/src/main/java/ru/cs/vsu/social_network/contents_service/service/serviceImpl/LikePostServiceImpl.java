@@ -80,12 +80,12 @@ public class LikePostServiceImpl implements LikePostService {
         LikePost likePost =
                 likePostEntityProvider.findByOwnerIdAndPostId(keycloakUserId,
                                 likePostRequest.getPostId())
-                .orElseThrow(() -> {
-                    log.error("ЛАЙК_ПОСТ_СЕРВИС_УДАЛЕНИЕ_ОШИБКА: "
-                                    + "лайк не найден для поста с ID: {} пользователем: {}",
-                            likePostRequest.getPostId(), keycloakUserId);
-                    return new LikeNotFoundException(MessageConstants.LIKE_NOT_FOUND_FAILURE);
-                });
+                        .orElseThrow(() -> {
+                            log.error("ЛАЙК_ПОСТ_СЕРВИС_УДАЛЕНИЕ_ОШИБКА: "
+                                            + "лайк не найден для поста с ID: {} пользователем: {}",
+                                    likePostRequest.getPostId(), keycloakUserId);
+                            return new LikeNotFoundException(MessageConstants.LIKE_NOT_FOUND_FAILURE);
+                        });
 
         likePostValidator.validateOwnership(keycloakUserId, likePost.getId());
         likePostRepository.delete(likePost);

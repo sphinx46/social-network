@@ -3,6 +3,7 @@ package ru.cs.vsu.social_network.contents_service.service.batch.batchImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.cs.vsu.social_network.contents_service.dto.response.content.LikePostResponse;
 import ru.cs.vsu.social_network.contents_service.entity.LikePost;
@@ -11,9 +12,7 @@ import ru.cs.vsu.social_network.contents_service.provider.LikePostEntityProvider
 import ru.cs.vsu.social_network.contents_service.repository.LikePostRepository;
 import ru.cs.vsu.social_network.contents_service.service.batch.BatchLikePostService;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -29,19 +28,26 @@ public class BatchLikePostServiceImpl implements BatchLikePostService {
     private final LikePostEntityProvider likePostEntityProvider;
     private final EntityMapper entityMapper;
 
+    private static final int MAX_BATCH_SIZE = 1000;
+
     /**
      * {@inheritDoc}
      */
     @Override
     public Map<UUID, Long> getLikesCountsForPosts(final List<UUID> postIds) {
-        log.debug("BATCH_LIKE_SERVICE_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_ЛАЙКОВ_НАЧАЛО: " +
-                "для {} постов", postIds.size());
+        log.debug("BATCH_LIKE_SERVICE_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_ЛАЙКОВ_НАЧАЛО: для {} постов",
+                postIds.size());
 
-        final Map<UUID, Long> result = postIds.stream()
-                .collect(Collectors.toMap(
-                        postId -> postId,
-                        likePostEntityProvider::getLikesCountByPost
-                ));
+        if (postIds.isEmpty()) {
+            log.debug("BATCH_LIKE_SERVICE_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_ЛАЙКОВ_ПУСТОЙ_СПИСОК");
+            return Collections.emptyMap();
+        }
+
+        final List<UUID> batchPostIds = postIds.size() > MAX_BATCH_SIZE ?
+                postIds.subList(0, MAX_BATCH_SIZE) : postIds;
+
+        final Map<UUID, Long> result =
+                likePostEntityProvider.getLikesCountsForPosts(batchPostIds);
 
         log.debug("BATCH_LIKE_SERVICE_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_ЛАЙКОВ_УСПЕХ: " +
                 "получено количество лайков для {} постов", result.size());
@@ -57,11 +63,29 @@ public class BatchLikePostServiceImpl implements BatchLikePostService {
         log.debug("BATCH_LIKE_SERVICE_ПОЛУЧЕНИЕ_ЛАЙКОВ_ДЛЯ_ПОСТОВ_НАЧАЛО: " +
                 "для {} постов с лимитом {}", postIds.size(), likesLimit);
 
-        final Map<UUID, List<LikePostResponse>> result = postIds.stream()
-                .collect(Collectors.toMap(
-                        postId -> postId,
-                        postId -> getLikesForPost(postId, likesLimit)
-                ));
+        if (postIds.isEmpty()) {
+            log.debug("BATCH_LIKE_SERVICE_ПОЛУЧЕНИЕ_ЛАЙКОВ_ДЛЯ_ПОСТОВ_ПУСТОЙ_СПИСОК");
+            return Collections.emptyMap();
+        }
+
+        final List<UUID> batchPostIds = postIds.size() > MAX_BATCH_SIZE ?
+                postIds.subList(0, MAX_BATCH_SIZE) : postIds;
+
+        final Pageable pageable = PageRequest.of(0, likesLimit);
+        final List<LikePost> allLikes = likePostRepository
+                .findRecentLikesForPosts(batchPostIds, pageable);
+
+        final Map<UUID, List<LikePostResponse>> result = new HashMap<>();
+
+        batchPostIds.forEach(postId -> result.put(postId, new ArrayList<>()));
+
+        for (LikePost like : allLikes) {
+            UUID postId = like.getPost() != null ? like.getPost().getId() : null;
+            if (postId != null && result.containsKey(postId)) {
+                LikePostResponse response = entityMapper.map(like, LikePostResponse.class);
+                result.get(postId).add(response);
+            }
+        }
 
         log.debug("BATCH_LIKE_SERVICE_ПОЛУЧЕНИЕ_ЛАЙКОВ_ДЛЯ_ПОСТОВ_УСПЕХ: " +
                 "получены лайки для {} постов", result.size());
