@@ -1,15 +1,11 @@
 package ru.cs.vsu.social_network.contents_service.mapping.config;
 
-
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.cs.vsu.social_network.contents_service.dto.response.content.CommentResponse;
-import ru.cs.vsu.social_network.contents_service.dto.response.content.LikeCommentResponse;
-import ru.cs.vsu.social_network.contents_service.dto.response.content.LikePostResponse;
-import ru.cs.vsu.social_network.contents_service.dto.response.content.PostResponse;
+import ru.cs.vsu.social_network.contents_service.dto.response.content.*;
 import ru.cs.vsu.social_network.contents_service.entity.Comment;
 import ru.cs.vsu.social_network.contents_service.entity.LikeComment;
 import ru.cs.vsu.social_network.contents_service.entity.LikePost;
@@ -41,6 +37,7 @@ public class ModelMapperConfig {
         configureCommentMappings(modelMapper);
         configureLikeCommentMappings(modelMapper);
         configureLikePostMappings(modelMapper);
+        configurePostDetailsMappings(modelMapper);
 
         modelMapper.getConfiguration()
                 .setFieldMatchingEnabled(true)
@@ -102,6 +99,20 @@ public class ModelMapperConfig {
                 map().setOwnerId(source.getOwnerId());
                 map().setPostId(source.getPost().getId());
                 map().setCreatedAt(source.getCreatedAt());
+            }
+        });
+    }
+
+    private void configurePostDetailsMappings(final ModelMapper modelMapper) {
+        modelMapper.addMappings(new PropertyMap<Post, PostDetailsResponse>() {
+            @Override
+            protected void configure() {
+                map().setId(source.getId());
+                map().setOwnerId(source.getOwnerId());
+                map().setContent(source.getContent());
+                map().setImageUrl(source.getImageUrl());
+                map().setCreatedAt(source.getCreatedAt());
+                map().setUpdatedAt(source.getUpdatedAt());
             }
         });
     }

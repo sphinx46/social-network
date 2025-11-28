@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import ru.cs.vsu.social_network.contents_service.entity.LikePost;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -47,4 +48,14 @@ public interface LikePostRepository extends JpaRepository<LikePost, UUID> {
      * @return количество лайков
      */
     long countByPostId(UUID postId);
+
+    /**
+     * Находит топ N лайков для поста с сортировкой по дате создания.
+     *
+     * @param postId идентификатор поста
+     * @param pageable параметры пагинации
+     * @return список лайков
+     */
+    List<LikePost> findByPostIdOrderByCreatedAtDesc(UUID postId,
+                                                    Pageable pageable);
 }
