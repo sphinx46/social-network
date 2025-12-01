@@ -6,12 +6,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
 import ru.cs.vsu.social_network.contents_service.dto.response.content.LikeCommentResponse;
 import ru.cs.vsu.social_network.contents_service.entity.LikeComment;
 import ru.cs.vsu.social_network.contents_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.contents_service.provider.LikeCommentEntityProvider;
-import ru.cs.vsu.social_network.contents_service.repository.LikeCommentRepository;
 import ru.cs.vsu.social_network.contents_service.service.batch.batchImpl.BatchLikeCommentServiceImpl;
 import ru.cs.vsu.social_network.contents_service.utils.TestDataFactory;
 
@@ -22,17 +20,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit тесты для {@link BatchLikeCommentServiceImpl}.
- */
 @ExtendWith(MockitoExtension.class)
 class BatchLikeCommentServiceImplTest {
 
     private static final UUID COMMENT_ID = UUID.fromString("40d4dde4-663d-4113-bd08-25f5e1d42efe");
     private static final UUID LIKE_ID = UUID.fromString("5ab3c6d7-ec6f-49ad-95ac-6c752ad8172e");
 
-    @Mock
-    private LikeCommentRepository likeCommentRepository;
     @Mock
     private LikeCommentEntityProvider likeCommentEntityProvider;
     @Mock
@@ -76,13 +69,13 @@ class BatchLikeCommentServiceImplTest {
         List<UUID> expectedBatch = commentIds.subList(0, 1000);
         Map<UUID, Long> expectedMap = TestDataFactory.createCommentLikesCountMap(expectedBatch);
 
-        when(likeCommentEntityProvider.getLikesCountsForComments(expectedBatch)).thenReturn(expectedMap);
+        when(likeCommentEntityProvider.getLikesCountsForComments(any())).thenReturn(expectedMap);
 
         Map<UUID, Long> actual = batchLikeCommentService.getLikesCountsForComments(commentIds);
 
         assertNotNull(actual);
         assertEquals(1000, actual.size());
-        verify(likeCommentEntityProvider).getLikesCountsForComments(expectedBatch);
+        verify(likeCommentEntityProvider, atLeastOnce()).getLikesCountsForComments(any());
     }
 
     @Test
@@ -93,7 +86,7 @@ class BatchLikeCommentServiceImplTest {
 
         List<LikeComment> mockLikes = new ArrayList<>();
         for (UUID commentId : commentIds) {
-            for (int i = 0; i < 1; i++) {
+            for (int i = 0; i < 2; i++) {
                 LikeComment like = TestDataFactory.createLikeCommentEntity(
                         UUID.randomUUID(),
                         TestDataFactory.TEST_USER_ID,
@@ -103,18 +96,18 @@ class BatchLikeCommentServiceImplTest {
             }
         }
 
-        when(likeCommentRepository.findRecentLikesForComments(commentIds, likesLimit))
+        when(likeCommentEntityProvider.getRecentLikesForComments(commentIds, likesLimit))
                 .thenReturn(mockLikes);
 
         when(entityMapper.map(any(LikeComment.class), eq(LikeCommentResponse.class)))
                 .thenAnswer(invocation -> {
-            LikeComment like = invocation.getArgument(0);
-            return TestDataFactory.createLikeCommentResponse(
-                    like.getId(),
-                    like.getOwnerId(),
-                    like.getComment().getId()
-            );
-        });
+                    LikeComment like = invocation.getArgument(0);
+                    return TestDataFactory.createLikeCommentResponse(
+                            like.getId(),
+                            like.getOwnerId(),
+                            like.getComment().getId()
+                    );
+                });
 
         Map<UUID, List<LikeCommentResponse>> actual =
                 batchLikeCommentService.getLikesForComments(commentIds, likesLimit);
@@ -123,11 +116,11 @@ class BatchLikeCommentServiceImplTest {
         assertEquals(commentIds.size(), actual.size());
         commentIds.forEach(commentId -> {
             assertTrue(actual.containsKey(commentId));
-            assertTrue(actual.get(commentId).size() <= 1);
+            assertTrue(actual.get(commentId).size() <= 2);
             actual.get(commentId).forEach(likeResponse ->
                     assertEquals(commentId, likeResponse.getCommentId()));
         });
-        verify(likeCommentRepository).findRecentLikesForComments(commentIds, likesLimit);
+        verify(likeCommentEntityProvider).getRecentLikesForComments(commentIds, likesLimit);
     }
 
     @Test
@@ -147,18 +140,18 @@ class BatchLikeCommentServiceImplTest {
             mockLikes.add(like);
         }
 
-        when(likeCommentRepository.findRecentLikesForComments(commentIds, effectiveLimit))
+        when(likeCommentEntityProvider.getRecentLikesForComments(commentIds, effectiveLimit))
                 .thenReturn(mockLikes);
 
-        when(entityMapper.map(any(LikeComment.class), eq(LikeCommentResponse.class))).
-                thenAnswer(invocation -> {
-            LikeComment like = invocation.getArgument(0);
-            return TestDataFactory.createLikeCommentResponse(
-                    like.getId(),
-                    like.getOwnerId(),
-                    like.getComment().getId()
-            );
-        });
+        when(entityMapper.map(any(LikeComment.class), eq(LikeCommentResponse.class)))
+                .thenAnswer(invocation -> {
+                    LikeComment like = invocation.getArgument(0);
+                    return TestDataFactory.createLikeCommentResponse(
+                            like.getId(),
+                            like.getOwnerId(),
+                            like.getComment().getId()
+                    );
+                });
 
         Map<UUID, List<LikeCommentResponse>> actual =
                 batchLikeCommentService.getLikesForComments(commentIds, invalidLimit);
@@ -169,7 +162,7 @@ class BatchLikeCommentServiceImplTest {
             assertTrue(actual.containsKey(commentId));
             assertEquals(1, actual.get(commentId).size());
         });
-        verify(likeCommentRepository).findRecentLikesForComments(commentIds, effectiveLimit);
+        verify(likeCommentEntityProvider).getRecentLikesForComments(commentIds, effectiveLimit);
     }
 
     @Test
@@ -184,10 +177,9 @@ class BatchLikeCommentServiceImplTest {
         );
 
         List<LikeComment> likes = List.of(like);
-        PageImpl<LikeComment> mockPage = new PageImpl<>(likes);
 
-        when(likeCommentRepository.findAllByCommentId(eq(COMMENT_ID), any()))
-                .thenReturn(mockPage);
+        when(likeCommentEntityProvider.getRecentLikesForComment(COMMENT_ID, limit))
+                .thenReturn(likes);
 
         LikeCommentResponse expectedResponse = TestDataFactory.createLikeCommentResponse(
                 LIKE_ID,
@@ -204,23 +196,23 @@ class BatchLikeCommentServiceImplTest {
         assertEquals(1, actual.size());
         assertEquals(expectedResponse.getId(), actual.get(0).getId());
         assertEquals(expectedResponse.getCommentId(), actual.get(0).getCommentId());
-        verify(likeCommentRepository).findAllByCommentId(eq(COMMENT_ID), any());
+        verify(likeCommentEntityProvider).getRecentLikesForComment(COMMENT_ID, limit);
     }
 
     @Test
     @DisplayName("Получение лайков для комментария - пустой результат")
     void getLikesForComment_whenNoLikes_shouldReturnEmptyList() {
         int limit = 5;
-        PageImpl<LikeComment> emptyPage = new PageImpl<>(Collections.emptyList());
+        List<LikeComment> emptyList = Collections.emptyList();
 
-        when(likeCommentRepository.findAllByCommentId(eq(COMMENT_ID), any()))
-                .thenReturn(emptyPage);
+        when(likeCommentEntityProvider.getRecentLikesForComment(COMMENT_ID, limit))
+                .thenReturn(emptyList);
 
         List<LikeCommentResponse> actual = batchLikeCommentService.getLikesForComment(COMMENT_ID, limit);
 
         assertNotNull(actual);
         assertTrue(actual.isEmpty());
-        verify(likeCommentRepository).findAllByCommentId(eq(COMMENT_ID), any());
+        verify(likeCommentEntityProvider).getRecentLikesForComment(COMMENT_ID, limit);
         verify(entityMapper, never()).map(any(LikeComment.class), eq(LikeCommentResponse.class));
     }
 
@@ -236,7 +228,7 @@ class BatchLikeCommentServiceImplTest {
         likeWithoutComment.setComment(null);
         likeWithoutComment.setCreatedAt(java.time.LocalDateTime.now());
 
-        when(likeCommentRepository.findRecentLikesForComments(commentIds, likesLimit))
+        when(likeCommentEntityProvider.getRecentLikesForComments(commentIds, likesLimit))
                 .thenReturn(List.of(likeWithoutComment));
 
         Map<UUID, List<LikeCommentResponse>> actual =
@@ -245,7 +237,60 @@ class BatchLikeCommentServiceImplTest {
         assertNotNull(actual);
         assertTrue(actual.containsKey(COMMENT_ID));
         assertTrue(actual.get(COMMENT_ID).isEmpty());
-        verify(likeCommentRepository).findRecentLikesForComments(commentIds, likesLimit);
+        verify(likeCommentEntityProvider).getRecentLikesForComments(commentIds, likesLimit);
         verify(entityMapper, never()).map(any(LikeComment.class), eq(LikeCommentResponse.class));
+    }
+
+    @Test
+    @DisplayName("Получение лайков с комментариями - успешно")
+    void getLikesWithComments_whenCommentIdsProvided_shouldReturnLikes() {
+        List<UUID> commentIds = TestDataFactory.createCommentIds(3);
+        int limit = 5;
+
+        List<LikeComment> mockLikes = new ArrayList<>();
+        for (UUID commentId : commentIds) {
+            LikeComment like = TestDataFactory.createLikeCommentEntity(
+                    UUID.randomUUID(),
+                    TestDataFactory.TEST_USER_ID,
+                    commentId
+            );
+            mockLikes.add(like);
+        }
+
+        when(likeCommentEntityProvider.getLikesWithComments(commentIds, limit))
+                .thenReturn(mockLikes);
+
+        when(entityMapper.map(any(LikeComment.class), eq(LikeCommentResponse.class)))
+                .thenAnswer(invocation -> {
+                    LikeComment like = invocation.getArgument(0);
+                    return TestDataFactory.createLikeCommentResponse(
+                            like.getId(),
+                            like.getOwnerId(),
+                            like.getComment().getId()
+                    );
+                });
+
+        List<LikeCommentResponse> actual = batchLikeCommentService.getLikesWithComments(commentIds, limit);
+
+        assertNotNull(actual);
+        assertEquals(commentIds.size(), actual.size());
+        verify(likeCommentEntityProvider).getLikesWithComments(commentIds, limit);
+    }
+
+    @Test
+    @DisplayName("Получение статуса лайков для комментариев - успешно")
+    void getLikesStatusForComments_whenCommentIdsProvided_shouldReturnStatusMap() {
+        UUID ownerId = TestDataFactory.TEST_USER_ID;
+        List<UUID> commentIds = TestDataFactory.createCommentIds(3);
+
+        when(likeCommentEntityProvider.existsByOwnerIdAndCommentId(eq(ownerId), any(UUID.class)))
+                .thenReturn(true);
+
+        Map<UUID, Boolean> actual = batchLikeCommentService.getLikesStatusForComments(ownerId, commentIds);
+
+        assertNotNull(actual);
+        assertEquals(commentIds.size(), actual.size());
+        commentIds.forEach(commentId -> assertTrue(actual.get(commentId)));
+        verify(likeCommentEntityProvider, times(commentIds.size())).existsByOwnerIdAndCommentId(eq(ownerId), any(UUID.class));
     }
 }

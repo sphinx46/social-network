@@ -33,8 +33,28 @@ public interface BatchLikeCommentService {
      * Получает лайки для комментария с ограничением по количеству.
      *
      * @param commentId идентификатор комментария
-     * @param limit максимальное количество лайков
+     * @param limit     максимальное количество лайков
      * @return список лайков
      */
     List<LikeCommentResponse> getLikesForComment(UUID commentId, int limit);
+
+    /**
+     * Получает информацию о лайках пользователя для списка комментариев.
+     * Определяет, какие комментарии пользователь уже лайкнул.
+     *
+     * @param ownerId    идентификатор пользователя
+     * @param commentIds список идентификаторов комментариев
+     * @return карта соответствия идентификатора комментария к информации о лайке пользователя
+     */
+    Map<UUID, Boolean> getLikesStatusForComments(UUID ownerId, List<UUID> commentIds);
+
+    /**
+     * Получает лайки с предзагруженными комментариями для списка идентификаторов.
+     * Устраняет проблему N+1 при доступе к связанным комментариям.
+     *
+     * @param commentIds список идентификаторов комментариев
+     * @param limit      максимальное количество лайков
+     * @return список лайков с информацией о комментариях
+     */
+    List<LikeCommentResponse> getLikesWithComments(List<UUID> commentIds, int limit);
 }

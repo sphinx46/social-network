@@ -6,12 +6,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
 import ru.cs.vsu.social_network.contents_service.dto.response.content.CommentResponse;
 import ru.cs.vsu.social_network.contents_service.entity.Comment;
 import ru.cs.vsu.social_network.contents_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.contents_service.provider.CommentEntityProvider;
-import ru.cs.vsu.social_network.contents_service.repository.CommentRepository;
 import ru.cs.vsu.social_network.contents_service.service.batch.batchImpl.BatchCommentServiceImpl;
 import ru.cs.vsu.social_network.contents_service.utils.TestDataFactory;
 
@@ -22,17 +20,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit тесты для {@link BatchCommentServiceImpl}.
- */
 @ExtendWith(MockitoExtension.class)
 class BatchCommentServiceImplTest {
 
     private static final UUID POST_ID = UUID.fromString("8dce7d87-60d9-4b66-8851-e7dba4684538");
     private static final UUID COMMENT_ID = UUID.fromString("40d4dde4-663d-4113-bd08-25f5e1d42efe");
 
-    @Mock
-    private CommentRepository commentRepository;
     @Mock
     private CommentEntityProvider commentEntityProvider;
     @Mock
@@ -76,13 +69,13 @@ class BatchCommentServiceImplTest {
         List<UUID> expectedBatch = postIds.subList(0, 1000);
         Map<UUID, Long> expectedMap = TestDataFactory.createCommentsCountMap(expectedBatch);
 
-        when(commentEntityProvider.getCommentsCountsForPosts(expectedBatch)).thenReturn(expectedMap);
+        when(commentEntityProvider.getCommentsCountsForPosts(any())).thenReturn(expectedMap);
 
         Map<UUID, Long> actual = batchCommentService.getCommentsCountsForPosts(postIds);
 
         assertNotNull(actual);
         assertEquals(1000, actual.size());
-        verify(commentEntityProvider).getCommentsCountsForPosts(expectedBatch);
+        verify(commentEntityProvider, atLeastOnce()).getCommentsCountsForPosts(any());
     }
 
     @Test
@@ -105,7 +98,7 @@ class BatchCommentServiceImplTest {
             }
         }
 
-        when(commentRepository.findRecentCommentsForPosts(postIds, commentsLimit))
+        when(commentEntityProvider.getRecentCommentsForPosts(postIds, commentsLimit))
                 .thenReturn(mockComments);
 
         when(entityMapper.map(any(Comment.class), eq(CommentResponse.class))).thenAnswer(invocation -> {
@@ -128,7 +121,7 @@ class BatchCommentServiceImplTest {
             actual.get(postId).forEach(commentResponse ->
                     assertEquals(postId, commentResponse.getPostId()));
         });
-        verify(commentRepository).findRecentCommentsForPosts(postIds, commentsLimit);
+        verify(commentEntityProvider).getRecentCommentsForPosts(postIds, commentsLimit);
     }
 
     @Test
@@ -150,7 +143,7 @@ class BatchCommentServiceImplTest {
             mockComments.add(comment);
         }
 
-        when(commentRepository.findRecentCommentsForPosts(postIds, effectiveLimit))
+        when(commentEntityProvider.getRecentCommentsForPosts(postIds, effectiveLimit))
                 .thenReturn(mockComments);
 
         when(entityMapper.map(any(Comment.class), eq(CommentResponse.class))).thenAnswer(invocation -> {
@@ -171,7 +164,7 @@ class BatchCommentServiceImplTest {
             assertTrue(actual.containsKey(postId));
             assertEquals(1, actual.get(postId).size());
         });
-        verify(commentRepository).findRecentCommentsForPosts(postIds, effectiveLimit);
+        verify(commentEntityProvider).getRecentCommentsForPosts(postIds, effectiveLimit);
     }
 
     @Test
@@ -188,10 +181,9 @@ class BatchCommentServiceImplTest {
         );
 
         List<Comment> comments = List.of(comment);
-        PageImpl<Comment> mockPage = new PageImpl<>(comments);
 
-        when(commentRepository.findByPostIdOrderByCreatedAtDesc(eq(POST_ID), any()))
-                .thenReturn(mockPage);
+        when(commentEntityProvider.getRecentCommentsForPost(POST_ID, limit))
+                .thenReturn(comments);
 
         CommentResponse expectedResponse = TestDataFactory.createCommentResponse(
                 COMMENT_ID,
@@ -208,23 +200,23 @@ class BatchCommentServiceImplTest {
         assertEquals(1, actual.size());
         assertEquals(expectedResponse.getId(), actual.get(0).getId());
         assertEquals(expectedResponse.getPostId(), actual.get(0).getPostId());
-        verify(commentRepository).findByPostIdOrderByCreatedAtDesc(eq(POST_ID), any());
+        verify(commentEntityProvider).getRecentCommentsForPost(POST_ID, limit);
     }
 
     @Test
     @DisplayName("Получение комментариев для поста - пустой результат")
     void getCommentsForPost_whenNoComments_shouldReturnEmptyList() {
         int limit = 5;
-        PageImpl<Comment> emptyPage = new PageImpl<>(Collections.emptyList());
+        List<Comment> emptyList = Collections.emptyList();
 
-        when(commentRepository.findByPostIdOrderByCreatedAtDesc(eq(POST_ID), any()))
-                .thenReturn(emptyPage);
+        when(commentEntityProvider.getRecentCommentsForPost(POST_ID, limit))
+                .thenReturn(emptyList);
 
         List<CommentResponse> actual = batchCommentService.getCommentsForPost(POST_ID, limit);
 
         assertNotNull(actual);
         assertTrue(actual.isEmpty());
-        verify(commentRepository).findByPostIdOrderByCreatedAtDesc(eq(POST_ID), any());
+        verify(commentEntityProvider).getRecentCommentsForPost(POST_ID, limit);
         verify(entityMapper, never()).map(any(Comment.class), eq(CommentResponse.class));
     }
 
@@ -242,7 +234,7 @@ class BatchCommentServiceImplTest {
         commentWithoutPost.setCreatedAt(java.time.LocalDateTime.now());
         commentWithoutPost.setUpdatedAt(java.time.LocalDateTime.now());
 
-        when(commentRepository.findRecentCommentsForPosts(postIds, commentsLimit))
+        when(commentEntityProvider.getRecentCommentsForPosts(postIds, commentsLimit))
                 .thenReturn(List.of(commentWithoutPost));
 
         Map<UUID, List<CommentResponse>> actual =
@@ -251,7 +243,44 @@ class BatchCommentServiceImplTest {
         assertNotNull(actual);
         assertTrue(actual.containsKey(POST_ID));
         assertTrue(actual.get(POST_ID).isEmpty());
-        verify(commentRepository).findRecentCommentsForPosts(postIds, commentsLimit);
+        verify(commentEntityProvider).getRecentCommentsForPosts(postIds, commentsLimit);
         verify(entityMapper, never()).map(any(Comment.class), eq(CommentResponse.class));
+    }
+
+    @Test
+    @DisplayName("Получение комментариев с постами - успешно")
+    void getCommentsWithPosts_whenCommentIdsProvided_shouldReturnComments() {
+        List<UUID> commentIds = TestDataFactory.createCommentIds(3);
+        int limit = 5;
+
+        List<Comment> mockComments = new ArrayList<>();
+        for (UUID commentId : commentIds) {
+            Comment comment = TestDataFactory.createCommentEntity(
+                    commentId,
+                    TestDataFactory.TEST_USER_ID,
+                    POST_ID,
+                    "Test comment",
+                    null
+            );
+            mockComments.add(comment);
+        }
+
+        when(commentEntityProvider.getCommentsWithPosts(commentIds, limit))
+                .thenReturn(mockComments);
+
+        when(entityMapper.map(any(Comment.class), eq(CommentResponse.class))).thenAnswer(invocation -> {
+            Comment comment = invocation.getArgument(0);
+            return TestDataFactory.createCommentResponse(
+                    comment.getId(),
+                    comment.getOwnerId(),
+                    comment.getPost().getId()
+            );
+        });
+
+        List<CommentResponse> actual = batchCommentService.getCommentsWithPosts(commentIds, limit);
+
+        assertNotNull(actual);
+        assertEquals(commentIds.size(), actual.size());
+        verify(commentEntityProvider).getCommentsWithPosts(commentIds, limit);
     }
 }

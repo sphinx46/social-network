@@ -20,7 +20,7 @@ import java.util.UUID;
 public interface LikeCommentRepository extends JpaRepository<LikeComment, UUID> {
 
     /**
-     * Находит лайк комментария по идентификатору пользователя и комментария
+     * Находит лайк комментария по идентификатору пользователя и комментария.
      *
      * @param ownerId идентификатор пользователя
      * @param commentId идентификатор комментария
@@ -29,7 +29,7 @@ public interface LikeCommentRepository extends JpaRepository<LikeComment, UUID> 
     Optional<LikeComment> findByOwnerIdAndCommentId(UUID ownerId, UUID commentId);
 
     /**
-     * Проверяет существование лайка по идентификатору пользователя и комментария
+     * Проверяет существование лайка по идентификатору пользователя и комментария.
      *
      * @param ownerId идентификатор пользователя
      * @param commentId идентификатор комментария
@@ -38,7 +38,7 @@ public interface LikeCommentRepository extends JpaRepository<LikeComment, UUID> 
     boolean existsByOwnerIdAndCommentId(UUID ownerId, UUID commentId);
 
     /**
-     * Находит все лайки комментария с пагинацией
+     * Находит все лайки комментария с пагинацией.
      *
      * @param commentId идентификатор комментария
      * @param pageable параметры пагинации
@@ -47,7 +47,7 @@ public interface LikeCommentRepository extends JpaRepository<LikeComment, UUID> 
     Page<LikeComment> findAllByCommentId(UUID commentId, Pageable pageable);
 
     /**
-     * Получает количество лайков комментария
+     * Получает количество лайков комментария.
      *
      * @param commentId идентификатор комментария
      * @return количество лайков
@@ -55,7 +55,7 @@ public interface LikeCommentRepository extends JpaRepository<LikeComment, UUID> 
     long countByCommentId(UUID commentId);
 
     /**
-     * Получает количество лайков для списка комментариев в одном запросе
+     * Получает количество лайков для списка комментариев в одном запросе.
      *
      * @param commentIds список идентификаторов комментариев
      * @return список кортежей [commentId, count]
@@ -79,8 +79,36 @@ public interface LikeCommentRepository extends JpaRepository<LikeComment, UUID> 
             WHERE lc.comment_id IN (:commentIds)
         )
         SELECT * FROM ranked_likes WHERE rn <= :limit
-        ORDER BY created_at DESC
         """, nativeQuery = true)
     List<LikeComment> findRecentLikesForComments(@Param("commentIds") List<UUID> commentIds,
                                                  @Param("limit") int limit);
+
+    /**
+     * Находит лайки с предзагруженными комментариями для списка идентификаторов.
+     *
+     * @param commentIds список идентификаторов комментариев
+     * @param pageable параметры пагинации
+     * @return список лайков с загруженными комментариями
+     */
+    @Query("SELECT lc FROM LikeComment lc JOIN FETCH lc.comment WHERE lc.comment.id IN :commentIds ORDER BY lc.createdAt DESC")
+    List<LikeComment> findLikesWithComments(@Param("commentIds") List<UUID> commentIds, Pageable pageable);
+
+    /**
+     * Находит последние лайки для списка комментариев с лимитом на каждый комментарий.
+     * Использует JPQL с подзапросом для правильного лимитирования на каждый комментарий.
+     * Устраняет проблему N+1 при получении лайков для нескольких комментариев.
+     *
+     * @param commentIds список идентификаторов комментариев
+     * @param limit лимит лайков на каждый комментарий
+     * @return список лайков с загруженными комментариями
+     */
+    @Query("SELECT lc FROM LikeComment lc JOIN FETCH lc.comment WHERE lc.id IN (" +
+            "SELECT lc2.id FROM LikeComment lc2 WHERE lc2.comment.id IN :commentIds " +
+            "AND (" +
+            "  SELECT COUNT(*) FROM LikeComment lc3 " +
+            "  WHERE lc3.comment.id = lc2.comment.id AND lc3.createdAt >= lc2.createdAt" +
+            ") <= :limit" +
+            ") ORDER BY lc.createdAt DESC")
+    List<LikeComment> findRecentLikesForCommentsWithComments(@Param("commentIds") List<UUID> commentIds,
+                                                             @Param("limit") int limit);
 }

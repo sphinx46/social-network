@@ -1,6 +1,8 @@
 package ru.cs.vsu.social_network.contents_service.provider.providerImpl;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import ru.cs.vsu.social_network.contents_service.entity.LikePost;
 import ru.cs.vsu.social_network.contents_service.exception.like.LikeNotFoundException;
@@ -29,7 +31,9 @@ public final class LikePostEntityProviderImpl extends AbstractEntityProvider<Lik
         this.likePostRepository = likePostRepository;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Long getLikesCountByPost(UUID postId) {
         log.info("{}_ПРОВАЙДЕР_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_НАЧАЛО: " +
@@ -45,7 +49,9 @@ public final class LikePostEntityProviderImpl extends AbstractEntityProvider<Lik
         return count;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Optional<LikePost> findByOwnerIdAndPostId(UUID ownerId, UUID postId) {
         log.info("{}_ПРОВАЙДЕР_ПОИСК_ПО_ВЛАДЕЛЬЦУ_И_ПОСТУ_НАЧАЛО: " +
@@ -62,7 +68,9 @@ public final class LikePostEntityProviderImpl extends AbstractEntityProvider<Lik
         return likePost;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean existsByOwnerIdAndPostId(UUID ownerId, UUID postId) {
         log.info("{}_ПРОВАЙДЕР_ПРОВЕРКА_СУЩЕСТВОВАНИЯ_НАЧАЛО: " +
@@ -79,7 +87,9 @@ public final class LikePostEntityProviderImpl extends AbstractEntityProvider<Lik
         return exists;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public Map<UUID, Long> getLikesCountsForPosts(List<UUID> postIds) {
         log.info("{}_ПРОВАЙДЕР_ПАКЕТНОЕ_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_НАЧАЛО: " +
@@ -104,5 +114,73 @@ public final class LikePostEntityProviderImpl extends AbstractEntityProvider<Lik
                 "получено количество лайков для {} постов", ENTITY_NAME, result.size());
 
         return result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<LikePost> getRecentLikesForPost(UUID postId, int limit) {
+        log.info("{}_ПРОВАЙДЕР_ПОЛУЧЕНИЕ_ПОСЛЕДНИХ_ЛАЙКОВ_НАЧАЛО: " +
+                "для поста {} с лимитом {}", postId, limit);
+
+        final int effectiveLimit = Math.max(1, Math.min(limit, 100));
+        final PageRequest pageRequest = PageRequest.of(0, effectiveLimit,
+                Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        final List<LikePost> likes = likePostRepository
+                .findByPostIdOrderByCreatedAtDesc(postId, pageRequest);
+
+        log.info("{}_ПРОВАЙДЕР_ПОЛУЧЕНИЕ_ПОСЛЕДНИХ_ЛАЙКОВ_УСПЕХ: " +
+                "для поста {} найдено {} лайков", postId, likes.size());
+
+        return likes;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<LikePost> getLikesByOwnerAndPosts(UUID ownerId, List<UUID> postIds) {
+        log.info("{}_ПРОВАЙДЕР_ПОЛУЧЕНИЕ_ЛАЙКОВ_ПОЛЬЗОВАТЕЛЯ_НАЧАЛО: " +
+                "для пользователя {} и {} постов", ownerId, postIds.size());
+
+        if (postIds.isEmpty()) {
+            log.info("{}_ПРОВАЙДЕР_ПОЛУЧЕНИЕ_ЛАЙКОВ_ПОЛЬЗОВАТЕЛЯ_ПУСТОЙ_СПИСОК", ENTITY_NAME);
+            return Collections.emptyList();
+        }
+
+        final List<LikePost> likes = likePostRepository
+                .findByOwnerIdAndPostIds(ownerId, postIds);
+
+        log.info("{}_ПРОВАЙДЕР_ПОЛУЧЕНИЕ_ЛАЙКОВ_ПОЛЬЗОВАТЕЛЯ_УСПЕХ: " +
+                "найдено {} лайков для пользователя {}", likes.size(), ownerId);
+
+        return likes;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<LikePost> getLikesWithPosts(List<UUID> postIds, int limit) {
+        log.info("{}_ПРОВАЙДЕР_ПОЛУЧЕНИЕ_ЛАЙКОВ_С_ПОСТАМИ_НАЧАЛО: " +
+                "для {} постов с лимитом {}", postIds.size(), limit);
+
+        if (postIds.isEmpty()) {
+            log.info("{}_ПРОВАЙДЕР_ПОЛУЧЕНИЕ_ЛАЙКОВ_С_ПОСТАМИ_ПУСТОЙ_СПИСОК", ENTITY_NAME);
+            return Collections.emptyList();
+        }
+
+        final int effectiveLimit = Math.max(1, Math.min(limit, 50));
+        final PageRequest pageRequest = PageRequest.of(0, effectiveLimit);
+
+        final List<LikePost> likes = likePostRepository
+                .findLikesWithPosts(postIds, pageRequest);
+
+        log.info("{}_ПРОВАЙДЕР_ПОЛУЧЕНИЕ_ЛАЙКОВ_С_ПОСТАМИ_УСПЕХ: " +
+                "получено {} лайков с постами", likes.size());
+
+        return likes;
     }
 }

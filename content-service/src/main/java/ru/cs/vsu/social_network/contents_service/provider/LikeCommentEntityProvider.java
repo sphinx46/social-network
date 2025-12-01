@@ -24,7 +24,7 @@ public interface LikeCommentEntityProvider extends EntityProvider<LikeComment> {
     /**
      * Находит лайк комментария по идентификатору пользователя и комментария.
      *
-     * @param ownerId идентификатор пользователя
+     * @param ownerId   идентификатор пользователя
      * @param commentId идентификатор комментария
      * @return Optional с лайком, если найден
      */
@@ -33,7 +33,7 @@ public interface LikeCommentEntityProvider extends EntityProvider<LikeComment> {
     /**
      * Проверяет существование лайка по идентификатору пользователя и комментария.
      *
-     * @param ownerId идентификатор пользователя
+     * @param ownerId   идентификатор пользователя
      * @param commentId идентификатор комментария
      * @return true если лайк существует
      */
@@ -46,4 +46,31 @@ public interface LikeCommentEntityProvider extends EntityProvider<LikeComment> {
      * @return маппинг commentId -> количество лайков
      */
     Map<UUID, Long> getLikesCountsForComments(List<UUID> commentIds);
+
+    /**
+     * Получает последние лайки для списка комментариев с ограничением на каждый комментарий.
+     *
+     * @param commentIds список идентификаторов комментариев
+     * @param limit      лимит лайков на каждый комментарий
+     * @return список лайков
+     */
+    List<LikeComment> getRecentLikesForComments(List<UUID> commentIds, int limit);
+
+    /**
+     * Получает лайки с предзагруженными комментариями для списка идентификаторов.
+     *
+     * @param commentIds список идентификаторов комментариев
+     * @param limit      максимальное количество лайков
+     * @return список лайков с загруженными комментариями
+     */
+    List<LikeComment> getLikesWithComments(List<UUID> commentIds, int limit);
+
+    /**
+     * Получает последние лайки для комментария с ограничением.
+     *
+     * @param commentId идентификатор комментария
+     * @param limit     максимальное количество возвращаемых лайков
+     * @return список последних лайков для указанного комментария
+     */
+    List<LikeComment> getRecentLikesForComment(UUID commentId, int limit);
 }

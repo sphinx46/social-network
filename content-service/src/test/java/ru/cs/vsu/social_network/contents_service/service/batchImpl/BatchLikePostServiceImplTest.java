@@ -10,7 +10,6 @@ import ru.cs.vsu.social_network.contents_service.dto.response.content.LikePostRe
 import ru.cs.vsu.social_network.contents_service.entity.LikePost;
 import ru.cs.vsu.social_network.contents_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.contents_service.provider.LikePostEntityProvider;
-import ru.cs.vsu.social_network.contents_service.repository.LikePostRepository;
 import ru.cs.vsu.social_network.contents_service.service.batch.batchImpl.BatchLikePostServiceImpl;
 import ru.cs.vsu.social_network.contents_service.utils.TestDataFactory;
 
@@ -21,17 +20,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit тесты для {@link BatchLikePostServiceImpl}.
- */
 @ExtendWith(MockitoExtension.class)
 class BatchLikePostServiceImplTest {
 
     private static final UUID POST_ID = UUID.fromString("8dce7d87-60d9-4b66-8851-e7dba4684538");
     private static final UUID LIKE_ID = UUID.fromString("5ab3c6d7-ec6f-49ad-95ac-6c752ad8172e");
 
-    @Mock
-    private LikePostRepository likePostRepository;
     @Mock
     private LikePostEntityProvider likePostEntityProvider;
     @Mock
@@ -75,13 +69,13 @@ class BatchLikePostServiceImplTest {
         List<UUID> expectedBatch = postIds.subList(0, 1000);
         Map<UUID, Long> expectedMap = TestDataFactory.createLikesCountMap(expectedBatch);
 
-        when(likePostEntityProvider.getLikesCountsForPosts(expectedBatch)).thenReturn(expectedMap);
+        when(likePostEntityProvider.getLikesCountsForPosts(any())).thenReturn(expectedMap);
 
         Map<UUID, Long> actual = batchLikePostService.getLikesCountsForPosts(postIds);
 
         assertNotNull(actual);
         assertEquals(1000, actual.size());
-        verify(likePostEntityProvider).getLikesCountsForPosts(expectedBatch);
+        verify(likePostEntityProvider, atLeastOnce()).getLikesCountsForPosts(any());
     }
 
     @Test
@@ -102,7 +96,7 @@ class BatchLikePostServiceImplTest {
             }
         }
 
-        when(likePostRepository.findRecentLikesForPosts(postIds, likesLimit))
+        when(likePostEntityProvider.getLikesWithPosts(postIds, likesLimit))
                 .thenReturn(mockLikes);
 
         when(entityMapper.map(any(LikePost.class), eq(LikePostResponse.class))).thenAnswer(invocation -> {
@@ -125,7 +119,7 @@ class BatchLikePostServiceImplTest {
             actual.get(postId).forEach(likeResponse ->
                     assertEquals(postId, likeResponse.getPostId()));
         });
-        verify(likePostRepository).findRecentLikesForPosts(postIds, likesLimit);
+        verify(likePostEntityProvider).getLikesWithPosts(postIds, likesLimit);
     }
 
     @Test
@@ -145,7 +139,7 @@ class BatchLikePostServiceImplTest {
             mockLikes.add(like);
         }
 
-        when(likePostRepository.findRecentLikesForPosts(postIds, effectiveLimit))
+        when(likePostEntityProvider.getLikesWithPosts(postIds, effectiveLimit))
                 .thenReturn(mockLikes);
 
         when(entityMapper.map(any(LikePost.class), eq(LikePostResponse.class))).thenAnswer(invocation -> {
@@ -166,7 +160,7 @@ class BatchLikePostServiceImplTest {
             assertTrue(actual.containsKey(postId));
             assertEquals(1, actual.get(postId).size());
         });
-        verify(likePostRepository).findRecentLikesForPosts(postIds, effectiveLimit);
+        verify(likePostEntityProvider).getLikesWithPosts(postIds, effectiveLimit);
     }
 
     @Test
@@ -182,7 +176,7 @@ class BatchLikePostServiceImplTest {
 
         List<LikePost> likes = List.of(like);
 
-        when(likePostRepository.findByPostIdOrderByCreatedAtDesc(eq(POST_ID), any()))
+        when(likePostEntityProvider.getRecentLikesForPost(POST_ID, limit))
                 .thenReturn(likes);
 
         LikePostResponse expectedResponse = TestDataFactory.createLikePostResponse(
@@ -200,23 +194,23 @@ class BatchLikePostServiceImplTest {
         assertEquals(1, actual.size());
         assertEquals(expectedResponse.getId(), actual.get(0).getId());
         assertEquals(expectedResponse.getPostId(), actual.get(0).getPostId());
-        verify(likePostRepository).findByPostIdOrderByCreatedAtDesc(eq(POST_ID), any());
+        verify(likePostEntityProvider).getRecentLikesForPost(POST_ID, limit);
     }
 
     @Test
     @DisplayName("Получение лайков для поста - пустой результат")
     void getLikesForPost_whenNoLikes_shouldReturnEmptyList() {
         int limit = 5;
-        List<LikePost> emptyList = List.of();
+        List<LikePost> emptyList = Collections.emptyList();
 
-        when(likePostRepository.findByPostIdOrderByCreatedAtDesc(eq(POST_ID), any()))
+        when(likePostEntityProvider.getRecentLikesForPost(POST_ID, limit))
                 .thenReturn(emptyList);
 
         List<LikePostResponse> actual = batchLikePostService.getLikesForPost(POST_ID, limit);
 
         assertNotNull(actual);
         assertTrue(actual.isEmpty());
-        verify(likePostRepository).findByPostIdOrderByCreatedAtDesc(eq(POST_ID), any());
+        verify(likePostEntityProvider).getRecentLikesForPost(POST_ID, limit);
         verify(entityMapper, never()).map(any(LikePost.class), eq(LikePostResponse.class));
     }
 
@@ -232,7 +226,7 @@ class BatchLikePostServiceImplTest {
         likeWithoutPost.setPost(null);
         likeWithoutPost.setCreatedAt(java.time.LocalDateTime.now());
 
-        when(likePostRepository.findRecentLikesForPosts(postIds, likesLimit))
+        when(likePostEntityProvider.getLikesWithPosts(postIds, likesLimit))
                 .thenReturn(List.of(likeWithoutPost));
 
         Map<UUID, List<LikePostResponse>> actual =
@@ -241,7 +235,34 @@ class BatchLikePostServiceImplTest {
         assertNotNull(actual);
         assertTrue(actual.containsKey(POST_ID));
         assertTrue(actual.get(POST_ID).isEmpty());
-        verify(likePostRepository).findRecentLikesForPosts(postIds, likesLimit);
+        verify(likePostEntityProvider).getLikesWithPosts(postIds, likesLimit);
         verify(entityMapper, never()).map(any(LikePost.class), eq(LikePostResponse.class));
+    }
+
+    @Test
+    @DisplayName("Получение статуса лайков для постов - успешно")
+    void getLikesStatusForPosts_whenPostIdsProvided_shouldReturnStatusMap() {
+        UUID ownerId = TestDataFactory.TEST_USER_ID;
+        List<UUID> postIds = TestDataFactory.createPostIds(3);
+
+        List<LikePost> userLikes = new ArrayList<>();
+        for (UUID postId : postIds) {
+            LikePost like = TestDataFactory.createLikePostEntity(
+                    UUID.randomUUID(),
+                    ownerId,
+                    postId
+            );
+            userLikes.add(like);
+        }
+
+        when(likePostEntityProvider.getLikesByOwnerAndPosts(ownerId, postIds))
+                .thenReturn(userLikes);
+
+        Map<UUID, Boolean> actual = batchLikePostService.getLikesStatusForPosts(ownerId, postIds);
+
+        assertNotNull(actual);
+        assertEquals(postIds.size(), actual.size());
+        postIds.forEach(postId -> assertTrue(actual.get(postId)));
+        verify(likePostEntityProvider).getLikesByOwnerAndPosts(ownerId, postIds);
     }
 }

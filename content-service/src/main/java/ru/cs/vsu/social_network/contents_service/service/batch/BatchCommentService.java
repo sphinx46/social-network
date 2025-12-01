@@ -23,7 +23,7 @@ public interface BatchCommentService {
     /**
      * Получает комментарии для списка постов с ограничением по количеству.
      *
-     * @param postIds список идентификаторов постов
+     * @param postIds       список идентификаторов постов
      * @param commentsLimit лимит комментариев на пост
      * @return маппинг ID поста -> список комментариев
      */
@@ -33,8 +33,18 @@ public interface BatchCommentService {
      * Получает комментарии для поста с ограничением по количеству.
      *
      * @param postId идентификатор поста
-     * @param limit максимальное количество комментариев
+     * @param limit  максимальное количество комментариев
      * @return список комментариев
      */
     List<CommentResponse> getCommentsForPost(UUID postId, int limit);
+
+    /**
+     * Получает комментарии с предзагруженными постами для списка идентификаторов.
+     * Устраняет проблему N+1 при доступе к связанным постам.
+     *
+     * @param commentIds список идентификаторов комментариев
+     * @param limit      максимальное количество комментариев
+     * @return список комментариев с информацией о постах
+     */
+    List<CommentResponse> getCommentsWithPosts(List<UUID> commentIds, int limit);
 }

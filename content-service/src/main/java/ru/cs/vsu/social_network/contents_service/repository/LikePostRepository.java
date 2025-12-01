@@ -20,7 +20,7 @@ import java.util.UUID;
 public interface LikePostRepository extends JpaRepository<LikePost, UUID> {
 
     /**
-     * Находит лайк поста по идентификатору пользователя и поста
+     * Находит лайк поста по идентификатору пользователя и поста.
      *
      * @param ownerId идентификатор пользователя
      * @param postId идентификатор поста
@@ -29,7 +29,7 @@ public interface LikePostRepository extends JpaRepository<LikePost, UUID> {
     Optional<LikePost> findByOwnerIdAndPostId(UUID ownerId, UUID postId);
 
     /**
-     * Проверяет существование лайка по идентификатору пользователя и поста
+     * Проверяет существование лайка по идентификатору пользователя и поста.
      *
      * @param ownerId идентификатор пользователя
      * @param postId идентификатор поста
@@ -38,7 +38,7 @@ public interface LikePostRepository extends JpaRepository<LikePost, UUID> {
     boolean existsByOwnerIdAndPostId(UUID ownerId, UUID postId);
 
     /**
-     * Находит все лайки поста с пагинацией
+     * Находит все лайки поста с пагинацией.
      *
      * @param postId идентификатор поста
      * @param pageable параметры пагинации
@@ -47,7 +47,7 @@ public interface LikePostRepository extends JpaRepository<LikePost, UUID> {
     Page<LikePost> findAllByPostId(UUID postId, Pageable pageable);
 
     /**
-     * Получает количество лайков поста
+     * Получает количество лайков поста.
      *
      * @param postId идентификатор поста
      * @return количество лайков
@@ -64,7 +64,7 @@ public interface LikePostRepository extends JpaRepository<LikePost, UUID> {
     List<LikePost> findByPostIdOrderByCreatedAtDesc(UUID postId, Pageable pageable);
 
     /**
-     * Получает количество лайков для списка постов в одном запросе
+     * Получает количество лайков для списка постов в одном запросе.
      *
      * @param postIds список идентификаторов постов
      * @return список кортежей [postId, count]
@@ -88,8 +88,49 @@ public interface LikePostRepository extends JpaRepository<LikePost, UUID> {
             WHERE lp.post_id IN (:postIds)
         )
         SELECT * FROM ranked_likes WHERE rn <= :limit
-        ORDER BY created_at DESC
         """, nativeQuery = true)
     List<LikePost> findRecentLikesForPosts(@Param("postIds") List<UUID> postIds,
                                            @Param("limit") int limit);
+
+    /**
+     * Находит лайки с предзагруженными постами для списка идентификаторов.
+     * Использует JOIN FETCH для устранения проблемы N+1 при доступе к связанным постам.
+     *
+     * @param postIds список идентификаторов постов
+     * @param pageable параметры пагинации
+     * @return список лайков с загруженными постами
+     */
+    @Query("SELECT lp FROM LikePost lp JOIN FETCH lp.post WHERE lp.post.id IN :postIds ORDER BY lp.createdAt DESC")
+    List<LikePost> findLikesWithPosts(@Param("postIds") List<UUID> postIds, Pageable pageable);
+
+    /**
+     * Находит лайки пользователя для списка постов.
+     * Эффективный метод для проверки, какие посты пользователь лайкнул.
+     *
+     * @param ownerId идентификатор пользователя
+     * @param postIds список идентификаторов постов
+     * @return список лайков пользователя для указанных постов
+     */
+    @Query("SELECT lp FROM LikePost lp WHERE lp.ownerId = :ownerId AND lp.post.id IN :postIds")
+    List<LikePost> findByOwnerIdAndPostIds(@Param("ownerId") UUID ownerId,
+                                           @Param("postIds") List<UUID> postIds);
+
+    /**
+     * Находит последние лайки для списка постов с лимитом на каждый пост.
+     * Использует JPQL с подзапросом для правильного лимитирования на каждый пост.
+     * Устраняет проблему N+1 при получении лайков для нескольких постов.
+     *
+     * @param postIds список идентификаторов постов
+     * @param limit лимит лайков на каждый пост
+     * @return список лайков с загруженными постами
+     */
+    @Query("SELECT lp FROM LikePost lp JOIN FETCH lp.post WHERE lp.id IN (" +
+            "SELECT lp2.id FROM LikePost lp2 WHERE lp2.post.id IN :postIds " +
+            "AND (" +
+            "  SELECT COUNT(*) FROM LikePost lp3 " +
+            "  WHERE lp3.post.id = lp2.post.id AND lp3.createdAt >= lp2.createdAt" +
+            ") <= :limit" +
+            ") ORDER BY lp.createdAt DESC")
+    List<LikePost> findRecentLikesForPostsWithPosts(@Param("postIds") List<UUID> postIds,
+                                                    @Param("limit") int limit);
 }

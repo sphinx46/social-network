@@ -10,7 +10,17 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "like_comment")
+@Table(name = "like_comment", indexes = {
+        @Index(name = "uk_like_comment_user_comment", columnList = "owner_id, comment_id", unique = true),
+
+        @Index(name = "idx_like_comment_comment_id", columnList = "comment_id"),
+
+        @Index(name = "idx_like_comment_owner_id", columnList = "owner_id"),
+
+        @Index(name = "idx_like_comment_created_at_desc", columnList = "created_at DESC"),
+
+        @Index(name = "idx_like_comment_comment_created_desc", columnList = "comment_id, created_at DESC")
+})
 public class LikeComment extends BaseEntity {
     @Column(name = "owner_id")
     private UUID ownerId;
@@ -32,4 +42,3 @@ public class LikeComment extends BaseEntity {
         return getClass().hashCode();
     }
 }
-

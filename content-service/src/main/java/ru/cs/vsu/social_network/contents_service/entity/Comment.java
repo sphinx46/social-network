@@ -11,7 +11,17 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "comment")
+@Table(name = "comments", indexes = {
+        @Index(name = "idx_comments_post_id", columnList = "post_id"),
+
+        @Index(name = "idx_comments_owner_id", columnList = "owner_id"),
+
+        @Index(name = "idx_comments_post_created_desc", columnList = "post_id, created_at DESC"),
+
+        @Index(name = "idx_comments_owner_created_desc", columnList = "owner_id, created_at DESC"),
+
+        @Index(name = "idx_comments_image_url", columnList = "image_url")
+})
 public class Comment extends BaseEntity {
     @Column(name = "owner_id")
     private UUID ownerId;
@@ -22,10 +32,6 @@ public class Comment extends BaseEntity {
 
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
-
-//    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    @BatchSize(size = 10)
-//    private Set<Like> likes = new HashSet<>();
 
     @Column(name = "image_url")
     private String imageUrl;

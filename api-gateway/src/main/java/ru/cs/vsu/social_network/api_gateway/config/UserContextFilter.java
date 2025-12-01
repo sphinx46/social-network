@@ -258,7 +258,20 @@ public class UserContextFilter
             return false;
         }
         return path.startsWith("/api/profile/me")
-                || path.startsWith("/api/upload");
+                || path.startsWith("/api/upload")
+                || path.startsWith("/api/content/post/create")
+                || path.startsWith("/api/content/post/edit")
+                || path.startsWith("/api/content/post/deleteImage")
+                || path.startsWith("/api/content/comment/create")
+                || path.startsWith("/api/content/comment/edit")
+                || path.startsWith("/api/content/comment/delete")
+                || path.startsWith("/api/content/comment/deleteImage")
+                || path.startsWith("/api/content/like/post/create")
+                || path.startsWith("/api/content/like/post/delete")
+                || path.startsWith("/api/content/like/comment/create")
+                || path.startsWith("/api/content/like/comment/delete")
+                || path.startsWith("/api/content/post/pagesPost")
+                || path.startsWith("/api/content/comment/pagesCommentByUserAndPost");
     }
 
     /**

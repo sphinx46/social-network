@@ -1,13 +1,9 @@
 package ru.cs.vsu.social_network.contents_service.entity;
 
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.UUID;
-
 
 @Entity
 @Getter
@@ -15,9 +11,15 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name = "posts")
+@Table(name = "posts", indexes = {
+        @Index(name = "idx_posts_owner_id", columnList = "owner_id"),
+        @Index(name = "idx_posts_created_at_desc", columnList = "created_at DESC"),
+        @Index(name = "idx_posts_owner_created_desc", columnList = "owner_id, created_at DESC"),
+        @Index(name = "idx_posts_image_url", columnList = "image_url"),
+        @Index(name = "idx_posts_updated_at", columnList = "updated_at")
+})
 public class Post extends BaseEntity {
-    @Column(name = "owner_id",  nullable = false)
+    @Column(name = "owner_id", nullable = false)
     private UUID ownerId;
 
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
@@ -25,12 +27,4 @@ public class Post extends BaseEntity {
 
     @Column(name = "image_url")
     private String imageUrl;
-
-//    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    @BatchSize(size = 10)
-//    private Set<Comment> comments = new HashSet<>();
-//
-//    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    @BatchSize(size = 10)
-//    private Set<Like> likes = new HashSet<>();
 }

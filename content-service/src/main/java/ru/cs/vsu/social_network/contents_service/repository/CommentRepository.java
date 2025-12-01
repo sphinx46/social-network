@@ -50,7 +50,7 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     Page<Comment> findAllByPostId(UUID postId, Pageable pageable);
 
     /**
-     * Получает количество комментариев поста
+     * Получает количество комментариев поста.
      *
      * @param postId идентификатор поста
      * @return количество комментариев
@@ -58,7 +58,7 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     long countByPostId(UUID postId);
 
     /**
-     * Находит комментарии поста с пагинацией, отсортированные по дате создания (новые сначала)
+     * Находит комментарии поста с пагинацией, отсортированные по дате создания (новые сначала).
      *
      * @param postId идентификатор поста
      * @param pageable параметры пагинации
@@ -67,7 +67,7 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     Page<Comment> findByPostIdOrderByCreatedAtDesc(UUID postId, Pageable pageable);
 
     /**
-     * Находит комментарии пользователя с пагинацией, отсортированные по дате создания (новые сначала)
+     * Находит комментарии пользователя с пагинацией, отсортированные по дате создания (новые сначала).
      *
      * @param ownerId идентификатор пользователя
      * @param pageable параметры пагинации
@@ -76,7 +76,8 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     Page<Comment> findByOwnerIdOrderByCreatedAtDesc(UUID ownerId, Pageable pageable);
 
     /**
-     * Получает количество комментариев для списка постов в одном запросе
+     * Получает количество комментариев для списка постов в одном запросе.
+     * Устраняет проблему N+1 при подсчете комментариев для нескольких постов.
      *
      * @param postIds список идентификаторов постов
      * @return список кортежей [postId, count]
@@ -90,19 +91,26 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
      *
      * @param postIds список идентификаторов постов
      * @param limit лимит комментариев на каждый пост
-     * @return список комментариев
+     * @return список комментариев с загруженными постами
      */
-    @Query(value = """
-        WITH ranked_comments AS (
-            SELECT c.*,
-                   ROW_NUMBER() OVER (PARTITION BY c.post_id ORDER BY c.created_at DESC) as rn
-            FROM comment c
-            WHERE c.post_id IN (:postIds)
-        )
-        SELECT * FROM ranked_comments WHERE rn <= :limit
-        ORDER BY created_at DESC
-        """, nativeQuery = true)
+    @Query("SELECT c FROM Comment c JOIN FETCH c.post WHERE c.id IN (" +
+            "SELECT c2.id FROM Comment c2 WHERE c2.post.id IN :postIds " +
+            "AND (" +
+            "  SELECT COUNT(*) FROM Comment c3 " +
+            "  WHERE c3.post.id = c2.post.id AND c3.createdAt >= c2.createdAt" +
+            ") <= :limit" +
+            ") ORDER BY c.createdAt DESC")
     List<Comment> findRecentCommentsForPosts(@Param("postIds") List<UUID> postIds,
                                              @Param("limit") int limit);
-    ;
+
+    /**
+     * Находит комментарии с предзагруженными постами для списка идентификаторов.
+     * Использует JOIN FETCH для устранения проблемы N+1 при доступе к связанным постам.
+     *
+     * @param commentIds список идентификаторов комментариев
+     * @param pageable параметры пагинации
+     * @return список комментариев с загруженными постами
+     */
+    @Query("SELECT c FROM Comment c JOIN FETCH c.post WHERE c.id IN :commentIds ORDER BY c.createdAt DESC")
+    List<Comment> findCommentsWithPosts(@Param("commentIds") List<UUID> commentIds, Pageable pageable);
 }

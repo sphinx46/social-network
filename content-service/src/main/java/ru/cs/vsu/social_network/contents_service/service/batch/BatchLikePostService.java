@@ -23,7 +23,7 @@ public interface BatchLikePostService {
     /**
      * Получает лайки для списка постов с ограничением по количеству.
      *
-     * @param postIds список идентификаторов постов
+     * @param postIds    список идентификаторов постов
      * @param likesLimit лимит лайков на пост
      * @return маппинг ID поста -> список лайков
      */
@@ -33,8 +33,18 @@ public interface BatchLikePostService {
      * Получает лайки для поста с ограничением по количеству.
      *
      * @param postId идентификатор поста
-     * @param limit максимальное количество лайков
+     * @param limit  максимальное количество лайков
      * @return список лайков
      */
     List<LikePostResponse> getLikesForPost(UUID postId, int limit);
+
+    /**
+     * Получает информацию о лайках пользователя для списка постов.
+     * Определяет, какие посты пользователь уже лайкнул.
+     *
+     * @param ownerId идентификатор пользователя
+     * @param postIds список идентификаторов постов
+     * @return карта соответствия идентификатора поста к информации о лайке пользователя
+     */
+    Map<UUID, Boolean> getLikesStatusForPosts(UUID ownerId, List<UUID> postIds);
 }
