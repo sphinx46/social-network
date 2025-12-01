@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [eureka-server, api-gateway, user-profile-service, upload-service]
+        service: [eureka-server, api-gateway, user-profile-service, upload-service, content-service]
         java-version: [21]
 
     services:
@@ -205,7 +205,7 @@ jobs:
 
     strategy:
       matrix:
-        service: [eureka-server, api-gateway, user-profile-service, upload-service]
+        service: [eureka-server, api-gateway, user-profile-service, upload-service, content-service]
 
     steps:
       - name: Checkout code
@@ -284,7 +284,7 @@ jobs:
 
       - name: Run integration tests
         run: |
-          mvn -B -pl api-gateway,eureka-server,user-profile-service,upload-service -am verify -DskipUnitTests=true -Djacoco.skip=true
+          mvn -B -pl api-gateway,eureka-server,user-profile-service,upload-service,content-service -am verify -DskipUnitTests=true -Djacoco.skip=true
         env:
           SPRING_PROFILES_ACTIVE: test
           SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false
