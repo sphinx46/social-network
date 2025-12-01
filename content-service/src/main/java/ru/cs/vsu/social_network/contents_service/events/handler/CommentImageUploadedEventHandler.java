@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.cs.vsu.social_network.contents_service.dto.request.comment.CommentUploadImageRequest;
 import ru.cs.vsu.social_network.contents_service.events.CommentImageUploadedEvent;
 import ru.cs.vsu.social_network.contents_service.mapping.EntityMapper;
-import ru.cs.vsu.social_network.contents_service.service.CommentService;
+import ru.cs.vsu.social_network.contents_service.service.content.CommentService;
 import ru.cs.vsu.social_network.contents_service.validation.event.CommentImageUploadedEventValidator;
 
 @Slf4j

@@ -22,12 +22,6 @@ public class PostResponse {
     @Schema(description = "ID создателя поста")
     private UUID ownerId;
 
-//    @Schema(description = "Данные о оставленных под постом комментариев")
-//    private List<CommentResponse> commentResponseList;
-//
-//    @Schema(description = "Данные о лайках на пост")
-//    private List<LikePostResponse> likePostResponseList;
-
     @Schema(description = "Содержимое поста", example = "Сегодня прекрасный день!")
     private String content;
 

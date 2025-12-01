@@ -16,7 +16,7 @@ import ru.cs.vsu.social_network.contents_service.dto.request.comment.CommentRemo
 import ru.cs.vsu.social_network.contents_service.dto.request.pageable.PageRequest;
 import ru.cs.vsu.social_network.contents_service.dto.response.content.CommentResponse;
 import ru.cs.vsu.social_network.contents_service.dto.response.pageable.PageResponse;
-import ru.cs.vsu.social_network.contents_service.service.CommentService;
+import ru.cs.vsu.social_network.contents_service.service.content.CommentService;
 
 import java.util.UUID;
 

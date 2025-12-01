@@ -73,15 +73,23 @@ public interface LikePostRepository extends JpaRepository<LikePost, UUID> {
     List<Object[]> findLikesCountByPostIds(@Param("postIds") List<UUID> postIds);
 
     /**
-     * Находит последние лайки для списка постов с лимитом на каждый пост
+     * Находит последние лайки для списка постов с лимитом на каждый пост.
+     * Использует WINDOW FUNCTION для правильного лимитирования на каждый пост.
      *
      * @param postIds список идентификаторов постов
-     * @param pageable параметры пагинации (лимит)
+     * @param limit лимит лайков на каждый пост
      * @return список лайков
      */
-    @Query("SELECT lp FROM LikePost lp WHERE lp.post.id IN :postIds " +
-            "AND lp.id IN (SELECT lp2.id FROM LikePost lp2 WHERE lp2.post.id = lp.post.id " +
-            "ORDER BY lp2.createdAt DESC)")
+    @Query(value = """
+        WITH ranked_likes AS (
+            SELECT lp.*,
+                   ROW_NUMBER() OVER (PARTITION BY lp.post_id ORDER BY lp.created_at DESC) as rn
+            FROM like_post lp
+            WHERE lp.post_id IN (:postIds)
+        )
+        SELECT * FROM ranked_likes WHERE rn <= :limit
+        ORDER BY created_at DESC
+        """, nativeQuery = true)
     List<LikePost> findRecentLikesForPosts(@Param("postIds") List<UUID> postIds,
-                                           Pageable pageable);
+                                           @Param("limit") int limit);
 }

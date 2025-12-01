@@ -15,7 +15,7 @@ import ru.cs.vsu.social_network.contents_service.dto.request.post.PostEditReques
 import ru.cs.vsu.social_network.contents_service.dto.request.post.PostRemoveImageRequest;
 import ru.cs.vsu.social_network.contents_service.dto.response.content.PostResponse;
 import ru.cs.vsu.social_network.contents_service.dto.response.pageable.PageResponse;
-import ru.cs.vsu.social_network.contents_service.service.PostService;
+import ru.cs.vsu.social_network.contents_service.service.content.PostService;
 
 import java.util.UUID;
 

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.cs.vsu.social_network.contents_service.dto.request.pageable.PageRequest;
 import ru.cs.vsu.social_network.contents_service.dto.response.content.PostDetailsResponse;
 import ru.cs.vsu.social_network.contents_service.dto.response.pageable.PageResponse;
-import ru.cs.vsu.social_network.contents_service.service.PostDetailsService;
+import ru.cs.vsu.social_network.contents_service.service.content.PostDetailsService;
 
 import java.util.UUID;
 

@@ -1,9 +1,7 @@
 package ru.cs.vsu.social_network.contents_service.dto.response.pageable;
 
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.domain.Page;
 import ru.cs.vsu.social_network.contents_service.dto.request.pageable.PageRequest;
 
@@ -12,6 +10,8 @@ import java.util.List;
 @Getter
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PageResponse<T> {
     private List<T> content;
     private Integer currentPage;

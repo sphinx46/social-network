@@ -85,15 +85,24 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
     List<Object[]> findCommentsCountByPostIds(@Param("postIds") List<UUID> postIds);
 
     /**
-     * Находит последние комментарии для списка постов с лимитом на каждый пост
+     * Находит последние комментарии для списка постов с лимитом на каждый пост.
+     * Использует WINDOW FUNCTION для правильного лимитирования на каждый пост.
      *
      * @param postIds список идентификаторов постов
-     * @param pageable параметры пагинации (лимит)
+     * @param limit лимит комментариев на каждый пост
      * @return список комментариев
      */
-    @Query("SELECT c FROM Comment c WHERE c.post.id IN :postIds " +
-            "AND c.id IN (SELECT c2.id FROM Comment c2 WHERE c2.post.id = c.post.id " +
-            "ORDER BY c2.createdAt DESC)")
+    @Query(value = """
+        WITH ranked_comments AS (
+            SELECT c.*,
+                   ROW_NUMBER() OVER (PARTITION BY c.post_id ORDER BY c.created_at DESC) as rn
+            FROM comment c
+            WHERE c.post_id IN (:postIds)
+        )
+        SELECT * FROM ranked_comments WHERE rn <= :limit
+        ORDER BY created_at DESC
+        """, nativeQuery = true)
     List<Comment> findRecentCommentsForPosts(@Param("postIds") List<UUID> postIds,
-                                             Pageable pageable);
+                                             @Param("limit") int limit);
+    ;
 }

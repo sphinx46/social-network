@@ -1,12 +1,16 @@
 package ru.cs.vsu.social_network.contents_service.dto.request.pageable;
 
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Sort;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class PageRequest {
     private Integer size;
     private Integer pageNumber;

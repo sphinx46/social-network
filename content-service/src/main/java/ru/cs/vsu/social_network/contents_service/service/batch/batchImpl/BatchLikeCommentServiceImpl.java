@@ -3,7 +3,6 @@ package ru.cs.vsu.social_network.contents_service.service.batch.batchImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.cs.vsu.social_network.contents_service.dto.response.content.LikeCommentResponse;
 import ru.cs.vsu.social_network.contents_service.entity.LikeComment;
@@ -71,19 +70,23 @@ public class BatchLikeCommentServiceImpl implements BatchLikeCommentService {
         final List<UUID> batchCommentIds = commentIds.size() > MAX_BATCH_SIZE ?
                 commentIds.subList(0, MAX_BATCH_SIZE) : commentIds;
 
-        final Pageable pageable = PageRequest.of(0, likesLimit);
+        final int effectiveLimit = Math.max(1, likesLimit);
         final List<LikeComment> allLikes = likeCommentRepository
-                .findRecentLikesForComments(batchCommentIds, pageable);
+                .findRecentLikesForComments(batchCommentIds, effectiveLimit);
 
         final Map<UUID, List<LikeCommentResponse>> result = new HashMap<>();
-
         batchCommentIds.forEach(commentId -> result.put(commentId, new ArrayList<>()));
 
         for (LikeComment like : allLikes) {
-            UUID commentId = like.getComment() != null ? like.getComment().getId() : null;
-            if (commentId != null && result.containsKey(commentId)) {
-                LikeCommentResponse response = entityMapper.map(like, LikeCommentResponse.class);
-                result.get(commentId).add(response);
+            if (like.getComment() != null) {
+                UUID commentId = like.getComment().getId();
+                if (result.containsKey(commentId)) {
+                    List<LikeCommentResponse> commentLikes = result.get(commentId);
+                    if (commentLikes.size() < effectiveLimit) {
+                        LikeCommentResponse response = entityMapper.map(like, LikeCommentResponse.class);
+                        commentLikes.add(response);
+                    }
+                }
             }
         }
 

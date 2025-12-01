@@ -10,6 +10,15 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: ${REDIS_TIMEOUT:5000ms}
+  cache:
+    type: redis
+
 server:
   port: ${CONTENT_SERVICE_PORT:8083}
   servlet:

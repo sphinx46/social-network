@@ -64,14 +64,23 @@ public interface LikeCommentRepository extends JpaRepository<LikeComment, UUID> 
     List<Object[]> findLikesCountByCommentIds(@Param("commentIds") List<UUID> commentIds);
 
     /**
-     * Находит последние лайки для списка комментариев с лимитом на каждый комментарий
+     * Находит последние лайки для списка комментариев с лимитом на каждый комментарий.
+     * Использует WINDOW FUNCTION для правильного лимитирования на каждый комментарий.
      *
      * @param commentIds список идентификаторов комментариев
-     * @param pageable параметры пагинации (лимит)
+     * @param limit лимит лайков на каждый комментарий
      * @return список лайков
      */
-    @Query("SELECT lc FROM LikeComment lc WHERE lc.comment.id IN :commentIds " +
-            "ORDER BY lc.createdAt DESC")
+    @Query(value = """
+        WITH ranked_likes AS (
+            SELECT lc.*,
+                   ROW_NUMBER() OVER (PARTITION BY lc.comment_id ORDER BY lc.created_at DESC) as rn
+            FROM like_comment lc
+            WHERE lc.comment_id IN (:commentIds)
+        )
+        SELECT * FROM ranked_likes WHERE rn <= :limit
+        ORDER BY created_at DESC
+        """, nativeQuery = true)
     List<LikeComment> findRecentLikesForComments(@Param("commentIds") List<UUID> commentIds,
-                                                 Pageable pageable);
+                                                 @Param("limit") int limit);
 }

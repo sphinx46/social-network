@@ -3,7 +3,6 @@ package ru.cs.vsu.social_network.contents_service.service.batch.batchImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.cs.vsu.social_network.contents_service.dto.response.content.LikePostResponse;
 import ru.cs.vsu.social_network.contents_service.entity.LikePost;
@@ -35,8 +34,8 @@ public class BatchLikePostServiceImpl implements BatchLikePostService {
      */
     @Override
     public Map<UUID, Long> getLikesCountsForPosts(final List<UUID> postIds) {
-        log.debug("BATCH_LIKE_SERVICE_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_ЛАЙКОВ_НАЧАЛО: для {} постов",
-                postIds.size());
+        log.debug("BATCH_LIKE_SERVICE_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_ЛАЙКОВ_НАЧАЛО: " +
+                "для {} постов", postIds.size());
 
         if (postIds.isEmpty()) {
             log.debug("BATCH_LIKE_SERVICE_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_ЛАЙКОВ_ПУСТОЙ_СПИСОК");
@@ -71,19 +70,23 @@ public class BatchLikePostServiceImpl implements BatchLikePostService {
         final List<UUID> batchPostIds = postIds.size() > MAX_BATCH_SIZE ?
                 postIds.subList(0, MAX_BATCH_SIZE) : postIds;
 
-        final Pageable pageable = PageRequest.of(0, likesLimit);
+        final int effectiveLimit = Math.max(1, likesLimit);
         final List<LikePost> allLikes = likePostRepository
-                .findRecentLikesForPosts(batchPostIds, pageable);
+                .findRecentLikesForPosts(batchPostIds, effectiveLimit);
 
         final Map<UUID, List<LikePostResponse>> result = new HashMap<>();
-
         batchPostIds.forEach(postId -> result.put(postId, new ArrayList<>()));
 
         for (LikePost like : allLikes) {
-            UUID postId = like.getPost() != null ? like.getPost().getId() : null;
-            if (postId != null && result.containsKey(postId)) {
-                LikePostResponse response = entityMapper.map(like, LikePostResponse.class);
-                result.get(postId).add(response);
+            if (like.getPost() != null) {
+                UUID postId = like.getPost().getId();
+                if (result.containsKey(postId)) {
+                    List<LikePostResponse> postLikes = result.get(postId);
+                    if (postLikes.size() < effectiveLimit) {
+                        LikePostResponse response = entityMapper.map(like, LikePostResponse.class);
+                        postLikes.add(response);
+                    }
+                }
             }
         }
 

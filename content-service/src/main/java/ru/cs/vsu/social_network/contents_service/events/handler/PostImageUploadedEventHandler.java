@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.cs.vsu.social_network.contents_service.dto.request.post.PostUploadImageRequest;
 import ru.cs.vsu.social_network.contents_service.events.PostImageUploadedEvent;
 import ru.cs.vsu.social_network.contents_service.mapping.EntityMapper;
-import ru.cs.vsu.social_network.contents_service.service.PostService;
+import ru.cs.vsu.social_network.contents_service.service.content.PostService;
 import ru.cs.vsu.social_network.contents_service.validation.event.PostImageUploadedEventValidator;
 
 

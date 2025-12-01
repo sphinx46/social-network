@@ -13,7 +13,7 @@ import ru.cs.vsu.social_network.contents_service.dto.request.like.LikeCommentReq
 import ru.cs.vsu.social_network.contents_service.dto.request.pageable.PageRequest;
 import ru.cs.vsu.social_network.contents_service.dto.response.content.LikeCommentResponse;
 import ru.cs.vsu.social_network.contents_service.dto.response.pageable.PageResponse;
-import ru.cs.vsu.social_network.contents_service.service.LikeCommentService;
+import ru.cs.vsu.social_network.contents_service.service.content.LikeCommentService;
 
 import java.util.UUID;
 
