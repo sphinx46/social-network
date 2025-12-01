@@ -9,11 +9,12 @@ import ru.cs.vsu.social_network.contents_service.dto.request.pageable.PageReques
 import ru.cs.vsu.social_network.contents_service.dto.response.content.LikePostResponse;
 import ru.cs.vsu.social_network.contents_service.dto.response.pageable.PageResponse;
 import ru.cs.vsu.social_network.contents_service.entity.LikePost;
-import ru.cs.vsu.social_network.contents_service.service.cache.CacheEventPublisherService;
+import ru.cs.vsu.social_network.contents_service.exception.like.LikeAlreadyExistsException;
 import ru.cs.vsu.social_network.contents_service.exception.like.LikeNotFoundException;
 import ru.cs.vsu.social_network.contents_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.contents_service.provider.LikePostEntityProvider;
 import ru.cs.vsu.social_network.contents_service.repository.LikePostRepository;
+import ru.cs.vsu.social_network.contents_service.service.cache.CacheEventPublisherService;
 import ru.cs.vsu.social_network.contents_service.service.content.LikePostService;
 import ru.cs.vsu.social_network.contents_service.utils.MessageConstants;
 import ru.cs.vsu.social_network.contents_service.utils.factory.content.LikePostFactory;
@@ -58,7 +59,7 @@ public class LikePostServiceImpl implements LikePostService {
             log.warn("ЛАЙК_ПОСТ_СЕРВИС_СОЗДАНИЕ_ОШИБКА: "
                             + "лайк уже существует для поста с ID: {} пользователем: {}",
                     likePostRequest.getPostId(), keycloakUserId);
-            throw new RuntimeException("Лайк уже существует");
+            throw new LikeAlreadyExistsException(MessageConstants.LIKE_ALREADY_EXISTS_FAILURE);
         }
 
         LikePost likePost = likePostFactory.create(keycloakUserId, likePostRequest);

@@ -3,13 +3,16 @@ package ru.cs.vsu.social_network.contents_service.exception.handler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingRequestHeaderException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.cs.vsu.social_network.contents_service.exception.comment.CommentNotFoundException;
 import ru.cs.vsu.social_network.contents_service.exception.comment.CommentUploadImageException;
+import ru.cs.vsu.social_network.contents_service.exception.like.LikeAlreadyExistsException;
 import ru.cs.vsu.social_network.contents_service.exception.like.LikeNotFoundException;
 import ru.cs.vsu.social_network.contents_service.exception.post.PostNotFoundException;
 import ru.cs.vsu.social_network.contents_service.exception.post.PostUploadImageException;
@@ -60,6 +63,24 @@ public class GlobalExceptionHandler {
         body.put("error", "Like Not Found");
         body.put("message", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+    }
+
+    /**
+     * Обрабатывает исключение LikeAlreadyExistsException.
+     *
+     * @param ex исключение
+     * @return ответ с ошибкой 409
+     */
+    @ExceptionHandler(LikeAlreadyExistsException.class)
+    public ResponseEntity<Map<String, Object>> handleLikeAlreadyExistsException(
+            final LikeAlreadyExistsException ex) {
+        log.warn("ЛАЙК_ОШИБКА_УЖЕ_СУЩЕСТВУЕТ: {}", ex.getMessage());
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.CONFLICT.value());
+        body.put("error", "Conflict");
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
     /**
@@ -157,6 +178,39 @@ public class GlobalExceptionHandler {
         body.put("status", HttpStatus.BAD_REQUEST.value());
         body.put("error", "Bad Request");
         body.put("message", errorMessage);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+
+    /**
+     * Обрабатывает исключение AccessDeniedException.
+     *
+     * @param ex исключение
+     * @return ответ с ошибкой 403
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDeniedException(
+            final AccessDeniedException ex) {
+        log.warn("ДОСТУП_ОШИБКА_ЗАПРЕЩЕН: {}", ex.getMessage());
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.FORBIDDEN.value());
+        body.put("error", "Access Denied");
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(body);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<Map<String, Object>> handleMissingServletRequestParameterException(
+            final MissingServletRequestParameterException ex) {
+        log.warn("КОНТЕНТ_ОШИБКА_ОТСУТСТВУЕТ_ПАРАМЕТР: " +
+                        "отсутствует обязательный параметр - {}",
+                ex.getParameterName());
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Bad Request");
+        body.put("message", "Отсутствует обязательный параметр: " + ex.getParameterName());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 

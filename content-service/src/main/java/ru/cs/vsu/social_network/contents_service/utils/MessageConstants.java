@@ -21,4 +21,5 @@ public class MessageConstants {
 
     // LIKE
     public static final String LIKE_NOT_FOUND_FAILURE = "Ошибка! Лайк не найден";
+    public static final String LIKE_ALREADY_EXISTS_FAILURE = "Ошибка! Лайк уже существует!";
 }

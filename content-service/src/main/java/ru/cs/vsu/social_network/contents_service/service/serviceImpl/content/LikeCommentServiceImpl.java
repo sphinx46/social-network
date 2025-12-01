@@ -9,6 +9,7 @@ import ru.cs.vsu.social_network.contents_service.dto.request.pageable.PageReques
 import ru.cs.vsu.social_network.contents_service.dto.response.content.LikeCommentResponse;
 import ru.cs.vsu.social_network.contents_service.dto.response.pageable.PageResponse;
 import ru.cs.vsu.social_network.contents_service.entity.LikeComment;
+import ru.cs.vsu.social_network.contents_service.exception.like.LikeAlreadyExistsException;
 import ru.cs.vsu.social_network.contents_service.exception.like.LikeNotFoundException;
 import ru.cs.vsu.social_network.contents_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.contents_service.provider.LikeCommentEntityProvider;
@@ -55,7 +56,7 @@ public class LikeCommentServiceImpl implements LikeCommentService {
             log.warn("ЛАЙК_КОММЕНТАРИЙ_СЕРВИС_СОЗДАНИЕ_ОШИБКА: "
                             + "лайк уже существует для комментария с ID: {} пользователем: {}",
                     likeCommentRequest.getCommentId(), keycloakUserId);
-            throw new RuntimeException("Лайк уже существует");
+            throw new LikeAlreadyExistsException(MessageConstants.LIKE_ALREADY_EXISTS_FAILURE);
         }
 
         LikeComment likeComment =
