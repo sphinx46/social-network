@@ -5,6 +5,8 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.cs.vsu.social_network.messaging_service.dto.response.messaging.ConversationDetailsResponse;
+import ru.cs.vsu.social_network.messaging_service.dto.response.messaging.ConversationResponse;
 import ru.cs.vsu.social_network.messaging_service.dto.response.messaging.MessageResponse;
 import ru.cs.vsu.social_network.messaging_service.entity.Message;
 
@@ -63,5 +65,27 @@ public class ModelMapperConfig {
             }
         });
     }
+
+    /**
+     * Настраивает маппинг между dto ConversationResponse и ConversationDetailsResponse.
+     * Определяет правила преобразования полей переписки в расширенный DTO ответа.
+     *
+     * @param modelMapper экземпляр ModelMapper для настройки
+     */
+    private void configureConversationDetailsMappings(final ModelMapper modelMapper) {
+        modelMapper.addMappings(new PropertyMap<ConversationResponse, ConversationDetailsResponse>() {
+            @Override
+            protected void configure() {
+                map().setConversationId(source.getConversationId());
+                map().setUser1Id(source.getUser1Id());
+                map().setUser2Id(source.getUser2Id());
+                map().setMessagesCount(source.getMessagesCount());
+                map().setCreatedAt(source.getCreatedAt());
+                map().setUpdatedAt(source.getUpdatedAt());
+            }
+        });
+    }
+
+
 
 }
