@@ -21,6 +21,7 @@
 		<module>user-profile-service</module>
 		<module>upload-service</module>
         <module>content-service</module>
+        <module>messaging-service</module>
 	</modules>
 
 	<properties>
