@@ -115,7 +115,7 @@ class MediaControllerTest extends BaseControllerTest {
     @DisplayName("Загрузка файла - успешно")
     void uploadFile_whenRequestIsValid_shouldReturnCreated() throws Exception {
         final MockMultipartFile file = new MockMultipartFile(
-                "file", "document.pdf", MediaType.APPLICATION_PDF_VALUE, "pdf-content".getBytes());
+                "file", "document.pdf", MediaType.APPLICATION_PDF_VALUE, "pdf-messaging".getBytes());
         final MediaResponse response = TestDataFactory.createMediaResponse(
                 MEDIA_ID, OWNER_ID, "http://localhost/media/document.pdf",
                 "document.pdf", MediaType.APPLICATION_PDF_VALUE, 2048L,
@@ -172,7 +172,7 @@ class MediaControllerTest extends BaseControllerTest {
 
         when(mediaService.download(any())).thenReturn(contentResponse);
 
-        mockMvcUtils.performGet("/media/" + MEDIA_ID + "/content")
+        mockMvcUtils.performGet("/media/" + MEDIA_ID + "/messaging")
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
                         containsString("avatar.png")))
@@ -225,7 +225,7 @@ class MediaControllerTest extends BaseControllerTest {
         when(mediaService.download(any()))
                 .thenThrow(new AccessDeniedException("Доступ запрещен"));
 
-        mockMvcUtils.performGet("/media/" + MEDIA_ID + "/content")
+        mockMvcUtils.performGet("/media/" + MEDIA_ID + "/messaging")
                 .andExpect(status().isForbidden());
 
         verify(mediaService).download(any());
@@ -252,13 +252,13 @@ class MediaControllerTest extends BaseControllerTest {
     @DisplayName("Загрузка изображения поста - успешно")
     void uploadPostImage_whenRequestIsValid_shouldReturnCreated() throws Exception {
         final MockMultipartFile file = TestDataFactory.createPostImageFile(
-                "post-image.jpg", MediaType.IMAGE_JPEG_VALUE, "post-image-content".getBytes());
+                "post-image.jpg", MediaType.IMAGE_JPEG_VALUE, "post-image-messaging".getBytes());
         final MediaResponse response = TestDataFactory.createPostImageResponse(MEDIA_ID, OWNER_ID);
 
         when(postImageMediaService.uploadPostImage(any(MediaUploadRequest.class), eq(POST_ID))).thenReturn(response);
 
         mockMvcUtils.performMultipart("/media/post-images/" + POST_ID, file,
-                        Map.of("category", "POST_IMAGE", "description", "Post content image"))
+                        Map.of("category", "POST_IMAGE", "description", "Post messaging image"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(MEDIA_ID.toString()))
                 .andExpect(jsonPath("$.publicUrl").value("http://localhost/media/post-image.jpg"))
@@ -277,7 +277,7 @@ class MediaControllerTest extends BaseControllerTest {
                 .thenThrow(new InvalidFileException("Недопустимый тип файла для изображения поста"));
 
         mockMvcUtils.performMultipart("/media/post-images/" + POST_ID, file,
-                        Map.of("category", "POST_IMAGE", "description", "Post content image"))
+                        Map.of("category", "POST_IMAGE", "description", "Post messaging image"))
                 .andExpect(status().isBadRequest());
 
         verify(postImageMediaService).uploadPostImage(any(MediaUploadRequest.class), eq(POST_ID));
@@ -287,7 +287,7 @@ class MediaControllerTest extends BaseControllerTest {
     @DisplayName("Загрузка изображения поста - обязательная категория отсутствует")
     void uploadPostImage_whenCategoryMissing_shouldReturnBadRequest() throws Exception {
         final MockMultipartFile file = TestDataFactory.createPostImageFile(
-                "post-image.jpg", MediaType.IMAGE_JPEG_VALUE, "image-content".getBytes());
+                "post-image.jpg", MediaType.IMAGE_JPEG_VALUE, "image-messaging".getBytes());
 
         mockMvcUtils.performMultipart("/media/post-images/" + POST_ID, file, Map.of())
                 .andExpect(status().isBadRequest());
@@ -331,14 +331,14 @@ class MediaControllerTest extends BaseControllerTest {
     @DisplayName("Загрузка изображения комментария - успешно")
     void uploadCommentImage_whenRequestIsValid_shouldReturnCreated() throws Exception {
         final MockMultipartFile file = TestDataFactory.createCommentImageFile(
-                "comment-image.jpg", MediaType.IMAGE_JPEG_VALUE, "comment-image-content".getBytes());
+                "comment-image.jpg", MediaType.IMAGE_JPEG_VALUE, "comment-image-messaging".getBytes());
         final MediaResponse response = TestDataFactory.createCommentImageResponse(MEDIA_ID, OWNER_ID);
 
         when(commentImageMediaService.uploadCommentImage(any(MediaUploadRequest.class), eq(COMMENT_ID), eq(POST_ID)))
                 .thenReturn(response);
 
         mockMvcUtils.performMultipart("/media/comment-images/" + COMMENT_ID + "/post/" + POST_ID, file,
-                        Map.of("category", "COMMENT_IMAGE", "description", "Comment content image"))
+                        Map.of("category", "COMMENT_IMAGE", "description", "Comment messaging image"))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(MEDIA_ID.toString()))
                 .andExpect(jsonPath("$.publicUrl").value("http://localhost/media/comment-image.jpg"))
@@ -357,7 +357,7 @@ class MediaControllerTest extends BaseControllerTest {
                 .thenThrow(new InvalidFileException("Недопустимый тип файла для изображения комментария"));
 
         mockMvcUtils.performMultipart("/media/comment-images/" + COMMENT_ID + "/post/" + POST_ID, file,
-                        Map.of("category", "COMMENT_IMAGE", "description", "Comment content image"))
+                        Map.of("category", "COMMENT_IMAGE", "description", "Comment messaging image"))
                 .andExpect(status().isBadRequest());
 
         verify(commentImageMediaService).uploadCommentImage(any(MediaUploadRequest.class), eq(COMMENT_ID), eq(POST_ID));
@@ -367,7 +367,7 @@ class MediaControllerTest extends BaseControllerTest {
     @DisplayName("Загрузка изображения комментария - обязательная категория отсутствует")
     void uploadCommentImage_whenCategoryMissing_shouldReturnBadRequest() throws Exception {
         final MockMultipartFile file = TestDataFactory.createCommentImageFile(
-                "comment-image.jpg", MediaType.IMAGE_JPEG_VALUE, "image-content".getBytes());
+                "comment-image.jpg", MediaType.IMAGE_JPEG_VALUE, "image-messaging".getBytes());
 
         mockMvcUtils.performMultipart("/media/comment-images/" + COMMENT_ID + "/post/" + POST_ID, file, Map.of())
                 .andExpect(status().isBadRequest());
@@ -411,7 +411,7 @@ class MediaControllerTest extends BaseControllerTest {
     @DisplayName("Загрузка изображения комментария - успешно с PNG форматом")
     void uploadCommentImage_whenPngFormat_shouldReturnCreated() throws Exception {
         final MockMultipartFile file = TestDataFactory.createCommentImageFile(
-                "comment-image.png", MediaType.IMAGE_PNG_VALUE, "png-content".getBytes());
+                "comment-image.png", MediaType.IMAGE_PNG_VALUE, "png-messaging".getBytes());
         final MediaResponse response = TestDataFactory.createCommentImageResponse(MEDIA_ID, OWNER_ID);
 
         when(commentImageMediaService.uploadCommentImage(any(MediaUploadRequest.class), eq(COMMENT_ID), eq(POST_ID)))
@@ -431,7 +431,7 @@ class MediaControllerTest extends BaseControllerTest {
     @DisplayName("Загрузка изображения комментария - успешно с WEBP форматом")
     void uploadCommentImage_whenWebpFormat_shouldReturnCreated() throws Exception {
         final MockMultipartFile file = TestDataFactory.createCommentImageFile(
-                "comment-image.webp", "image/webp", "webp-content".getBytes());
+                "comment-image.webp", "image/webp", "webp-messaging".getBytes());
         final MediaResponse response = TestDataFactory.createCommentImageResponse(MEDIA_ID, OWNER_ID);
 
         when(commentImageMediaService.uploadCommentImage(any(MediaUploadRequest.class), eq(COMMENT_ID), eq(POST_ID)))

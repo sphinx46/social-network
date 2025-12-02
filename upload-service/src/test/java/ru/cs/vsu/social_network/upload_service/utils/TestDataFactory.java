@@ -289,7 +289,7 @@ public final class TestDataFactory {
                 .mimeType("image/jpeg")
                 .size(2048L)
                 .category("POST_IMAGE")
-                .description("Post content image")
+                .description("Post messaging image")
                 .originalFileName("post-image.jpg")
                 .build();
     }
@@ -305,7 +305,7 @@ public final class TestDataFactory {
         MediaEntity entity = MediaEntity.builder()
                 .ownerId(ownerId)
                 .category("POST_IMAGE")
-                .description("Post content image")
+                .description("Post messaging image")
                 .objectName("post-image.jpg")
                 .originalFileName("post-image.jpg")
                 .mimeType("image/jpeg")
@@ -366,7 +366,7 @@ public final class TestDataFactory {
                 .mimeType("image/jpeg")
                 .size(1536L)
                 .category("COMMENT_IMAGE")
-                .description("Comment content image")
+                .description("Comment messaging image")
                 .originalFileName("comment-image.jpg")
                 .build();
     }
@@ -383,7 +383,7 @@ public final class TestDataFactory {
         MediaEntity entity = MediaEntity.builder()
                 .ownerId(ownerId)
                 .category("COMMENT_IMAGE")
-                .description("Comment content image")
+                .description("Comment messaging image")
                 .objectName("comment-image.jpg")
                 .originalFileName("comment-image.jpg")
                 .mimeType("image/jpeg")

@@ -53,7 +53,7 @@ class PostDetailsAggregatorImplTest {
     @Test
     @DisplayName("Агрегация деталей поста - с комментариями и лайками")
     void aggregatePostDetails_whenIncludeCommentsAndLikes_shouldReturnResponseWithAllData() {
-        Post post = TestDataFactory.createPostEntity(POST_ID, USER_ID, "Test content",
+        Post post = TestDataFactory.createPostEntity(POST_ID, USER_ID, "Test messaging",
                 "http://example.com/image.jpg");
         PostDetailsResponse baseResponse = TestDataFactory.createPostDetailsResponse(POST_ID);
 
@@ -92,7 +92,7 @@ class PostDetailsAggregatorImplTest {
     @Test
     @DisplayName("Агрегация деталей поста - без комментариев и лайков")
     void aggregatePostDetails_whenExcludeCommentsAndLikes_shouldReturnResponseWithoutData() {
-        Post post = TestDataFactory.createPostEntity(POST_ID, USER_ID, "Test content",
+        Post post = TestDataFactory.createPostEntity(POST_ID, USER_ID, "Test messaging",
                 "http://example.com/image.jpg");
         PostDetailsResponse baseResponse = TestDataFactory.createPostDetailsResponse(POST_ID);
 
@@ -123,7 +123,7 @@ class PostDetailsAggregatorImplTest {
     @Test
     @DisplayName("Агрегация деталей поста - только комментарии")
     void aggregatePostDetails_whenIncludeCommentsOnly_shouldReturnResponseWithCommentsOnly() {
-        Post post = TestDataFactory.createPostEntity(POST_ID, USER_ID, "Test content",
+        Post post = TestDataFactory.createPostEntity(POST_ID, USER_ID, "Test messaging",
                 "http://example.com/image.jpg");
         PostDetailsResponse baseResponse = TestDataFactory.createPostDetailsResponse(POST_ID);
 

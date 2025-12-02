@@ -51,8 +51,8 @@ class CommentMediaServiceImplTest {
     @DisplayName("Загрузка изображения комментария - успешно")
     void uploadCommentImage_whenRequestIsValid_shouldReturnResponse() {
         MockMultipartFile file = TestDataFactory.createCommentImageFile(
-                "comment-image.jpg", MediaType.IMAGE_JPEG_VALUE, "image-content".getBytes());
-        MediaUploadRequest request = TestDataFactory.createCommentImageUploadRequest(file, "Comment content image");
+                "comment-image.jpg", MediaType.IMAGE_JPEG_VALUE, "image-messaging".getBytes());
+        MediaUploadRequest request = TestDataFactory.createCommentImageUploadRequest(file, "Comment messaging image");
         MediaResponse expectedResponse = TestDataFactory.createCommentImageResponse(MEDIA_ID, OWNER_ID);
         MediaEntity mediaEntity = TestDataFactory.createCommentImageEntity(MEDIA_ID, OWNER_ID);
 
@@ -125,7 +125,7 @@ class CommentMediaServiceImplTest {
     @DisplayName("Загрузка изображения комментария - неподдерживаемый формат")
     void uploadCommentImage_whenUnsupportedFormat_shouldThrowException() {
         MockMultipartFile file = TestDataFactory.createCommentImageFile(
-                "document.pdf", MediaType.APPLICATION_PDF_VALUE, "pdf-content".getBytes());
+                "document.pdf", MediaType.APPLICATION_PDF_VALUE, "pdf-messaging".getBytes());
         MediaUploadRequest request = TestDataFactory.createCommentImageUploadRequest(file, "PDF document");
 
         doThrow(new InvalidFileException("Неподдерживаемый формат файла для изображения комментария"))
@@ -142,7 +142,7 @@ class CommentMediaServiceImplTest {
     @DisplayName("Загрузка изображения комментария - успешно с PNG форматом")
     void uploadCommentImage_whenPngFormat_shouldReturnResponse() {
         MockMultipartFile file = TestDataFactory.createCommentImageFile(
-                "comment-image.png", MediaType.IMAGE_PNG_VALUE, "png-content".getBytes());
+                "comment-image.png", MediaType.IMAGE_PNG_VALUE, "png-messaging".getBytes());
         MediaUploadRequest request = TestDataFactory.createCommentImageUploadRequest(file, "PNG comment image");
         MediaResponse expectedResponse = TestDataFactory.createCommentImageResponse(MEDIA_ID, OWNER_ID);
         MediaEntity mediaEntity = TestDataFactory.createCommentImageEntity(MEDIA_ID, OWNER_ID);
@@ -165,7 +165,7 @@ class CommentMediaServiceImplTest {
     @DisplayName("Загрузка изображения комментария - успешно с WEBP форматом")
     void uploadCommentImage_whenWebpFormat_shouldReturnResponse() {
         MockMultipartFile file = TestDataFactory.createCommentImageFile(
-                "comment-image.webp", "image/webp", "webp-content".getBytes());
+                "comment-image.webp", "image/webp", "webp-messaging".getBytes());
         MediaUploadRequest request = TestDataFactory.createCommentImageUploadRequest(file, "WEBP comment image");
         MediaResponse expectedResponse = TestDataFactory.createCommentImageResponse(MEDIA_ID, OWNER_ID);
         MediaEntity mediaEntity = TestDataFactory.createCommentImageEntity(MEDIA_ID, OWNER_ID);

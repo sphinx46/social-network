@@ -69,10 +69,10 @@ public class CommentServiceImplTest {
     @Test
     void createComment_whenRequestIsValid() {
         User currentUser = createTestUser(1L, "user", "user@example.com");
-        Post post = createTestPost(createTestUser(2L, "postOwner", "owner@example.com"), "Post content", null);
-        CommentRequest request = createTestCommentRequest(post.getId(), "Comment content", null);
-        Comment comment = createTestComment(null, currentUser, post, "Comment content", null);
-        Comment savedComment = createTestComment(1L, currentUser, post, "Comment content", null);
+        Post post = createTestPost(createTestUser(2L, "postOwner", "owner@example.com"), "Post messaging", null);
+        CommentRequest request = createTestCommentRequest(post.getId(), "Comment messaging", null);
+        Comment comment = createTestComment(null, currentUser, post, "Comment messaging", null);
+        Comment savedComment = createTestComment(1L, currentUser, post, "Comment messaging", null);
         CommentResponse expectedResponse = createTestCommentResponse(savedComment);
 
         when(entityUtils.getPost(post.getId())).thenReturn(post);
@@ -112,10 +112,10 @@ public class CommentServiceImplTest {
     @Test
     void editComment_whenRequestIsValid() {
         User currentUser = createTestUser(1L, "user", "user@example.com");
-        Post post = createTestPost(createTestUser(2L, "postOwner", "owner@example.com"), "Post content", null);
-        Comment comment = createTestComment(1L, currentUser, post, "Old content", "old.jpg");
-        CommentRequest request = createTestCommentRequest(post.getId(), "Updated content", "new.jpg");
-        Comment updatedComment = createTestComment(1L, currentUser, post, "Updated content", "new.jpg");
+        Post post = createTestPost(createTestUser(2L, "postOwner", "owner@example.com"), "Post messaging", null);
+        Comment comment = createTestComment(1L, currentUser, post, "Old messaging", "old.jpg");
+        CommentRequest request = createTestCommentRequest(post.getId(), "Updated messaging", "new.jpg");
+        Comment updatedComment = createTestComment(1L, currentUser, post, "Updated messaging", "new.jpg");
         CommentResponse expectedResponse = createTestCommentResponse(updatedComment);
 
         when(entityUtils.getComment(1L)).thenReturn(comment);
@@ -125,7 +125,7 @@ public class CommentServiceImplTest {
         CommentResponse result = commentServiceImpl.editComment(1L, request, currentUser);
 
         assertNotNull(result);
-        assertEquals("Updated content", result.getContent());
+        assertEquals("Updated messaging", result.getContent());
         assertEquals("new.jpg", result.getImageUrl());
 
         verify(commentValidator).validateCommentUpdate(request, 1L, currentUser);
@@ -138,8 +138,8 @@ public class CommentServiceImplTest {
     @Test
     void deleteComment_whenUserIsOwner() {
         User currentUser = createTestUser(1L, "user", "user@example.com");
-        Post post = createTestPost(createTestUser(2L, "postOwner", "owner@example.com"), "Post content", null);
-        Comment comment = createTestComment(1L, currentUser, post, "Comment content", null);
+        Post post = createTestPost(createTestUser(2L, "postOwner", "owner@example.com"), "Post messaging", null);
+        Comment comment = createTestComment(1L, currentUser, post, "Comment messaging", null);
 
         when(entityUtils.getComment(1L)).thenReturn(comment);
 
@@ -157,8 +157,8 @@ public class CommentServiceImplTest {
     @Test
     void getCommentById_whenCommentExists() {
         User user = createTestUser(1L, "user", "user@example.com");
-        Post post = createTestPost(createTestUser(2L, "postOwner", "owner@example.com"), "Post content", null);
-        Comment comment = createTestComment(1L, user, post, "Comment content", null);
+        Post post = createTestPost(createTestUser(2L, "postOwner", "owner@example.com"), "Post messaging", null);
+        Comment comment = createTestComment(1L, user, post, "Comment messaging", null);
         CommentResponse expectedResponse = createTestCommentResponse(comment);
 
         when(entityUtils.getComment(1L)).thenReturn(comment);
@@ -189,7 +189,7 @@ public class CommentServiceImplTest {
     void getAllCommentsOnPost_whenValid() {
         Long postId = 1L;
         User user = createTestUser(1L, "user", "user@example.com");
-        Post post = createTestPost(user, "Post content", null);
+        Post post = createTestPost(user, "Post messaging", null);
         Comment comment1 = createTestComment(1L, user, post, "Comment 1", null);
         Comment comment2 = createTestComment(2L, user, post, "Comment 2", null);
         List<Comment> comments = List.of(comment1, comment2);

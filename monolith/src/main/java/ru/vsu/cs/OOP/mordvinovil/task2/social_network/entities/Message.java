@@ -24,7 +24,7 @@ public class Message extends BaseEntity {
     @JoinColumn(name = "receiver_id", referencedColumnName = "id")
     private User receiver;
 
-    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "messaging", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "image_url")

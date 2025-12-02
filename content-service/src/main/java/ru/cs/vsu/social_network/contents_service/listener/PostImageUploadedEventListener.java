@@ -22,7 +22,7 @@ public final class PostImageUploadedEventListener {
      */
     @KafkaListener(
             topics = "post-image-uploaded",
-            groupId = "content-service-group",
+            groupId = "messaging-service-group",
             containerFactory = "kafkaListenerContainerFactoryPostImageUpload"
     )
     public void onPostImageUploaded(final PostImageUploadedEvent event) {

@@ -40,7 +40,7 @@ public class Message extends BaseEntity {
     @JoinColumn(name = "conversation_id", nullable = false)
     private Conversation conversation;
 
-    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "messaging", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "image_url")

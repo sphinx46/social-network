@@ -91,7 +91,7 @@ class PostControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("Редактирование поста - успешно")
     void editPost_whenRequestIsValid_shouldReturnOk() throws Exception {
-        final PostEditRequest request = TestDataFactory.createPostEditRequest(TEST_POST_ID, "Updated content");
+        final PostEditRequest request = TestDataFactory.createPostEditRequest(TEST_POST_ID, "Updated messaging");
         final PostResponse response = TestDataFactory.createPostResponse(TEST_POST_ID, TEST_USER_ID);
 
         when(postService.editPost(eq(TEST_USER_ID), any(PostEditRequest.class)))
@@ -107,7 +107,7 @@ class PostControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("Редактирование поста - доступ запрещен")
     void editPost_whenUserIsNotOwner_shouldReturnForbidden() throws Exception {
-        final PostEditRequest request = TestDataFactory.createPostEditRequest(TEST_POST_ID, "Updated content");
+        final PostEditRequest request = TestDataFactory.createPostEditRequest(TEST_POST_ID, "Updated messaging");
 
         when(postService.editPost(eq(TEST_ANOTHER_USER_ID), any(PostEditRequest.class)))
                 .thenThrow(new AccessDeniedException("Доступ запрещен"));
@@ -121,7 +121,7 @@ class PostControllerTest extends BaseControllerTest {
     @Test
     @DisplayName("Редактирование поста - пост не найден")
     void editPost_whenPostNotFound_shouldReturnNotFound() throws Exception {
-        final PostEditRequest request = TestDataFactory.createPostEditRequest(TEST_POST_ID, "Updated content");
+        final PostEditRequest request = TestDataFactory.createPostEditRequest(TEST_POST_ID, "Updated messaging");
 
         when(postService.editPost(eq(TEST_USER_ID), any(PostEditRequest.class)))
                 .thenThrow(new PostNotFoundException("Пост не найден"));

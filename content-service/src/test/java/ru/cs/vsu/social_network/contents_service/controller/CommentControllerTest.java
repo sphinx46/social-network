@@ -63,7 +63,7 @@ class CommentControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.id").value(TEST_COMMENT_ID.toString()))
                 .andExpect(jsonPath("$.ownerId").value(TEST_USER_ID.toString()))
                 .andExpect(jsonPath("$.postId").value(TEST_POST_ID.toString()))
-                .andExpect(jsonPath("$.content").value("Test comment content"));
+                .andExpect(jsonPath("$.content").value("Test comment messaging"));
 
         verify(commentService).createComment(eq(TEST_USER_ID), any(CommentCreateRequest.class));
     }

@@ -30,7 +30,7 @@ public class Comment extends BaseEntity {
     @JoinColumn(name = "post_id")
     private Post post;
 
-    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "messaging", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "image_url")

@@ -21,7 +21,7 @@ public class Post extends BaseEntity {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private User user;
 
-    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "messaging", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Column(name = "image_url")

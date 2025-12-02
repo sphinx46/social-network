@@ -724,7 +724,7 @@ services:
     build:
       context: ./content-service
       dockerfile: Dockerfile
-    container_name: content-service
+    container_name: messaging-service
     ports:
       - "${CONTENT_SERVICE_PORT:-8083}:8083"
     environment:
@@ -732,15 +732,15 @@ services:
       JAVA_OPTS: "-Xms256m -Xmx512m"
       EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE:-http://eureka-server:8761/eureka/}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS_INTERNAL:-kafka:29092}
-      CONTENT_DB_URL: ${CONTENT_DB_URL:-jdbc:postgresql://content-postgres:5432/content}
+      CONTENT_DB_URL: ${CONTENT_DB_URL:-jdbc:postgresql://messaging-postgres:5432/messaging}
       REDIS_HOST: ${REDIS_HOST}
       SIGNATURE_KEY_SECRET: ${SIGNATURE_KEY_SECRET}
       REDIS_PORT: ${REDIS_PORT}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_TIMEOUT: ${REDIS_TIMEOUT}
-      CONTENT_DB_USERNAME: ${CONTENT_DB_USERNAME:-content}
-      CONTENT_DB_PASSWORD: ${CONTENT_DB_PASSWORD:-content}
-      EUREKA_INSTANCE_HOSTNAME: ${EUREKA_INSTANCE_HOSTNAME:-content-service}
+      CONTENT_DB_USERNAME: ${CONTENT_DB_USERNAME:-messaging}
+      CONTENT_DB_PASSWORD: ${CONTENT_DB_PASSWORD:-messaging}
+      EUREKA_INSTANCE_HOSTNAME: ${EUREKA_INSTANCE_HOSTNAME:-messaging-service}
     depends_on:
       redis:
         condition: service_healthy
@@ -761,15 +761,15 @@ services:
 
   content-postgres:
     image: postgres:17-alpine
-    container_name: content-postgres
+    container_name: messaging-postgres
     environment:
-      POSTGRES_USER: ${CONTENT_DB_USERNAME:-content}
-      POSTGRES_PASSWORD: ${CONTENT_DB_PASSWORD:-content}
-      POSTGRES_DB: content
+      POSTGRES_USER: ${CONTENT_DB_USERNAME:-messaging}
+      POSTGRES_PASSWORD: ${CONTENT_DB_PASSWORD:-messaging}
+      POSTGRES_DB: messaging
       POSTGRES_SHARED_BUFFERS: 128MB
       POSTGRES_EFFECTIVE_CACHE_SIZE: 256MB
     volumes:
-      - ./infrastructure/databases/content:/docker-entrypoint-initdb.d:ro
+      - ./infrastructure/databases/messaging:/docker-entrypoint-initdb.d:ro
     ports:
       - "${CONTENT_DB_EXTERNAL_PORT:-5436}:5432"
     deploy:
@@ -781,7 +781,7 @@ services:
           memory: 256M
           cpus: '0.5'
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${CONTENT_DB_USERNAME:-content} -d content" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${CONTENT_DB_USERNAME:-messaging} -d messaging" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -790,12 +790,12 @@ services:
 
   content-postgres-exporter:
     image: prometheuscommunity/postgres-exporter:latest
-    container_name: content-postgres-exporter
+    container_name: messaging-postgres-exporter
     depends_on:
       content-postgres:
         condition: service_healthy
     environment:
-      DATA_SOURCE_NAME: "postgresql://${CONTENT_DB_USERNAME:-content}:${CONTENT_DB_PASSWORD:-content}@content-postgres:5432/content?sslmode=disable"
+      DATA_SOURCE_NAME: "postgresql://${CONTENT_DB_USERNAME:-messaging}:${CONTENT_DB_PASSWORD:-messaging}@messaging-postgres:5432/messaging?sslmode=disable"
     ports:
       - "${CONTENT_POSTGRES_EXPORTER_PORT:-9182}:9187"
     deploy:

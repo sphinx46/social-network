@@ -41,7 +41,7 @@ public class FileStorageServiceImplTest {
                 "file",
                 "test.jpg",
                 "image/jpeg",
-                "test image content".getBytes()
+                "test image messaging".getBytes()
         );
 
         String result = fileStorageServiceImpl.saveFile(file, "test-dir");
@@ -62,7 +62,7 @@ public class FileStorageServiceImplTest {
                 "file",
                 "test.png",
                 "image/png",
-                "test image content".getBytes()
+                "test image messaging".getBytes()
         );
 
         String result = fileStorageServiceImpl.saveFile(file, "new-directory");
@@ -79,7 +79,7 @@ public class FileStorageServiceImplTest {
                 "file",
                 "testfile",
                 "image/jpeg",
-                "test image content".getBytes()
+                "test image messaging".getBytes()
         );
 
         String result = fileStorageServiceImpl.saveFile(file, "test-dir");
@@ -97,7 +97,7 @@ public class FileStorageServiceImplTest {
                 "file",
                 "test.jpg",
                 "image/jpeg",
-                "test image content".getBytes()
+                "test image messaging".getBytes()
         );
 
         FileProcessingException exception = assertThrows(FileProcessingException.class,
@@ -335,7 +335,7 @@ public class FileStorageServiceImplTest {
                 "file",
                 "post.jpg",
                 "image/jpeg",
-                "post image content".getBytes()
+                "post image messaging".getBytes()
         );
 
         Long postId = 123L;
@@ -357,7 +357,7 @@ public class FileStorageServiceImplTest {
                 "file",
                 "avatar.png",
                 "image/png",
-                "avatar image content".getBytes()
+                "avatar image messaging".getBytes()
         );
 
         Long userId = 456L;

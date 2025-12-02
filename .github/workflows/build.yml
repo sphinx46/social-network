@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [eureka-server, api-gateway, user-profile-service, upload-service, content-service]
+        service: [eureka-server, api-gateway, user-profile-service, upload-service, messaging-service]
         java-version: [21]
 
     services:
@@ -205,7 +205,7 @@ jobs:
 
     strategy:
       matrix:
-        service: [eureka-server, api-gateway, user-profile-service, upload-service, content-service]
+        service: [eureka-server, api-gateway, user-profile-service, upload-service, messaging-service]
 
     steps:
       - name: Checkout code

@@ -79,7 +79,7 @@ public class MockMvcUtils {
                 "file",
                 "test-image.jpg",
                 MediaType.IMAGE_JPEG_VALUE,
-                "test image content".getBytes()
+                "test image messaging".getBytes()
         );
     }
 }

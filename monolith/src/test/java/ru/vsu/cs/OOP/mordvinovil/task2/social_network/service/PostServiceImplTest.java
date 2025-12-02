@@ -74,7 +74,7 @@ class PostServiceImplTest {
     void setUp() {
         owner = createTestUser(1L, "owner", "owner@example.com");
         notOwner = createTestUser(2L, "notOwner", "notowner@example.com");
-        post = createTestPost(owner, "Initial content", null);
+        post = createTestPost(owner, "Initial messaging", null);
         post.setId(1L);
         postWithImage = createTestPost(owner, "Content with image", "existing.jpg");
         postWithImage.setId(1L);
@@ -108,7 +108,7 @@ class PostServiceImplTest {
 
     @Test
     void editPost_whenRequestIsValid() {
-        PostRequest request = createTestPostRequest("Updated content", "new-image.jpg");
+        PostRequest request = createTestPostRequest("Updated messaging", "new-image.jpg");
         Post updatedPost = createTestPost(owner, request.getContent(), request.getImageUrl());
         updatedPost.setId(1L);
         PostResponse expectedResponse = createTestPostResponse(updatedPost);
@@ -121,7 +121,7 @@ class PostServiceImplTest {
         PostResponse result = postServiceImpl.editPost(request, 1L, owner);
 
         assertNotNull(result);
-        assertEquals("Updated content", result.getContent());
+        assertEquals("Updated messaging", result.getContent());
         assertEquals("new-image.jpg", result.getImageUrl());
 
         verify(entityUtils).getPost(1L);

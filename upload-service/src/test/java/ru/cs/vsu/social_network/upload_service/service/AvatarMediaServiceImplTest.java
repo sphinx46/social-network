@@ -123,7 +123,7 @@ class AvatarMediaServiceImplTest {
     @DisplayName("Загрузка аватара - неподдерживаемый формат")
     void uploadAvatar_whenUnsupportedFormat_shouldThrowException() {
         MockMultipartFile file = TestDataFactory.createAvatarFile(
-                "document.pdf", MediaType.APPLICATION_PDF_VALUE, "pdf-content".getBytes());
+                "document.pdf", MediaType.APPLICATION_PDF_VALUE, "pdf-messaging".getBytes());
         MediaUploadRequest request = TestDataFactory.createAvatarUploadRequest(file, "PDF document");
 
         doThrow(new InvalidFileException("Неподдерживаемый формат файла для аватара"))
@@ -140,7 +140,7 @@ class AvatarMediaServiceImplTest {
     @DisplayName("Загрузка аватара - успешно с JPEG форматом")
     void uploadAvatar_whenJpegFormat_shouldReturnResponse() {
         MockMultipartFile file = TestDataFactory.createAvatarFile(
-                "avatar.jpg", MediaType.IMAGE_JPEG_VALUE, "jpeg-content".getBytes());
+                "avatar.jpg", MediaType.IMAGE_JPEG_VALUE, "jpeg-messaging".getBytes());
         MediaUploadRequest request = TestDataFactory.createAvatarUploadRequest(file, "JPEG avatar");
         MediaResponse expectedResponse = TestDataFactory.createAvatarResponse(MEDIA_ID, OWNER_ID);
         MediaEntity mediaEntity = TestDataFactory.createAvatarEntity(MEDIA_ID, OWNER_ID);

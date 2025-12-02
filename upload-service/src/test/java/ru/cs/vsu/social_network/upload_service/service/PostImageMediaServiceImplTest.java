@@ -50,8 +50,8 @@ class PostImageMediaServiceImplTest {
     @DisplayName("Загрузка изображения поста - успешно")
     void uploadPostImage_whenRequestIsValid_shouldReturnResponse() {
         MockMultipartFile file = TestDataFactory.createPostImageFile(
-                "post-image.jpg", MediaType.IMAGE_JPEG_VALUE, "image-content".getBytes());
-        MediaUploadRequest request = TestDataFactory.createPostImageUploadRequest(file, "Post content image");
+                "post-image.jpg", MediaType.IMAGE_JPEG_VALUE, "image-messaging".getBytes());
+        MediaUploadRequest request = TestDataFactory.createPostImageUploadRequest(file, "Post messaging image");
         MediaResponse expectedResponse = TestDataFactory.createPostImageResponse(MEDIA_ID, OWNER_ID);
         MediaEntity mediaEntity = TestDataFactory.createPostImageEntity(MEDIA_ID, OWNER_ID);
 
@@ -124,7 +124,7 @@ class PostImageMediaServiceImplTest {
     @DisplayName("Загрузка изображения поста - неподдерживаемый формат")
     void uploadPostImage_whenUnsupportedFormat_shouldThrowException() {
         MockMultipartFile file = TestDataFactory.createPostImageFile(
-                "document.pdf", MediaType.APPLICATION_PDF_VALUE, "pdf-content".getBytes());
+                "document.pdf", MediaType.APPLICATION_PDF_VALUE, "pdf-messaging".getBytes());
         MediaUploadRequest request = TestDataFactory.createPostImageUploadRequest(file, "PDF document");
 
         doThrow(new InvalidFileException("Неподдерживаемый формат файла для изображения поста"))
@@ -141,7 +141,7 @@ class PostImageMediaServiceImplTest {
     @DisplayName("Загрузка изображения поста - успешно с PNG форматом")
     void uploadPostImage_whenPngFormat_shouldReturnResponse() {
         MockMultipartFile file = TestDataFactory.createPostImageFile(
-                "post-image.png", MediaType.IMAGE_PNG_VALUE, "png-content".getBytes());
+                "post-image.png", MediaType.IMAGE_PNG_VALUE, "png-messaging".getBytes());
         MediaUploadRequest request = TestDataFactory.createPostImageUploadRequest(file, "PNG post image");
         MediaResponse expectedResponse = TestDataFactory.createPostImageResponse(MEDIA_ID, OWNER_ID);
         MediaEntity mediaEntity = TestDataFactory.createPostImageEntity(MEDIA_ID, OWNER_ID);
@@ -164,7 +164,7 @@ class PostImageMediaServiceImplTest {
     @DisplayName("Загрузка изображения поста - успешно с WEBP форматом")
     void uploadPostImage_whenWebpFormat_shouldReturnResponse() {
         MockMultipartFile file = TestDataFactory.createPostImageFile(
-                "post-image.webp", "image/webp", "webp-content".getBytes());
+                "post-image.webp", "image/webp", "webp-messaging".getBytes());
         MediaUploadRequest request = TestDataFactory.createPostImageUploadRequest(file, "WEBP post image");
         MediaResponse expectedResponse = TestDataFactory.createPostImageResponse(MEDIA_ID, OWNER_ID);
         MediaEntity mediaEntity = TestDataFactory.createPostImageEntity(MEDIA_ID, OWNER_ID);
