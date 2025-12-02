@@ -29,7 +29,7 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
   instance:
-    hostname: ${EUREKA_INSTANCE_HOSTNAME:content-service}
+    hostname: ${CONTENT_EUREKA_INSTANCE_HOSTNAME:content-service}
     prefer-ip-address: true
 
 management:

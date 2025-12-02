@@ -203,6 +203,13 @@ public class ConversationServiceImpl implements ConversationService {
         conversationValidator.validateOwnership(keycloakUserId, conversationId);
 
         final Conversation conversation = conversationEntityProvider.getById(conversationId);
+
+        log.info("{}_УДАЛЕНИЕ_СООБЩЕНИЙ: удаление всех сообщений беседы {}",
+                logPrefix, conversationId);
+        int deletedMessagesCount = conversationRepository.deleteAllByConversationId(conversationId);
+        log.info("{}_УДАЛЕНО_СООБЩЕНИЙ: удалено {} сообщений беседы {}",
+                logPrefix, deletedMessagesCount, conversationId);
+
         conversationRepository.delete(conversation);
 
         log.info("{}_УСПЕХ: беседа успешно удалена", logPrefix);

@@ -15,6 +15,17 @@ spring:
   cache:
     type: redis
 
+messaging:
+  websocket:
+    endpoint: /ws/messaging
+    allowed-origins: ${WEBSOCKET_ALLOWED_ORIGINS:http://localhost:*,http://127.0.0.1:*}
+    broker:
+      enable: true
+      prefix: /topic
+      app-prefix: /app
+    sockjs:
+      enabled: true
+
 server:
   port: ${MESSAGING_SERVICE_PORT:8085}
   servlet:
@@ -25,7 +36,7 @@ eureka:
     register-with-eureka: true
     fetch-registry: true
   instance:
-    hostname: ${EUREKA_INSTANCE_HOSTNAME:messaging-service}
+    hostname: ${MESSAGING_EUREKA_INSTANCE_HOSTNAME:messaging-service}
     prefer-ip-address: true
 
 management:
@@ -37,11 +48,21 @@ management:
     health:
       show-details: always
 
+#logging:
+#  level:
+#    ru.cs.vsu.social_network.messaging_service: INFO
+#  pattern:
+#    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 logging:
   level:
-    ru.cs.vsu.social_network.messaging_service: INFO
+    ru.cs.vsu.social_network.messaging_service: DEBUG
+    org.springframework.web: DEBUG
+    org.hibernate: INFO
+    org.springframework.security: DEBUG
+    org.apache.kafka: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 springdoc:
   api-docs:

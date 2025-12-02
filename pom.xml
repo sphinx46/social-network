@@ -15,7 +15,6 @@
 	<description>Microservice architecture for social network</description>
 
 	<modules>
-		<module>monolith</module>
 		<module>api-gateway</module>
 		<module>eureka-server</module>
 		<module>user-profile-service</module>

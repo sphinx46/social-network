@@ -98,28 +98,6 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
                                                      @Param("limit") int limit);
 
     /**
-     * Пакетное обновление статуса сообщений по их идентификаторам.
-     *
-     * @param messageIds список идентификаторов сообщений для обновления
-     * @param newStatus  новый статус сообщений
-     * @return количество обновленных сообщений
-     */
-    @Modifying
-    @Query("UPDATE Message m SET m.status = :newStatus WHERE m.id IN :messageIds")
-    int updateMessagesStatus(@Param("messageIds") List<UUID> messageIds,
-                             @Param("newStatus") MessageStatus newStatus);
-
-    /**
-     * Удаляет все сообщения беседы одним запросом.
-     *
-     * @param conversationId идентификатор беседы
-     * @return количество удаленных сообщений
-     */
-    @Modifying
-    @Query("DELETE FROM Message m WHERE m.conversation.id = :conversationId")
-    int deleteByConversationId(@Param("conversationId") UUID conversationId);
-
-    /**
      * Находит все непрочитанные сообщения для пользователя в указанной беседе.
      *
      * @param receiverId     идентификатор пользователя-получателя
@@ -149,4 +127,55 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
      * @return страница с сообщениями
      */
     Page<Message> findByIdIn(List<UUID> messageIds, Pageable pageable);
+
+
+    /**
+     * Массовое обновление статуса сообщений для беседы с проверкой получателя.
+     * Используется для массовой отметки сообщений как доставленных/прочитанных.
+     *
+     * @param receiverId идентификатор получателя
+     * @param conversationId идентификатор беседы
+     * @param oldStatus текущий статус (для валидации)
+     * @param newStatus новый статус
+     * @return количество обновленных сообщений
+     */
+    @Modifying
+    @Query("UPDATE Message m SET m.status = :newStatus " +
+            "WHERE m.receiverId = :receiverId " +
+            "AND m.conversation.id = :conversationId " +
+            "AND m.status = :oldStatus")
+    int updateMessagesStatusByConversation(@Param("receiverId") UUID receiverId,
+                                           @Param("conversationId") UUID conversationId,
+                                           @Param("oldStatus") MessageStatus oldStatus,
+                                           @Param("newStatus") MessageStatus newStatus);
+
+    @Modifying
+    @Query("UPDATE Message m SET m.status = :newStatus " +
+            "WHERE (m.receiverId = :receiverId OR m.senderId = :receiverId) " +
+            "AND m.conversation.id = :conversationId " +
+            "AND m.status IN :statuses")
+    int updateMessagesStatusesByConversation(@Param("receiverId") UUID receiverId,
+                                             @Param("conversationId") UUID conversationId,
+                                             @Param("statuses") List<MessageStatus> statuses,
+                                             @Param("newStatus") MessageStatus newStatus);
+
+    /**
+     * Пакетное обновление статуса сообщений с проверкой получателя и текущего статуса.
+     * Оптимизированный запрос для массового обновления статусов.
+     *
+     * @param messageIds список идентификаторов сообщений
+     * @param receiverId идентификатор получателя для валидации
+     * @param oldStatus текущий статус (для проверки)
+     * @param newStatus новый статус
+     * @return количество обновленных сообщений
+     */
+    @Modifying
+    @Query("UPDATE Message m SET m.status = :newStatus " +
+            "WHERE m.id IN :messageIds " +
+            "AND m.receiverId = :receiverId " +
+            "AND m.status = :oldStatus")
+    int updateMessagesStatusWithReceiverCheck(@Param("messageIds") List<UUID> messageIds,
+                                              @Param("receiverId") UUID receiverId,
+                                              @Param("oldStatus") MessageStatus oldStatus,
+                                              @Param("newStatus") MessageStatus newStatus);
 }

@@ -9,6 +9,7 @@ import ru.cs.vsu.social_network.messaging_service.entity.Message;
 import ru.cs.vsu.social_network.messaging_service.entity.enums.MessageStatus;
 import ru.cs.vsu.social_network.messaging_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.messaging_service.provider.MessageEntityProvider;
+import ru.cs.vsu.social_network.messaging_service.repository.MessageRepository;
 import ru.cs.vsu.social_network.messaging_service.service.batch.BatchMessageService;
 
 import java.util.*;
@@ -27,6 +28,7 @@ public class BatchMessageServiceImpl implements BatchMessageService {
 
     private final MessageEntityProvider messageEntityProvider;
     private final EntityMapper entityMapper;
+    private final MessageRepository messageRepository;
 
     private static final int MAX_BATCH_SIZE = 1000;
     private static final int BATCH_QUERY_SIZE = 50;
@@ -274,6 +276,325 @@ public class BatchMessageServiceImpl implements BatchMessageService {
             log.error("{}_ОШИБКА: для пользователя {} в беседе {}, ошибка: {}",
                     logPrefix, receiverId, conversationId, e.getMessage(), e);
             return Collections.emptyList();
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<MessageResponse> getAllUnreadMessagesInConversation(UUID receiverId, UUID conversationId) {
+        final String logPrefix = "BATCH_MESSAGE_SERVICE_ПОЛУЧЕНИЕ_ВСЕХ_НЕПРОЧИТАННЫХ_В_БЕСЕДЕ";
+        log.debug("{}_НАЧАЛО: для пользователя {} в беседе {}",
+                logPrefix, receiverId, conversationId);
+
+        try {
+            List<MessageResponse> allUnreadMessages = new ArrayList<>();
+
+            List<MessageResponse> sentMessages = getUnreadMessagesInConversation(
+                    receiverId, conversationId, MessageStatus.SENT
+            );
+
+            List<MessageResponse> deliveredMessages = getUnreadMessagesInConversation(
+                    receiverId, conversationId, MessageStatus.DELIVERED
+            );
+
+            allUnreadMessages.addAll(sentMessages);
+            allUnreadMessages.addAll(deliveredMessages);
+
+            log.debug("{}_УСПЕХ: найдено {} непрочитанных сообщений " +
+                            "(SENT: {}, DELIVERED: {}) для пользователя {} в беседе {}",
+                    logPrefix, allUnreadMessages.size(), sentMessages.size(), deliveredMessages.size(),
+                    receiverId, conversationId);
+            return allUnreadMessages;
+        } catch (Exception e) {
+            log.error("{}_ОШИБКА: для пользователя {} в беседе {}, ошибка: {}",
+                    logPrefix, receiverId, conversationId, e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Long getAllUnreadMessagesCountInConversation(UUID receiverId, UUID conversationId) {
+        final String logPrefix = "BATCH_MESSAGE_SERVICE_ПОЛУЧЕНИЕ_ВСЕГО_КОЛИЧЕСТВА_НЕПРОЧИТАННЫХ_В_БЕСЕДЕ";
+        log.debug("{}_НАЧАЛО: для пользователя {} в беседе {}", logPrefix, receiverId, conversationId);
+
+        try {
+            Long sentCount = messageEntityProvider.getUnreadMessagesCountInConversation(
+                    receiverId, conversationId, MessageStatus.SENT
+            );
+
+            Long deliveredCount = messageEntityProvider.getUnreadMessagesCountInConversation(
+                    receiverId, conversationId, MessageStatus.DELIVERED
+            );
+
+            Long totalCount = sentCount + deliveredCount;
+
+            log.debug("{}_УСПЕХ: всего {} непрочитанных сообщений (SENT: {}, DELIVERED: {}) " +
+                            "для пользователя {} в беседе {}",
+                    logPrefix, totalCount, sentCount, deliveredCount, receiverId, conversationId);
+            return totalCount;
+        } catch (Exception e) {
+            log.error("{}_ОШИБКА: для пользователя {} в беседе {}, ошибка: {}",
+                    logPrefix, receiverId, conversationId, e.getMessage(), e);
+            return 0L;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Map<UUID, Long> getAllUnreadMessagesCountInConversations(UUID receiverId, List<UUID> conversationIds) {
+        final String logPrefix = "BATCH_MESSAGE_SERVICE_ПОЛУЧЕНИЕ_ВСЕГО_КОЛИЧЕСТВА_НЕПРОЧИТАННЫХ_ВО_МНОГИХ_БЕСЕДАХ";
+        log.debug("{}_НАЧАЛО: для пользователя {} в {} беседах", logPrefix, receiverId,
+                conversationIds.size());
+
+        if (conversationIds.isEmpty()) {
+            log.debug("{}_ПУСТОЙ_СПИСОК", logPrefix);
+            return Collections.emptyMap();
+        }
+
+        try {
+            final Map<UUID, Long> result = new HashMap<>();
+            final List<UUID> batchConversationIds = conversationIds.size() > MAX_BATCH_SIZE ?
+                    conversationIds.subList(0, MAX_BATCH_SIZE) : conversationIds;
+
+            for (int i = 0; i < batchConversationIds.size(); i += BATCH_QUERY_SIZE) {
+                int endIndex = Math.min(i + BATCH_QUERY_SIZE, batchConversationIds.size());
+                List<UUID> batch = batchConversationIds.subList(i, endIndex);
+
+                for (UUID conversationId : batch) {
+                    Long totalCount = getAllUnreadMessagesCountInConversation(receiverId, conversationId);
+                    result.put(conversationId, totalCount);
+                }
+            }
+
+            log.debug("{}_УСПЕХ: получено общее количество непрочитанных сообщений для {} бесед",
+                    logPrefix, result.size());
+            return result;
+        } catch (Exception e) {
+            log.error("{}_ОШИБКА: для пользователя {} в {} беседах, ошибка: {}",
+                    logPrefix, receiverId, conversationIds.size(), e.getMessage(), e);
+            return Collections.emptyMap();
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<MessageResponse> getValidMessagesForStatusUpdate(UUID receiverId,
+                                                                 List<UUID> messageIds,
+                                                                 MessageStatus requiredStatus) {
+        final String logPrefix = "BATCH_MESSAGE_SERVICE_ПОЛУЧЕНИЕ_ВАЛИДНЫХ_СООБЩЕНИЙ_ДЛЯ_ОБНОВЛЕНИЯ";
+        log.debug("{}_НАЧАЛО: для пользователя {}, {} сообщений, требуемый статус: {}",
+                logPrefix, receiverId, messageIds.size(), requiredStatus);
+
+        if (messageIds == null || messageIds.isEmpty()) {
+            log.debug("{}_ПУСТОЙ_СПИСОК", logPrefix);
+            return Collections.emptyList();
+        }
+
+        try {
+            final List<UUID> batchMessageIds = messageIds.size() > MAX_BATCH_SIZE ?
+                    messageIds.subList(0, MAX_BATCH_SIZE) : messageIds;
+
+            final List<Message> messages = messageEntityProvider.getMessagesWithConversations(batchMessageIds);
+
+            final List<MessageResponse> validMessages = messages.stream()
+                    .filter(message -> {
+                        boolean isValidReceiver = receiverId.equals(message.getReceiverId());
+                        boolean isValidStatus = requiredStatus.equals(message.getStatus());
+                        return isValidReceiver && isValidStatus;
+                    })
+                    .map(message -> entityMapper.map(message, MessageResponse.class))
+                    .collect(Collectors.toList());
+
+            log.debug("{}_УСПЕХ: найдено {} валидных сообщений из {} для обновления статуса {}",
+                    logPrefix, validMessages.size(), batchMessageIds.size(), requiredStatus);
+            return validMessages;
+        } catch (Exception e) {
+            log.error("{}_ОШИБКА: для пользователя {}, {} сообщений, ошибка: {}",
+                    logPrefix, receiverId, messageIds.size(), e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<MessageResponse> getMessagesBetweenUsersWithStatuses(UUID senderId,
+                                                                     UUID receiverId,
+                                                                     List<MessageStatus> statuses,
+                                                                     int page,
+                                                                     int size) {
+        final String logPrefix = "BATCH_MESSAGE_SERVICE_ПОЛУЧЕНИЕ_СООБЩЕНИЙ_МЕЖДУ_ПОЛЬЗОВАТЕЛЯМИ_ПО_СТАТУСАМ";
+        log.debug("{}_НАЧАЛО: от {} к {}, статусы: {}, страница: {}, размер: {}",
+                logPrefix, senderId, receiverId, statuses, page, size);
+
+        try {
+            final int effectivePage = Math.max(0, page);
+            final int effectiveSize = Math.max(1, Math.min(size, MAX_BATCH_SIZE));
+
+            if (statuses == null || statuses.isEmpty()) {
+                return getMessagesBetweenUsers(senderId, receiverId, effectivePage, effectiveSize);
+            }
+
+            final List<Message> allMessages = messageEntityProvider.getMessagesBetweenUsers(
+                    senderId, receiverId, effectivePage, effectiveSize * 2
+            );
+
+            final List<MessageResponse> filteredMessages = allMessages.stream()
+                    .filter(message -> statuses.contains(message.getStatus()))
+                    .sorted((m1, m2) -> m2.getCreatedAt().compareTo(m1.getCreatedAt()))
+                    .limit(effectiveSize)
+                    .map(message -> entityMapper.map(message, MessageResponse.class))
+                    .collect(Collectors.toList());
+
+            log.debug("{}_УСПЕХ: между пользователями {} и {} " +
+                            "найдено {} сообщений с указанными статусами",
+                    logPrefix, senderId, receiverId, filteredMessages.size());
+            return filteredMessages;
+        } catch (Exception e) {
+            log.error("{}_ОШИБКА: от {} к {}, статусы: {}, ошибка: {}",
+                    logPrefix, senderId, receiverId, statuses, e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public int batchMarkConversationAsRead(UUID receiverId, UUID conversationId) {
+        final String logPrefix = "BATCH_MESSAGE_SERVICE_ПАКЕТНАЯ_ОТМЕТКА_БЕСЕДЫ_ПРОЧИТАННОЙ";
+        log.info("{}_НАЧАЛО: для пользователя {} в беседе {}",
+                logPrefix, receiverId, conversationId);
+
+        try {
+            List<MessageStatus> unreadStatuses = Arrays.asList(MessageStatus.SENT,
+                    MessageStatus.DELIVERED);
+            int updatedCount = messageRepository.updateMessagesStatusesByConversation(
+                    receiverId, conversationId, unreadStatuses, MessageStatus.READ
+            );
+
+            log.info("{}_УСПЕХ: обновлено {} сообщений для пользователя {} в беседе {}",
+                    logPrefix, updatedCount, receiverId, conversationId);
+            return updatedCount;
+        } catch (Exception e) {
+            log.error("{}_ОШИБКА: для пользователя {} в беседе {}, ошибка: {}",
+                    logPrefix, receiverId, conversationId, e.getMessage(), e);
+            return 0;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public int batchUpdateMessagesStatusInConversation(UUID receiverId,
+                                                       UUID conversationId,
+                                                       MessageStatus oldStatus,
+                                                       MessageStatus newStatus) {
+        final String logPrefix = "BATCH_MESSAGE_SERVICE_ПАКЕТНОЕ_ОБНОВЛЕНИЕ_СТАТУСОВ_В_БЕСЕДЕ";
+        log.info("{}_НАЧАЛО: для пользователя {} в беседе {}, с {} на {}",
+                logPrefix, receiverId, conversationId, oldStatus, newStatus);
+
+        try {
+            int updatedCount = messageRepository.updateMessagesStatusByConversation(
+                    receiverId, conversationId, oldStatus, newStatus
+            );
+
+            log.info("{}_УСПЕХ: обновлено {} сообщений для пользователя {} в беседе {}",
+                    logPrefix, updatedCount, receiverId, conversationId);
+            return updatedCount;
+        } catch (Exception e) {
+            log.error("{}_ОШИБКА: для пользователя {} в беседе {}, ошибка: {}",
+                    logPrefix, receiverId, conversationId, e.getMessage(), e);
+            return 0;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public int batchUpdateMessagesStatusesInConversation(UUID receiverId,
+                                                         UUID conversationId,
+                                                         List<MessageStatus> oldStatuses,
+                                                         MessageStatus newStatus) {
+        final String logPrefix = "BATCH_MESSAGE_SERVICE_ПАКЕТНОЕ_ОБНОВЛЕНИЕ_СТАТУСОВ_В_БЕСЕДЕ";
+        log.info("{}_НАЧАЛО: для пользователя {} в беседе {}, статусы: {}, на {}",
+                logPrefix, receiverId, conversationId, oldStatuses, newStatus);
+
+        try {
+            int updatedCount = messageRepository.updateMessagesStatusesByConversation(
+                    receiverId, conversationId, oldStatuses, newStatus
+            );
+
+            log.info("{}_УСПЕХ: обновлено {} сообщений для пользователя {} в беседе {}",
+                    logPrefix, updatedCount, receiverId, conversationId);
+            return updatedCount;
+        } catch (Exception e) {
+            log.error("{}_ОШИБКА: для пользователя {} в беседе {}, ошибка: {}",
+                    logPrefix, receiverId, conversationId, e.getMessage(), e);
+            return 0;
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @Transactional
+    public int batchUpdateMessagesStatus(UUID receiverId,
+                                         List<UUID> messageIds,
+                                         MessageStatus oldStatus,
+                                         MessageStatus newStatus) {
+        final String logPrefix = "BATCH_MESSAGE_SERVICE_ПАКЕТНОЕ_ОБНОВЛЕНИЕ_СТАТУСОВ";
+        log.info("{}_НАЧАЛО: для пользователя {}, {} сообщений, с {} на {}",
+                logPrefix, receiverId, messageIds.size(), oldStatus, newStatus);
+
+        if (messageIds == null || messageIds.isEmpty()) {
+            log.info("{}_ПУСТОЙ_СПИСОК", logPrefix);
+            return 0;
+        }
+
+        try {
+            final List<UUID> batchMessageIds = messageIds.size() > MAX_BATCH_SIZE ?
+                    messageIds.subList(0, MAX_BATCH_SIZE) : messageIds;
+
+            int totalUpdatedCount = 0;
+
+            for (int i = 0; i < batchMessageIds.size(); i += BATCH_QUERY_SIZE) {
+                int endIndex = Math.min(i + BATCH_QUERY_SIZE, batchMessageIds.size());
+                List<UUID> batch = batchMessageIds.subList(i, endIndex);
+
+                int updatedCount = messageRepository.updateMessagesStatusWithReceiverCheck(
+                        batch, receiverId, oldStatus, newStatus
+                );
+
+                totalUpdatedCount += updatedCount;
+
+                log.debug("{}_БАТЧ_ОБНОВЛЕНИЕ: обработано {} сообщений, обновлено {}",
+                        logPrefix, batch.size(), updatedCount);
+            }
+
+            log.info("{}_УСПЕХ: обновлено {} сообщений из {} для пользователя {}",
+                    logPrefix, totalUpdatedCount, batchMessageIds.size(), receiverId);
+            return totalUpdatedCount;
+        } catch (Exception e) {
+            log.error("{}_ОШИБКА: для пользователя {}, {} сообщений, ошибка: {}",
+                    logPrefix, receiverId, messageIds.size(), e.getMessage(), e);
+            return 0;
         }
     }
 }

@@ -23,7 +23,7 @@ import java.util.UUID;
  */
 @Slf4j
 @Component
-public final class MessageEntityProviderImpl extends AbstractEntityProvider<Message>
+public final class  MessageEntityProviderImpl extends AbstractEntityProvider<Message>
         implements MessageEntityProvider {
 
     private static final String ENTITY_NAME = "СООБЩЕНИЕ";

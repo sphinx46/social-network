@@ -1,10 +1,14 @@
 package ru.cs.vsu.social_network.messaging_service.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Конфигурация WebSocket для мессенджера.
@@ -14,7 +18,9 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private static final String[] ALLOWED_ORIGINS = {"http://localhost:3000", "http://localhost:8080"};
+    @Value("${messaging.websocket.allowed-origins:http://localhost:*,http://127.0.0.1:*}")
+    private String[] allowedOrigins;
+
     private static final String WS_ENDPOINT = "/ws-messaging";
     private static final String APP_DESTINATION_PREFIX = "/app";
     private static final String USER_DESTINATION_PREFIX = "/user";
@@ -30,11 +36,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        List<String> originList = Arrays.asList(allowedOrigins);
+        String[] originPatterns = originList.toArray(new String[0]);
+
         registry.addEndpoint(WS_ENDPOINT)
-                .setAllowedOriginPatterns("*")
+                .setAllowedOriginPatterns(originPatterns)
                 .withSockJS();
 
         registry.addEndpoint(WS_ENDPOINT)
-                .setAllowedOriginPatterns("*");
+                .setAllowedOriginPatterns(originPatterns);
     }
 }

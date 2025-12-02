@@ -22,7 +22,7 @@ public class TypingIndicator {
     private UUID userId;
 
     @Schema(description = "Флаг печатания: true - печатает, false - остановился")
-    private boolean isTyping;
+    private boolean typing;
 
     @Schema(description = "Время отправки индикатора в миллисекундах")
     private long timestamp;

@@ -259,19 +259,25 @@ public class UserContextFilter
         }
         return path.startsWith("/api/profile/me")
                 || path.startsWith("/api/upload")
-                || path.startsWith("/api/messaging/post/create")
-                || path.startsWith("/api/messaging/post/edit")
-                || path.startsWith("/api/messaging/post/deleteImage")
-                || path.startsWith("/api/messaging/comment/create")
-                || path.startsWith("/api/messaging/comment/edit")
-                || path.startsWith("/api/messaging/comment/delete")
-                || path.startsWith("/api/messaging/comment/deleteImage")
-                || path.startsWith("/api/messaging/like/post/create")
-                || path.startsWith("/api/messaging/like/post/delete")
-                || path.startsWith("/api/messaging/like/comment/create")
-                || path.startsWith("/api/messaging/like/comment/delete")
-                || path.startsWith("/api/messaging/post/pagesPost")
-                || path.startsWith("/api/messaging/comment/pagesCommentByUserAndPost");
+                || path.startsWith("/api/content/post/create")
+                || path.startsWith("/api/content/post/edit")
+                || path.startsWith("/api/content/post/deleteImage")
+                || path.startsWith("/api/content/comment/create")
+                || path.startsWith("/api/content/comment/edit")
+                || path.startsWith("/api/content/comment/delete")
+                || path.startsWith("/api/content/comment/deleteImage")
+                || path.startsWith("/api/content/like/post/create")
+                || path.startsWith("/api/content/like/post/delete")
+                || path.startsWith("/api/content/like/comment/create")
+                || path.startsWith("/api/content/like/comment/delete")
+                || path.startsWith("/api/content/post/pagesPost")
+                || path.startsWith("/api/content/comment/pagesCommentByUserAndPost")
+                || path.startsWith("/api/messaging/send")
+                || path.startsWith("/api/messaging/conversation/")
+                || path.startsWith("/api/messaging/conversations/")
+                || path.startsWith("/api/messaging/chat/")
+                || path.startsWith("/api/messaging/message/")
+                || path.startsWith("/api/messaging/websocket-messaging/");
     }
 
     /**

@@ -16,15 +16,15 @@ import java.util.UUID;
 public interface MessageService {
 
     /**
-     * Создает новое сообщение.
+     * Создает новое сообщение с указанием беседы.
      * Автоматически создает или находит существующую беседу между пользователями.
      *
-     * @param keycloakUserId идентификатор пользователя-отправителя
-     * @param messageCreateRequest DTO с данными для создания сообщения
+     * @param senderId идентификатор пользователя-отправителя
+     * @param request DTO с данными для создания сообщения
      * @return DTO созданного сообщения
      */
-    MessageResponse createMessage(UUID keycloakUserId,
-                                  MessageCreateRequest messageCreateRequest);
+    MessageResponse createMessage(UUID senderId,
+                                  MessageCreateRequest request);
 
     /**
      * Редактирует существующее сообщение.
@@ -90,14 +90,15 @@ public interface MessageService {
     int markMessagesAsDelivered(UUID receiverId, List<UUID> messageIds);
 
     /**
-     * Обновляет статус сообщений на READ (прочитано).
+     * Обновляет статус сообщений на READ (прочитано) для всей беседы.
      * Используется при открытии чата пользователем-получателем.
+     * Обновляет все сообщения со статусами SENT и DELIVERED на READ.
      *
-     * @param receiverId идентификатор пользователя-получателя
-     * @param messageIds список идентификаторов сообщений для обновления статуса
+     * @param userId идентификатор пользователя-получателя
+     * @param conversationId идентификатор беседы
      * @return количество обновленных сообщений
      */
-    int markMessagesAsRead(UUID receiverId, List<UUID> messageIds);
+    int markConversationAsRead(UUID userId, UUID conversationId);
 
     /**
      * Получает количество непрочитанных сообщений для пользователя.

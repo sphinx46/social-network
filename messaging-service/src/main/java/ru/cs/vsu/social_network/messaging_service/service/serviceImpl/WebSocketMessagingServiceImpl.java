@@ -133,7 +133,7 @@ public class WebSocketMessagingServiceImpl implements WebSocketMessagingService 
             TypingIndicator typingIndicator = TypingIndicator.builder()
                     .userId(userId)
                     .conversationId(conversationId)
-                    .isTyping(isTyping)
+                    .typing(isTyping)
                     .build();
 
             String destination = TOPIC_TYPING + conversationId;

@@ -36,8 +36,11 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/api-docs/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/ws-messaging/**").permitAll()
+                        .requestMatchers("/api/messaging/test/**").permitAll()
                         .anyRequest().authenticated()
                 )
+
                 .addFilterBefore(headerSignatureFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
         log.info("БЕЗОПАСНОСТЬ_НАСТРОЙКА: конфигурация SecurityFilterChain завершена");

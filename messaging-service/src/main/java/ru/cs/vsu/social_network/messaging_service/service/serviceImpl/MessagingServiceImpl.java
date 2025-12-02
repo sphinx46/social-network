@@ -15,7 +15,6 @@ import ru.cs.vsu.social_network.messaging_service.dto.response.messaging.Convers
 import ru.cs.vsu.social_network.messaging_service.dto.response.messaging.MessageResponse;
 import ru.cs.vsu.social_network.messaging_service.dto.response.pageable.PageResponse;
 import ru.cs.vsu.social_network.messaging_service.entity.Conversation;
-import ru.cs.vsu.social_network.messaging_service.entity.enums.MessageStatus;
 import ru.cs.vsu.social_network.messaging_service.exception.conversation.ConversationNotFoundException;
 import ru.cs.vsu.social_network.messaging_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.messaging_service.provider.ConversationEntityProvider;
@@ -27,7 +26,6 @@ import ru.cs.vsu.social_network.messaging_service.service.batch.BatchMessageServ
 import ru.cs.vsu.social_network.messaging_service.utils.MessageConstants;
 import ru.cs.vsu.social_network.messaging_service.validation.ConversationValidator;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -137,6 +135,9 @@ public class MessagingServiceImpl implements MessagingService {
         return response;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     @Transactional
     public int markConversationAsRead(final UUID userId, final UUID conversationId) {
@@ -144,25 +145,21 @@ public class MessagingServiceImpl implements MessagingService {
         log.info("{}_НАЧАЛО: отметка беседы {} как прочитанной пользователем {}",
                 logPrefix, conversationId, userId);
 
-        final List<MessageResponse> unreadMessages = batchMessageService
-                .getUnreadMessagesInConversation(userId, conversationId, MessageStatus.DELIVERED);
+        try {
+            conversationValidator.validateAccessToChat(conversationId, userId);
 
-        if (unreadMessages.isEmpty()) {
-            log.info("{}_НЕТ_НЕПРОЧИТАННЫХ: в беседе {} нет непрочитанных сообщений",
-                    logPrefix, conversationId);
-            return 0;
+            final int markedCount = messageService.markConversationAsRead(userId, conversationId);
+
+            log.info("{}_УСПЕХ: отмечено {} сообщений как прочитанные в беседе {}",
+                    logPrefix, markedCount, conversationId);
+
+            return markedCount;
+
+        } catch (Exception e) {
+            log.error("{}_ОШИБКА: при отметке беседы {} как прочитанной пользователем {}, ошибка: {}",
+                    logPrefix, conversationId, userId, e.getMessage(), e);
+            throw e;
         }
-
-        final List<UUID> messageIds = unreadMessages.stream()
-                .map(MessageResponse::getMessageId)
-                .collect(Collectors.toList());
-
-        final int markedCount = messageService.markMessagesAsRead(userId, messageIds);
-
-        log.info("{}_УСПЕХ: отмечено {} сообщений как прочитанные в беседе {}",
-                logPrefix, markedCount, conversationId);
-
-        return markedCount;
     }
 
     @Override
@@ -209,7 +206,7 @@ public class MessagingServiceImpl implements MessagingService {
         log.info("{}_НАЧАЛО: получение информации о чате {} для пользователя {}",
                 logPrefix, conversationId, userId);
 
-        conversationValidator.validateAccessToChat(userId, conversationId);
+        conversationValidator.validateAccessToChat(conversationId, userId);
 
         final ConversationDetailsResponse response = conversationService
                 .getConversationWithMessages(conversationId, DEFAULT_PREVIEW_LIMIT);
@@ -253,11 +250,10 @@ public class MessagingServiceImpl implements MessagingService {
         log.info("{}_НАЧАЛО: получение количества непрочитанных в беседе {} для пользователя {}",
                 logPrefix, conversationId, userId);
 
-        conversationValidator.validateAccessToChat(userId, conversationId);
+        conversationValidator.validateAccessToChat(conversationId, userId);
 
         final Long unreadCount = batchMessageService
-                .getUnreadMessagesCountInConversations(userId, Collections.singletonList(conversationId), MessageStatus.DELIVERED)
-                .getOrDefault(conversationId, 0L);
+                .getAllUnreadMessagesCountInConversation(userId, conversationId);
 
         log.info("{}_УСПЕХ: в беседе {} найдено {} непрочитанных сообщений",
                 logPrefix, conversationId, unreadCount);

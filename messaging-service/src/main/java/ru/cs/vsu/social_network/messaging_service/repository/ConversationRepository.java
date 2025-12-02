@@ -3,6 +3,7 @@ package ru.cs.vsu.social_network.messaging_service.repository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -42,16 +43,6 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
             "OR (c.user1Id = :user2Id AND c.user2Id = :user1Id)")
     boolean existsConversationBetweenUsers(@Param("user1Id") UUID user1Id,
                                            @Param("user2Id") UUID user2Id);
-
-    /**
-     * Находит все беседы пользователя с пагинацией.
-     *
-     * @param userId идентификатор пользователя
-     * @param pageable параметры пагинации и сортировки
-     * @return страница с беседами пользователя
-     */
-    @Query("SELECT c FROM Conversation c WHERE c.user1Id = :userId OR c.user2Id = :userId")
-    Page<Conversation> findAllByUserId(@Param("userId") UUID userId, Pageable pageable);
 
     /**
      * Находит все беседы пользователя с пагинацией,
@@ -113,4 +104,14 @@ public interface ConversationRepository extends JpaRepository<Conversation, UUID
     List<Conversation> findRecentConversationsByUserId(@Param("userId") UUID userId,
                                                        int limit,
                                                        Pageable pageable);
+
+    /**
+     * Удаляет все сообщения беседы по её ID
+     * @param conversationId ID беседы
+     * @return количество удаленных сообщений
+     */
+    @Modifying
+    @Query("DELETE FROM Message m WHERE m.conversation.id = :conversationId")
+    int deleteAllByConversationId(@Param("conversationId") UUID conversationId);
+
 }

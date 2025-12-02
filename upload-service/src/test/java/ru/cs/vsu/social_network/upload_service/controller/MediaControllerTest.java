@@ -161,28 +161,6 @@ class MediaControllerTest extends BaseControllerTest {
     }
 
     @Test
-    @DisplayName("Скачивание контента - успешно")
-    void download_whenMediaExists_shouldReturnOk() throws Exception {
-        final byte[] payload = "file-data".getBytes();
-        final MediaContentResponse contentResponse = TestDataFactory.createContentResponse(
-                new ByteArrayInputStream(payload),
-                MediaType.IMAGE_PNG_VALUE,
-                "avatar.png",
-                payload.length);
-
-        when(mediaService.download(any())).thenReturn(contentResponse);
-
-        mockMvcUtils.performGet("/media/" + MEDIA_ID + "/messaging")
-                .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
-                        containsString("avatar.png")))
-                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE))
-                .andExpect(content().bytes(payload));
-
-        verify(mediaService).download(any());
-    }
-
-    @Test
     @DisplayName("Удаление медиа - успешно")
     void delete_whenMediaExists_shouldReturnNoContent() throws Exception {
         mockMvcUtils.performDelete("/media/" + MEDIA_ID)
@@ -219,17 +197,6 @@ class MediaControllerTest extends BaseControllerTest {
         verify(mediaService).getMetaData(MEDIA_ID);
     }
 
-    @Test
-    @DisplayName("Скачивание контента - доступ запрещен")
-    void download_whenAccessDenied_shouldReturnForbidden() throws Exception {
-        when(mediaService.download(any()))
-                .thenThrow(new AccessDeniedException("Доступ запрещен"));
-
-        mockMvcUtils.performGet("/media/" + MEDIA_ID + "/messaging")
-                .andExpect(status().isForbidden());
-
-        verify(mediaService).download(any());
-    }
 
     @Test
     @DisplayName("Удаление медиа - операция в MinIO завершилась ошибкой")
@@ -445,5 +412,39 @@ class MediaControllerTest extends BaseControllerTest {
                 .andExpect(jsonPath("$.category").value("COMMENT_IMAGE"));
 
         verify(commentImageMediaService).uploadCommentImage(any(MediaUploadRequest.class), eq(COMMENT_ID), eq(POST_ID));
+    }
+
+    @Test
+    @DisplayName("Скачивание контента - успешно")
+    void download_whenMediaExists_shouldReturnOk() throws Exception {
+        final byte[] payload = "file-data".getBytes();
+        final MediaContentResponse contentResponse = TestDataFactory.createContentResponse(
+                new ByteArrayInputStream(payload),
+                MediaType.IMAGE_PNG_VALUE,
+                "avatar.png",
+                payload.length);
+
+        when(mediaService.download(any())).thenReturn(contentResponse);
+
+        mockMvcUtils.performGet("/media/" + MEDIA_ID + "/content")
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
+                        containsString("avatar.png")))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, MediaType.IMAGE_PNG_VALUE))
+                .andExpect(content().bytes(payload));
+
+        verify(mediaService).download(any());
+    }
+
+    @Test
+    @DisplayName("Скачивание контента - доступ запрещен")
+    void download_whenAccessDenied_shouldReturnForbidden() throws Exception {
+        when(mediaService.download(any()))
+                .thenThrow(new AccessDeniedException("Доступ запрещен"));
+
+        mockMvcUtils.performGet("/media/" + MEDIA_ID + "/content")
+                .andExpect(status().isForbidden());
+
+        verify(mediaService).download(any());
     }
 }

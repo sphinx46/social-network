@@ -23,6 +23,27 @@ spring:
   cloud:
     gateway:
       routes:
+        # Общий маршрут для ВСЕХ messaging-service запросов (включая WebSocket)
+        - id: messaging-service-all
+          uri: lb://messaging-service
+          predicates:
+            - Path=/api/messaging/**
+          filters:
+            - name: UserContextFilter
+              args:
+                enabled: true
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 15
+                redis-rate-limiter.burstCapacity: 30
+                redis-rate-limiter.requestedTokens: 1
+            - TokenRelay=
+          metadata:
+            response-timeout: 15000
+            connect-timeout: 5000
+
+        # content-service маршруты
         - id: content-service-post-details
           uri: lb://content-service
           predicates:
@@ -42,6 +63,7 @@ spring:
           metadata:
             response-timeout: 15000
             connect-timeout: 5000
+
         - id: content-service-comment-details
           uri: lb://content-service
           predicates:
@@ -61,6 +83,7 @@ spring:
           metadata:
             response-timeout: 10000
             connect-timeout: 5000
+
         - id: content-service-posts
           uri: lb://content-service
           predicates:
@@ -80,6 +103,7 @@ spring:
           metadata:
             response-timeout: 15000
             connect-timeout: 5000
+
         - id: content-service-comments
           uri: lb://content-service
           predicates:
@@ -99,6 +123,7 @@ spring:
           metadata:
             response-timeout: 10000
             connect-timeout: 5000
+
         - id: content-service-like-post
           uri: lb://content-service
           predicates:
@@ -118,6 +143,7 @@ spring:
           metadata:
             response-timeout: 10000
             connect-timeout: 5000
+
         - id: content-service-like-comment
           uri: lb://content-service
           predicates:
@@ -137,6 +163,7 @@ spring:
           metadata:
             response-timeout: 10000
             connect-timeout: 5000
+
         - id: content-service-actuator
           uri: lb://content-service
           predicates:
@@ -146,6 +173,8 @@ spring:
           metadata:
             response-timeout: 10000
             connect-timeout: 5000
+
+        # user-profile-service маршруты
         - id: user-profile-service-auth
           uri: lb://user-profile-service
           predicates:
@@ -165,6 +194,7 @@ spring:
           metadata:
             response-timeout: 10000
             connect-timeout: 5000
+
         - id: user-profile-service-avatar
           uri: lb://user-profile-service
           predicates:
@@ -184,6 +214,7 @@ spring:
           metadata:
             response-timeout: 10000
             connect-timeout: 5000
+
         - id: user-profile-service-public
           uri: lb://user-profile-service
           predicates:
@@ -200,6 +231,8 @@ spring:
           metadata:
             response-timeout: 10000
             connect-timeout: 5000
+
+        # upload-service маршруты
         - id: upload-service-protected
           uri: lb://upload-service
           predicates:
@@ -219,6 +252,8 @@ spring:
           metadata:
             response-timeout: 20000
             connect-timeout: 5000
+
+        # keycloak маршруты
         - id: keycloak-auth
           uri: http://keycloak:8080
           predicates:
@@ -226,30 +261,37 @@ spring:
           filters:
             - RewritePath=/auth/(?<segment>.*), /${segment}
             - AddRequestHeader=X-Gateway, api-gateway
+
+        # eureka маршруты
         - id: eureka-dashboard
           uri: http://eureka-server:8761
           predicates:
             - Path=/eureka/**
           filters:
             - AddRequestHeader=X-Gateway, api-gateway
+
+        # swagger маршруты
         - id: swagger-ui
           uri: http://localhost:8082
           predicates:
             - Path=/swagger-ui.html
           filters:
             - SetPath=/swagger-ui.html
+
         - id: swagger-resources
           uri: http://localhost:8082
           predicates:
             - Path=/swagger-ui/**
           filters:
             - RewritePath=/swagger-ui/(?<path>.*), /swagger-ui/${path}
+
         - id: api-docs
           uri: http://localhost:8082
           predicates:
             - Path=/api-docs, /v3/api-docs
           filters:
             - SetPath=/v3/api-docs
+
       discovery:
         locator:
           enabled: true
@@ -282,6 +324,7 @@ spring:
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
         - AddResponseHeader=X-Gateway-Version, 1.0.0
+
   security:
     oauth2:
       resourceserver:
@@ -392,4 +435,3 @@ logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-

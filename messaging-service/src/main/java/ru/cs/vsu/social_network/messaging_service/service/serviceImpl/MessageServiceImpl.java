@@ -20,6 +20,7 @@ import ru.cs.vsu.social_network.messaging_service.service.MessageService;
 import ru.cs.vsu.social_network.messaging_service.service.batch.BatchMessageService;
 import ru.cs.vsu.social_network.messaging_service.utils.MessageConstants;
 import ru.cs.vsu.social_network.messaging_service.utils.factory.messaging.MessageFactory;
+import ru.cs.vsu.social_network.messaging_service.validation.ConversationValidator;
 import ru.cs.vsu.social_network.messaging_service.validation.MessageValidator;
 
 import java.util.List;
@@ -39,19 +40,22 @@ public class MessageServiceImpl implements MessageService {
     private final EntityMapper entityMapper;
     private final MessageFactory messageFactory;
     private final BatchMessageService batchMessageService;
+    private final ConversationValidator conversationValidator;
 
     public MessageServiceImpl(final MessageRepository messageRepository,
                               final MessageEntityProvider messageEntityProvider,
                               final MessageValidator messageValidator,
                               final EntityMapper entityMapper,
                               final MessageFactory messageFactory,
-                              final BatchMessageService batchMessageService) {
+                              final BatchMessageService batchMessageService,
+                              final ConversationValidator conversationValidator) {
         this.messageRepository = messageRepository;
         this.messageEntityProvider = messageEntityProvider;
         this.messageValidator = messageValidator;
         this.entityMapper = entityMapper;
         this.messageFactory = messageFactory;
         this.batchMessageService = batchMessageService;
+        this.conversationValidator = conversationValidator;
     }
 
     /**
@@ -212,8 +216,8 @@ public class MessageServiceImpl implements MessageService {
         log.info("СООБЩЕНИЕ_СЕРВИС_ОТМЕТКА_ДОСТАВЛЕННЫМИ_НАЧАЛО: " +
                 "для пользователя {}, {} сообщений", receiverId, messageIds.size());
 
-        final int updatedCount = messageRepository.updateMessagesStatus(messageIds,
-                MessageStatus.DELIVERED);
+        final int updatedCount = batchMessageService.batchUpdateMessagesStatus(
+                receiverId, messageIds, MessageStatus.SENT, MessageStatus.DELIVERED);
 
         log.info("СООБЩЕНИЕ_СЕРВИС_ОТМЕТКА_ДОСТАВЛЕННЫМИ_УСПЕХ: " +
                 "отмечено как доставлено {} сообщений для пользователя {}", updatedCount, receiverId);
@@ -226,17 +230,27 @@ public class MessageServiceImpl implements MessageService {
      */
     @Override
     @Transactional
-    public int markMessagesAsRead(final UUID receiverId, final List<UUID> messageIds) {
-        log.info("СООБЩЕНИЕ_СЕРВИС_ОТМЕТКА_ПРОЧИТАННЫМИ_НАЧАЛО: " +
-                "для пользователя {}, {} сообщений", receiverId, messageIds.size());
+    public int markConversationAsRead(final UUID userId, final UUID conversationId) {
+        final String logPrefix = "СООБЩЕНИЕ_СЕРВИС_ОТМЕТКА_БЕСЕДЫ_ПРОЧИТАННОЙ";
+        log.info("{}_НАЧАЛО: отметка беседы {} как прочитанной пользователем {}",
+                logPrefix, conversationId, userId);
 
-        final int updatedCount = messageRepository.updateMessagesStatus(messageIds,
-                MessageStatus.READ);
+        try {
+            conversationValidator.validateAccessToChat(conversationId, userId);
 
-        log.info("СООБЩЕНИЕ_СЕРВИС_ОТМЕТКА_ПРОЧИТАННЫМИ_УСПЕХ: " +
-                "отмечено как прочитано {} сообщений для пользователя {}", updatedCount, receiverId);
+            final int markedCount =
+                    batchMessageService.batchMarkConversationAsRead(userId, conversationId);
 
-        return updatedCount;
+            log.info("{}_УСПЕХ: отмечено {} сообщений как прочитанные в беседе {}",
+                    logPrefix, markedCount, conversationId);
+
+            return markedCount;
+
+        } catch (Exception e) {
+            log.error("{}_ОШИБКА: при отметке беседы {} как прочитанной пользователем {}, ошибка: {}",
+                    logPrefix, conversationId, userId, e.getMessage(), e);
+            throw e;
+        }
     }
 
     /**
