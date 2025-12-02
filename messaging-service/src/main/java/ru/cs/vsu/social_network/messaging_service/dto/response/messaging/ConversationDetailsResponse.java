@@ -7,14 +7,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "Ответ с данными о переписке")
-public class ConversationResponse {
+@Schema(description = "Расширенный ответ с данными о переписке")
+public class ConversationDetailsResponse {
     @Schema(description = "ID переписки")
     private UUID conversationId;
 
@@ -24,8 +25,14 @@ public class ConversationResponse {
     @Schema(description = "Идентификатор второго участника переписки")
     private UUID user2Id;
 
+    @Schema(description = "Данные о сообщениях")
+    private List<MessageResponse> messages;
+
     @Schema(description = "Количество сообщений")
     private Long messagesCount;
+
+    @Schema(description = "Идентификатор последнего сообщения")
+    private UUID lastMessageId;
 
     @Schema(description = "Дата создания")
     private LocalDateTime createdAt;

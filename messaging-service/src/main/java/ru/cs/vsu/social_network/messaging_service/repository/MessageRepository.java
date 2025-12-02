@@ -16,7 +16,6 @@ import java.util.UUID;
 /**
  * Репозиторий для работы с сущностью Message.
  * Предоставляет методы для выполнения операций с сообщениями в базе данных.
- * Оптимизирован для production с использованием батч-операций и устранением проблем N+1.
  */
 @Repository
 public interface MessageRepository extends JpaRepository<Message, UUID> {
@@ -25,18 +24,18 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
      * Находит все сообщения в беседе с пагинацией.
      *
      * @param conversationId идентификатор беседы
-     * @param pageable параметры пагинации и сортировки
+     * @param pageable       параметры пагинации и сортировки
      * @return страница с сообщениями беседы
      */
     Page<Message> findAllByConversationId(UUID conversationId,
                                           Pageable pageable);
 
     /**
-     * Находит все сообщения от отправителя получателю с пагинацией.
+     * Находит все сообщения между двумя пользователями с пагинацией.
      *
-     * @param senderId идентификатор отправителя
+     * @param senderId   идентификатор отправителя
      * @param receiverId идентификатор получателя
-     * @param pageable параметры пагинации и сортировки
+     * @param pageable   параметры пагинации и сортировки
      * @return страница с сообщениями
      */
     @Query("SELECT m FROM Message m WHERE (m.senderId = :senderId AND m.receiverId = :receiverId) " +
@@ -46,90 +45,63 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
                                            Pageable pageable);
 
     /**
-     * Находит сообщения пользователя-получателя по статусу.
-     *
-     * @param receiverId идентификатор получателя
-     * @param status статус сообщения
-     * @param pageable параметры пагинации
-     * @return страница с непрочитанными сообщениями
-     */
-    Page<Message> findByReceiverIdAndStatus(UUID receiverId,
-                                            MessageStatus status,
-                                            Pageable pageable);
-
-    /**
      * Получает количество сообщений для пользователя по статусу.
      *
      * @param receiverId идентификатор получателя
-     * @param status статус сообщения (например, DELIVERED)
-     * @return количество непрочитанных сообщений
+     * @param status     статус сообщения (например, DELIVERED)
+     * @return количество сообщений с указанным статусом
      */
     long countByReceiverIdAndStatus(UUID receiverId,
                                     MessageStatus status);
 
     /**
-     * Находит сообщения беседы с пагинацией, отсортированные по дате создания (новые сначала).
+     * Получает количество сообщений для пользователя по статусу в конкретной беседе.
      *
+     * @param receiverId     идентификатор получателя
      * @param conversationId идентификатор беседы
-     * @param pageable параметры пагинации
-     * @return страница с сообщениями
+     * @param status         статус сообщения (например, SENT, DELIVERED)
+     * @return количество сообщений с указанным статусом в беседе
      */
-    Page<Message> findByConversationIdOrderByCreatedAtDesc(UUID conversationId,
-                                                           Pageable pageable);
+    long countByReceiverIdAndConversationIdAndStatus(UUID receiverId,
+                                                     UUID conversationId,
+                                                     MessageStatus status);
 
     /**
      * Находит сообщения пользователя-отправителя с пагинацией,
      * отсортированные по дате создания (новые сначала).
      *
-     * @param userId идентификатор пользователя (как отправителя)
+     * @param userId   идентификатор пользователя (как отправителя)
      * @param pageable параметры пагинации
      * @return страница с сообщениями
      */
     Page<Message> findBySenderIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
 
     /**
-     * Получает количество сообщений для списка бесед в одном запросе.
-     *
-     * @param conversationIds список идентификаторов бесед
-     * @return список кортежей [conversationId, count]
-     */
-    @Query("SELECT m.conversation.id, COUNT(m) FROM Message m WHERE m.conversation.id IN :conversationIds GROUP BY m.conversation.id")
-    List<Object[]> findMessagesCountByConversationIds(@Param("conversationIds") List<UUID> conversationIds);
-
-    /**
      * Находит последние сообщения для списка бесед с лимитом на каждую беседу.
-     * Использует WINDOW FUNCTION для правильного лимитирования на каждую беседу.
+     * Использует оконные функции для правильного лимитирования на каждую беседу.
      *
      * @param conversationIds список идентификаторов бесед
-     * @param limit лимит сообщений на каждую беседу
+     * @param limit           лимит сообщений на каждую беседу
      * @return список сообщений с загруженными беседами
      */
-    @Query("SELECT m FROM Message m JOIN FETCH m.conversation WHERE m.id IN (" +
-            "SELECT m2.id FROM Message m2 WHERE m2.conversation.id IN :conversationIds " +
-            "AND (" +
-            "  SELECT COUNT(*) FROM Message m3 " +
-            "  WHERE m3.conversation.id = m2.conversation.id AND m3.createdAt >= m2.createdAt" +
-            ") <= :limit" +
-            ") ORDER BY m.createdAt DESC")
+    @Query(value = """
+            SELECT * FROM (
+                SELECT m.*, 
+                       ROW_NUMBER() OVER (PARTITION BY m.conversation_id ORDER BY m.created_at DESC) as rn
+                FROM messages m 
+                WHERE m.conversation_id IN :conversationIds
+            ) ranked 
+            WHERE ranked.rn <= :limit
+            ORDER BY ranked.created_at DESC
+            """, nativeQuery = true)
     List<Message> findRecentMessagesForConversations(@Param("conversationIds") List<UUID> conversationIds,
                                                      @Param("limit") int limit);
-
-    /**
-     * Находит сообщения с предзагруженными беседами для списка идентификаторов.
-     *
-     * @param messageIds список идентификаторов сообщений
-     * @param pageable параметры пагинации
-     * @return список сообщений с загруженными беседами
-     */
-    @Query("SELECT m FROM Message m JOIN FETCH m.conversation WHERE m.id IN :messageIds ORDER BY m.createdAt DESC")
-    List<Message> findMessagesWithConversations(@Param("messageIds") List<UUID> messageIds,
-                                                Pageable pageable);
 
     /**
      * Пакетное обновление статуса сообщений по их идентификаторам.
      *
      * @param messageIds список идентификаторов сообщений для обновления
-     * @param newStatus новый статус сообщений
+     * @param newStatus  новый статус сообщений
      * @return количество обновленных сообщений
      */
     @Modifying
@@ -146,4 +118,35 @@ public interface MessageRepository extends JpaRepository<Message, UUID> {
     @Modifying
     @Query("DELETE FROM Message m WHERE m.conversation.id = :conversationId")
     int deleteByConversationId(@Param("conversationId") UUID conversationId);
+
+    /**
+     * Находит все непрочитанные сообщения для пользователя в указанной беседе.
+     *
+     * @param receiverId     идентификатор пользователя-получателя
+     * @param conversationId идентификатор беседы
+     * @param status         статус сообщения (например, DELIVERED для непрочитанных)
+     * @return список непрочитанных сообщений
+     */
+    List<Message> findByReceiverIdAndConversationIdAndStatus(UUID receiverId,
+                                                             UUID conversationId,
+                                                             MessageStatus status);
+
+    /**
+     * Находит сообщения по списку идентификаторов с предзагрузкой бесед.
+     * Используется для эффективной загрузки сообщений с связанными данными.
+     *
+     * @param messageIds список идентификаторов сообщений
+     * @return список сообщений с загруженными беседами
+     */
+    @Query("SELECT m FROM Message m JOIN FETCH m.conversation WHERE m.id IN :messageIds")
+    List<Message> findMessagesWithConversations(@Param("messageIds") List<UUID> messageIds);
+
+    /**
+     * Батч-метод для поиска сообщений по идентификаторам с пагинацией.
+     *
+     * @param messageIds список идентификаторов сообщений
+     * @param pageable   параметры пагинации
+     * @return страница с сообщениями
+     */
+    Page<Message> findByIdIn(List<UUID> messageIds, Pageable pageable);
 }
