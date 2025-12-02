@@ -81,9 +81,11 @@ public interface ConversationService {
      * Удаляет беседу и все связанные с ней сообщения.
      * Используется для полного удаления истории переписки между пользователями.
      *
+     * @param conversationId идентификатор пользователя
      * @param conversationId идентификатор беседы
      */
-    void deleteConversation(UUID conversationId);
+    void deleteConversation(UUID keycloakUserId,
+                            UUID conversationId);
 
     /**
      * Проверяет существование беседы между пользователями.

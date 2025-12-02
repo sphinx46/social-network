@@ -33,6 +33,7 @@ public class ModelMapperConfig {
         final ModelMapper modelMapper = new ModelMapper();
 
         configureMessageMappings(modelMapper);
+        configureConversationDetailsMappings(modelMapper);
 
         modelMapper.getConfiguration()
                 .setFieldMatchingEnabled(true)
