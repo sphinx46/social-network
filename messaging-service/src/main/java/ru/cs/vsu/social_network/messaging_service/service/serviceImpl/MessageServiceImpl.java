@@ -12,7 +12,7 @@ import ru.cs.vsu.social_network.messaging_service.dto.response.messaging.Message
 import ru.cs.vsu.social_network.messaging_service.dto.response.pageable.PageResponse;
 import ru.cs.vsu.social_network.messaging_service.entity.Message;
 import ru.cs.vsu.social_network.messaging_service.entity.enums.MessageStatus;
-import ru.cs.vsu.social_network.messaging_service.exception.MessageUploadImageException;
+import ru.cs.vsu.social_network.messaging_service.exception.message.MessageUploadImageException;
 import ru.cs.vsu.social_network.messaging_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.messaging_service.provider.MessageEntityProvider;
 import ru.cs.vsu.social_network.messaging_service.repository.MessageRepository;

@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 import ru.cs.vsu.social_network.messaging_service.entity.Conversation;
-import ru.cs.vsu.social_network.messaging_service.exception.ConversationSelfException;
+import ru.cs.vsu.social_network.messaging_service.exception.conversation.ConversationSelfException;
 import ru.cs.vsu.social_network.messaging_service.provider.ConversationEntityProvider;
 import ru.cs.vsu.social_network.messaging_service.utils.MessageConstants;
 import ru.cs.vsu.social_network.messaging_service.validation.AbstractGenericValidator;

@@ -16,7 +16,7 @@ import ru.cs.vsu.social_network.messaging_service.dto.response.messaging.Message
 import ru.cs.vsu.social_network.messaging_service.dto.response.pageable.PageResponse;
 import ru.cs.vsu.social_network.messaging_service.entity.Conversation;
 import ru.cs.vsu.social_network.messaging_service.entity.enums.MessageStatus;
-import ru.cs.vsu.social_network.messaging_service.exception.ConversationNotFoundException;
+import ru.cs.vsu.social_network.messaging_service.exception.conversation.ConversationNotFoundException;
 import ru.cs.vsu.social_network.messaging_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.messaging_service.provider.ConversationEntityProvider;
 import ru.cs.vsu.social_network.messaging_service.service.ConversationService;

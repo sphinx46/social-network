@@ -1,6 +1,7 @@
 package ru.cs.vsu.social_network.messaging_service.validation;
 
 import ru.cs.vsu.social_network.messaging_service.entity.Conversation;
+import ru.cs.vsu.social_network.messaging_service.exception.conversation.ConversationSelfException;
 
 import java.util.UUID;
 
@@ -14,7 +15,7 @@ public interface ConversationValidator extends GenericValidator<Conversation> {
      *
      * @param user1Id идентификатор первого пользователя
      * @param user2Id идентификатор второго пользователя
-     * @throws ru.cs.vsu.social_network.messaging_service.exception.ConversationSelfException, если user1Id равен user2Id
+     * @throws ConversationSelfException, если user1Id равен user2Id
      */
     void validateUsersNotSame(UUID user1Id,
                               UUID user2Id);

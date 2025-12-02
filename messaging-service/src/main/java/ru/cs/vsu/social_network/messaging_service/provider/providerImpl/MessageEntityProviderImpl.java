@@ -5,7 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import ru.cs.vsu.social_network.messaging_service.entity.Message;
 import ru.cs.vsu.social_network.messaging_service.entity.enums.MessageStatus;
-import ru.cs.vsu.social_network.messaging_service.exception.MessageNotFoundException;
+import ru.cs.vsu.social_network.messaging_service.exception.message.MessageNotFoundException;
 import ru.cs.vsu.social_network.messaging_service.provider.AbstractEntityProvider;
 import ru.cs.vsu.social_network.messaging_service.provider.MessageEntityProvider;
 import ru.cs.vsu.social_network.messaging_service.repository.MessageRepository;

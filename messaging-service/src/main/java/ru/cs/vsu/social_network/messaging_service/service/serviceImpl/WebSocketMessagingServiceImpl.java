@@ -11,7 +11,7 @@ import ru.cs.vsu.social_network.messaging_service.dto.request.websocket.MessageS
 import ru.cs.vsu.social_network.messaging_service.dto.request.websocket.TypingIndicator;
 import ru.cs.vsu.social_network.messaging_service.dto.response.messaging.MessageResponse;
 import ru.cs.vsu.social_network.messaging_service.entity.enums.MessageStatus;
-import ru.cs.vsu.social_network.messaging_service.exception.InterlocutorNotFoundException;
+import ru.cs.vsu.social_network.messaging_service.exception.conversation.InterlocutorNotFoundException;
 import ru.cs.vsu.social_network.messaging_service.provider.ConversationEntityProvider;
 import ru.cs.vsu.social_network.messaging_service.service.MessagingService;
 import ru.cs.vsu.social_network.messaging_service.service.WebSocketMessagingService;

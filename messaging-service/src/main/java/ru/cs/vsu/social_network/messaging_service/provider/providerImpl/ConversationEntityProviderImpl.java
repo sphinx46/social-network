@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import ru.cs.vsu.social_network.messaging_service.entity.Conversation;
-import ru.cs.vsu.social_network.messaging_service.exception.ConversationNotFoundException;
+import ru.cs.vsu.social_network.messaging_service.exception.conversation.ConversationNotFoundException;
 import ru.cs.vsu.social_network.messaging_service.provider.AbstractEntityProvider;
 import ru.cs.vsu.social_network.messaging_service.provider.ConversationEntityProvider;
 import ru.cs.vsu.social_network.messaging_service.repository.ConversationRepository;
