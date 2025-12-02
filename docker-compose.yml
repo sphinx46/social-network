@@ -809,6 +809,45 @@ services:
     networks:
       - social-network
 
+  messaging-service:
+    build:
+      context: ./messaging-service
+      dockerfile: Dockerfile
+    container_name: messaging-service
+    ports:
+      - "${MESSAGING_SERVICE_PORT:-8085}:8085"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      JAVA_OPTS: "-Xms256m -Xmx512m"
+      EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE:-http://eureka-server:8761/eureka/}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS_INTERNAL:-kafka:29092}
+      MESSAGING_DB_URL: ${MESSAGING_DB_URL:-jdbc:postgresql://messaging-postgres:5432/messaging}
+      REDIS_HOST: ${REDIS_HOST}
+      SIGNATURE_KEY_SECRET: ${SIGNATURE_KEY_SECRET}
+      REDIS_PORT: ${REDIS_PORT}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_TIMEOUT: ${REDIS_TIMEOUT}
+      MESSAGING_DB_USERNAME: ${MESSAGING_DB_USERNAME:-messaging}
+      MESSAGING_DB_PASSWORD: ${MESSAGING_DB_PASSWORD:-messaging}
+      EUREKA_INSTANCE_HOSTNAME: ${EUREKA_INSTANCE_HOSTNAME:-messaging-service}
+    depends_on:
+      redis:
+        condition: service_healthy
+      messaging-postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+      kafka:
+        condition: service_started
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8085/api/messaging/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - social-network
+
 volumes:
   tempo_data:
   minio_data:
