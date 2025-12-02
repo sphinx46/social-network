@@ -44,7 +44,7 @@
 		<logback-json.version>0.1.5</logback-json.version>
 		<spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
 		<keycloak-admin-client.version>26.0.7</keycloak-admin-client.version>
-		
+        <xstream.version>1.4.21</xstream.version>
 		<jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
 	</properties>
 
@@ -84,6 +84,12 @@
 				<artifactId>keycloak-admin-client</artifactId>
 				<version>${keycloak-admin-client.version}</version>
 			</dependency>
+
+            <dependency>
+                <groupId>com.thoughtworks.xstream</groupId>
+                <artifactId>xstream</artifactId>
+                <version>${xstream.version}</version>
+            </dependency>
 
 			<dependency>
 				<groupId>org.postgresql</groupId>
