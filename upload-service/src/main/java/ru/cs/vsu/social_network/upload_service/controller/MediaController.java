@@ -16,10 +16,7 @@ import ru.cs.vsu.social_network.upload_service.dto.request.MediaUploadRequest;
 import ru.cs.vsu.social_network.upload_service.dto.response.MediaContentResponse;
 import ru.cs.vsu.social_network.upload_service.dto.response.MediaMetadataResponse;
 import ru.cs.vsu.social_network.upload_service.dto.response.MediaResponse;
-import ru.cs.vsu.social_network.upload_service.service.AvatarMediaService;
-import ru.cs.vsu.social_network.upload_service.service.CommentImageMediaService;
-import ru.cs.vsu.social_network.upload_service.service.MediaService;
-import ru.cs.vsu.social_network.upload_service.service.PostImageMediaService;
+import ru.cs.vsu.social_network.upload_service.service.*;
 
 import java.util.UUID;
 
@@ -42,6 +39,7 @@ public class MediaController {
     private final AvatarMediaService avatarMediaService;
     private final PostImageMediaService postImageMediaService;
     private final CommentImageMediaService commentImageMediaService;
+    private final MessageImageMediaService messageImageMediaService;
 
     /**
      * Загружает медиа-файл общего назначения.
@@ -90,6 +88,24 @@ public class MediaController {
             @PathVariable final UUID postId) {
         log.info("МЕДИА_CONTROLLER_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_ПОСТА: postId={}", postId);
         final MediaResponse response = postImageMediaService.uploadPostImage(request, postId);
+        return ResponseEntity.status(201).body(response);
+    }
+
+    /**
+     * Загружает изображение сообщения.
+     * Включает специфичную валидацию и отправку событий для обновления контента.
+     *
+     * @param request параметры загрузки изображения сообщения
+     * @param messageId идентификатор сообщения
+     * @return данные сохранённого изображения сообщения
+     */
+    @Operation(summary = "Загрузка изображения сообщения")
+    @PostMapping(value = "/message-images/{messageId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MediaResponse> uploadMessageImage(
+            @Valid @ModelAttribute final MediaUploadRequest request,
+            @PathVariable final UUID messageId) {
+        log.info("МЕДИА_CONTROLLER_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_СООБЩЕНИЯ: messageId={}", messageId);
+        final MediaResponse response = messageImageMediaService.uploadMessageImage(request, messageId);
         return ResponseEntity.status(201).body(response);
     }
 

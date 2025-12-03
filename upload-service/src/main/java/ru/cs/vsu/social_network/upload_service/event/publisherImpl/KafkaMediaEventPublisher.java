@@ -83,4 +83,26 @@ public class KafkaMediaEventPublisher implements MediaEventPublisher {
                         "mediaId={} commentId={} postId={}",
                 mediaEntity.getId(), commentId, postId);
     }
+
+    /**
+     * Публикует событие загрузки изображения сообщения в Kafka.
+     * Отправляет событие с информацией о загруженном изображении сообщения для уведомления
+     * заинтересованных сервисов (например, messaging-service).
+     * Обеспечивает асинхронную отправку с обработкой ошибок на уровне продюсера.
+     *
+     * @param mediaEntity сущность медиа, содержащая метаданные загруженного изображения сообщения
+     * @param messageId идентификатор сообщения
+     * @throws RuntimeException если произошла критическая ошибка при отправке события
+     */
+    @Override
+    public void publishMessageImageUploaded(final MediaEntity mediaEntity, final UUID messageId) {
+        log.info("KAFKA_MESSAGE_IMAGE_EVENT_ПУБЛИКАЦИЯ_НАЧАЛО: " +
+                        "mediaId={} ownerId={} messageId={}",
+                mediaEntity.getId(), mediaEntity.getOwnerId(), messageId);
+
+        uploadProducer.sendMessageImageUploadedEvent(mediaEntity, messageId);
+
+        log.debug("KAFKA_POST_IMAGE_EVENT_ПУБЛИКАЦИЯ_ЗАВЕРШЕНА: mediaId={} messageId={}",
+                mediaEntity.getId(), messageId);
+    }
 }

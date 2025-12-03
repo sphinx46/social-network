@@ -40,4 +40,14 @@ public interface MediaEventPublisher {
      * @param postId идентификатор поста
      */
     void publishCommentImageUploaded(MediaEntity mediaEntity, UUID commentId, UUID postId);
+
+    /**
+     * Публикует событие загрузки изображения сообщения.
+     * Отправляет событие с информацией о загруженном изображении сообщения для уведомления
+     * заинтересованных сервисов (например, messaging-service).
+     *
+     * @param mediaEntity сущность медиа, содержащая метаданные загруженного изображения сообщения
+     * @param messageId идентификатор сообщения
+     */
+    void publishMessageImageUploaded(MediaEntity mediaEntity, UUID messageId);
 }

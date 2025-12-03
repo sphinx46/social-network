@@ -258,6 +258,20 @@ public final class TestDataFactory {
     }
 
     /**
+     * Создает тестовый файл для загрузки изображения сообщения.
+     *
+     * @param filename имя файла
+     * @param contentType MIME-тип файла
+     * @param content содержимое файла
+     * @return новый экземпляр MockMultipartFile
+     */
+    public static MockMultipartFile createMessageImageFile(final String filename,
+                                                        final String contentType,
+                                                        final byte[] content) {
+        return new MockMultipartFile("file", filename, contentType, content);
+    }
+
+    /**
      * Создает тестовый запрос на загрузку изображения поста.
      *
      * @param file загружаемый файл
@@ -291,6 +305,27 @@ public final class TestDataFactory {
                 .category("POST_IMAGE")
                 .description("Post messaging image")
                 .originalFileName("post-image.jpg")
+                .build();
+    }
+
+    /**
+     * Создает тестовый ответ для загруженного изображения сообщения.
+     *
+     * @param mediaId уникальный идентификатор медиа
+     * @param ownerId идентификатор владельца
+     * @return новый экземпляр MediaResponse для изображения поста
+     */
+    public static MediaResponse createMessageImageResponse(final UUID mediaId, final UUID ownerId) {
+        return MediaResponse.builder()
+                .id(mediaId)
+                .ownerId(ownerId)
+                .publicUrl("http://localhost/media/message-image.jpg")
+                .objectName("message-image.jpg")
+                .mimeType("image/jpeg")
+                .size(2048L)
+                .category("MESSAGE_IMAGE")
+                .description("Message messaging image")
+                .originalFileName("messgae-image.jpg")
                 .build();
     }
 
