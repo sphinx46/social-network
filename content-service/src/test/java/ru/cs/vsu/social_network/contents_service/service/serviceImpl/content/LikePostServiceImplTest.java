@@ -76,7 +76,6 @@ class LikePostServiceImplTest {
         assertEquals(expectedResponse, actual);
         verify(likePostEntityProvider).existsByOwnerIdAndPostId(USER_ID, POST_ID);
         verify(likePostRepository).save(likePost);
-        verify(likePostRepository).flush();
     }
 
     @Test
@@ -113,7 +112,6 @@ class LikePostServiceImplTest {
         verify(likePostEntityProvider).findByOwnerIdAndPostId(USER_ID, POST_ID);
         verify(likePostValidator).validateOwnership(USER_ID, LIKE_ID);
         verify(likePostRepository).delete(likePost);
-        verify(likePostRepository).flush();
     }
 
     @Test

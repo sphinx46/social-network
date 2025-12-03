@@ -218,4 +218,40 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(body);
     }
+
+    /**
+     * Обрабатывает исключение IllegalArgumentException.
+     *
+     * @param ex исключение
+     * @return ответ с ошибкой 400
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalArgumentException(
+            final IllegalArgumentException ex) {
+        log.warn("МЕССЕНДЖЕР_ОШИБКА_НЕВЕРНЫЙ_АРГУМЕНТ: {}", ex.getMessage());
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", "Bad Request");
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+    }
+
+    /**
+     * Обрабатывает исключение NullPointerException.
+     *
+     * @param ex исключение
+     * @return ответ с ошибкой 500
+     */
+    @ExceptionHandler(NullPointerException.class)
+    public ResponseEntity<Map<String, Object>> handleNullPointerException(
+            final NullPointerException ex) {
+        log.error("МЕССЕНДЖЕР_ОШИБКА_NULL_POINTER: неожиданная нулевая ссылка", ex);
+        Map<String, Object> body = new HashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+        body.put("error", "Internal Server Error");
+        body.put("message", "Внутренняя ошибка сервера: нулевая ссылка");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
 }

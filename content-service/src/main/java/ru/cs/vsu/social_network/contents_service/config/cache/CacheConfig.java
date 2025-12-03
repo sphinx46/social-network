@@ -1,4 +1,4 @@
-package ru.cs.vsu.social_network.contents_service.config;
+package ru.cs.vsu.social_network.contents_service.config.cache;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;

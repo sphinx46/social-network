@@ -1,4 +1,4 @@
-package ru.cs.vsu.social_network.contents_service.config;
+package ru.cs.vsu.social_network.contents_service.config.kafka;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerConfig;

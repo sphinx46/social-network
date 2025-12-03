@@ -1,4 +1,4 @@
-package ru.cs.vsu.social_network.messaging_service.config;
+package ru.cs.vsu.social_network.messaging_service.config.cache;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;

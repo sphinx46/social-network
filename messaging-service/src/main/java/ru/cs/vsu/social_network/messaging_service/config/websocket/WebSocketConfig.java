@@ -1,4 +1,4 @@
-package ru.cs.vsu.social_network.messaging_service.config;
+package ru.cs.vsu.social_network.messaging_service.config.websocket;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;

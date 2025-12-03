@@ -1,4 +1,4 @@
-package ru.cs.vsu.social_network.messaging_service.config;
+package ru.cs.vsu.social_network.messaging_service.config.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -10,7 +10,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.cs.vsu.social_network.messaging_service.config.CacheConfig;
+import ru.cs.vsu.social_network.messaging_service.config.cache.CacheConfig;
 import ru.cs.vsu.social_network.messaging_service.dto.request.messaging.MessageCreateRequest;
 import ru.cs.vsu.social_network.messaging_service.dto.request.messaging.MessageUploadImageRequest;
 import ru.cs.vsu.social_network.messaging_service.dto.request.pageable.PageRequest;

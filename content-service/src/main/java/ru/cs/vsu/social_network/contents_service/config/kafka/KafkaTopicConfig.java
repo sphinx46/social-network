@@ -1,4 +1,4 @@
-package ru.cs.vsu.social_network.contents_service.config;
+package ru.cs.vsu.social_network.contents_service.config.kafka;
 
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.context.annotation.Bean;

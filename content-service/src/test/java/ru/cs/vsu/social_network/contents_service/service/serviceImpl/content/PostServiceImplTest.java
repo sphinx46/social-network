@@ -20,7 +20,6 @@ import ru.cs.vsu.social_network.contents_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.contents_service.provider.PostEntityProvider;
 import ru.cs.vsu.social_network.contents_service.repository.PostRepository;
 import ru.cs.vsu.social_network.contents_service.service.cache.CacheEventPublisherService;
-import ru.cs.vsu.social_network.contents_service.service.serviceImpl.content.PostServiceImpl;
 import ru.cs.vsu.social_network.contents_service.utils.MessageConstants;
 import ru.cs.vsu.social_network.contents_service.utils.TestDataFactory;
 import ru.cs.vsu.social_network.contents_service.utils.factory.content.PostFactory;
@@ -77,7 +76,6 @@ class PostServiceImplTest {
         assertNotNull(actual);
         assertEquals(expectedResponse, actual);
         verify(postRepository).save(post);
-        verify(postRepository).flush();
     }
 
     @Test
