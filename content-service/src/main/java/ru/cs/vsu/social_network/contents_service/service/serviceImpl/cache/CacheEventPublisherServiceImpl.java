@@ -31,7 +31,6 @@ public class CacheEventPublisherServiceImpl implements CacheEventPublisherServic
     /**
      * {@inheritDoc}
      */
-    @Async("cacheTaskExecutor")
     @Override
     public void publishPostCreated(Object source,
                                    Object target,
@@ -51,7 +50,6 @@ public class CacheEventPublisherServiceImpl implements CacheEventPublisherServic
     /**
      * {@inheritDoc}
      */
-    @Async("cacheTaskExecutor")
     @Override
     public void publishPostUpdated(Object source,
                                    Object target,
@@ -71,7 +69,6 @@ public class CacheEventPublisherServiceImpl implements CacheEventPublisherServic
     /**
      * {@inheritDoc}
      */
-    @Async("cacheTaskExecutor")
     @Override
     public void publishCommentCreated(Object source,
                                       Object target,
@@ -93,7 +90,6 @@ public class CacheEventPublisherServiceImpl implements CacheEventPublisherServic
     /**
      * {@inheritDoc}
      */
-    @Async("cacheTaskExecutor")
     @Override
     public void publishCommentUpdated(Object source,
                                       Object target,
@@ -115,7 +111,6 @@ public class CacheEventPublisherServiceImpl implements CacheEventPublisherServic
     /**
      * {@inheritDoc}
      */
-    @Async("cacheTaskExecutor")
     @Override
     public void publishCommentDeleted(Object source,
                                       Object target,
@@ -137,7 +132,6 @@ public class CacheEventPublisherServiceImpl implements CacheEventPublisherServic
     /**
      * {@inheritDoc}
      */
-    @Async("cacheTaskExecutor")
     @Override
     public void publishPostLikeCreated(Object source,
                                        Object target,
@@ -159,7 +153,6 @@ public class CacheEventPublisherServiceImpl implements CacheEventPublisherServic
     /**
      * {@inheritDoc}
      */
-    @Async("cacheTaskExecutor")
     @Override
     public void publishPostLikeDeleted(Object source,
                                        Object target,

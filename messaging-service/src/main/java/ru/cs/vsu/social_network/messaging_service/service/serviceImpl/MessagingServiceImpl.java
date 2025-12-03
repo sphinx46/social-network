@@ -2,11 +2,15 @@ package ru.cs.vsu.social_network.messaging_service.service.serviceImpl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.cs.vsu.social_network.messaging_service.config.CacheConfig;
 import ru.cs.vsu.social_network.messaging_service.dto.request.messaging.MessageCreateRequest;
 import ru.cs.vsu.social_network.messaging_service.dto.request.messaging.MessageUploadImageRequest;
 import ru.cs.vsu.social_network.messaging_service.dto.request.pageable.PageRequest;
@@ -53,6 +57,32 @@ public class MessagingServiceImpl implements MessagingService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(
+                    value = CacheConfig.CONVERSATION_DETAILS_CACHE,
+                    key = "'*user1:' + #senderId + '*user2:' + #request.receiverId + '*'"
+            ),
+            @CacheEvict(
+                    value = CacheConfig.CONVERSATION_DETAILS_CACHE,
+                    key = "'*user1:' + #request.receiverId + '*user2:' + #senderId + '*'"
+            ),
+            @CacheEvict(
+                    value = CacheConfig.CONVERSATION_MESSAGES_CACHE,
+                    key = "'*user1:' + #senderId + '*user2:' + #request.receiverId + '*'"
+            ),
+            @CacheEvict(
+                    value = CacheConfig.CONVERSATION_MESSAGES_CACHE,
+                    key = "'*user1:' + #request.receiverId + '*user2:' + #senderId + '*'"
+            ),
+            @CacheEvict(
+                    value = CacheConfig.USER_CONVERSATIONS_CACHE,
+                    key = "'user:' + #senderId + '*'"
+            ),
+            @CacheEvict(
+                    value = CacheConfig.USER_CONVERSATIONS_CACHE,
+                    key = "'user:' + #request.receiverId + '*'"
+            )
+    })
     public MessageResponse sendMessage(final UUID senderId, final MessageCreateRequest request) {
         final String logPrefix = "МЕССЕНДЖЕР_СЕРВИС_ОТПРАВКА_СООБЩЕНИЯ";
         log.info("{}_НАЧАЛО: отправка сообщения от пользователя {} получателю {}",
@@ -69,6 +99,11 @@ public class MessagingServiceImpl implements MessagingService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(
+            value = CacheConfig.CONVERSATION_MESSAGES_CACHE,
+            key = "'user1:' + #user1Id + ':user2:' + #user2Id + ':page:' + #pageRequest.pageNumber + ':size:' + #pageRequest.size",
+            unless = "#result == null or #result.content.isEmpty()"
+    )
     public PageResponse<ConversationDetailsResponse> getConversationWithUser(final UUID user1Id,
                                                                              final UUID user2Id,
                                                                              final PageRequest pageRequest) {
@@ -91,6 +126,11 @@ public class MessagingServiceImpl implements MessagingService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(
+            value = CacheConfig.USER_CONVERSATIONS_CACHE,
+            key = "'user:' + #userId + ':page:' + #pageRequest.pageNumber + ':size:' + #pageRequest.size + ':preview:' + #previewMessagesLimit",
+            unless = "#result == null or #result.content.isEmpty()"
+    )
     public PageResponse<ConversationDetailsResponse> getUserConversationsWithPreview(final UUID userId,
                                                                                      final PageRequest pageRequest,
                                                                                      final int previewMessagesLimit) {
@@ -105,23 +145,23 @@ public class MessagingServiceImpl implements MessagingService {
 
         final List<ConversationDetailsResponse> detailedConversations =
                 conversationsPage.getContent().stream()
-                .map(conversationResponse -> {
-                    final ConversationDetailsResponse details =
-                            entityMapper.map(conversationResponse, ConversationDetailsResponse.class);
+                        .map(conversationResponse -> {
+                            final ConversationDetailsResponse details =
+                                    entityMapper.map(conversationResponse, ConversationDetailsResponse.class);
 
-                    final List<MessageResponse> previewMessages = batchMessageService
-                            .getMessagesByConversation(conversationResponse.getConversationId(),
-                                    0, effectiveLimit);
+                            final List<MessageResponse> previewMessages = batchMessageService
+                                    .getMessagesByConversation(conversationResponse.getConversationId(),
+                                            0, effectiveLimit);
 
-                    details.setMessages(previewMessages);
+                            details.setMessages(previewMessages);
 
-                    if (!previewMessages.isEmpty()) {
-                        details.setLastMessageId(previewMessages.get(0).getMessageId());
-                    }
+                            if (!previewMessages.isEmpty()) {
+                                details.setLastMessageId(previewMessages.get(0).getMessageId());
+                            }
 
-                    return details;
-                })
-                .collect(Collectors.toList());
+                            return details;
+                        })
+                        .collect(Collectors.toList());
 
         final PageResponse<ConversationDetailsResponse> response = PageResponse.of(
                 pageRequest,
@@ -140,6 +180,16 @@ public class MessagingServiceImpl implements MessagingService {
      */
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(
+                    value = CacheConfig.CONVERSATION_DETAILS_CACHE,
+                    key = "'conversation:' + #conversationId + '*'"
+            ),
+            @CacheEvict(
+                    value = CacheConfig.USER_CONVERSATIONS_CACHE,
+                    key = "'user:' + #userId + '*'"
+            )
+    })
     public int markConversationAsRead(final UUID userId, final UUID conversationId) {
         final String logPrefix = "МЕССЕНДЖЕР_СЕРВИС_ОТМЕТКА_БЕСЕДЫ_ПРОЧИТАННОЙ";
         log.info("{}_НАЧАЛО: отметка беседы {} как прочитанной пользователем {}",
@@ -164,6 +214,16 @@ public class MessagingServiceImpl implements MessagingService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(
+                    value = CacheConfig.MESSAGE_CACHE,
+                    key = "#request.messageId"
+            ),
+            @CacheEvict(
+                    value = CacheConfig.CONVERSATION_MESSAGES_CACHE,
+                    key = "'*message:' + #request.messageId + '*'"
+            )
+    })
     public MessageResponse uploadMessageImage(final UUID userId,
                                               final MessageUploadImageRequest request) {
         final String logPrefix = "МЕССЕНДЖЕР_СЕРВИС_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ";
@@ -180,6 +240,28 @@ public class MessagingServiceImpl implements MessagingService {
 
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(
+                    value = CacheConfig.CONVERSATION_DETAILS_CACHE,
+                    allEntries = true
+            ),
+            @CacheEvict(
+                    value = CacheConfig.CONVERSATION_MESSAGES_CACHE,
+                    allEntries = true
+            ),
+            @CacheEvict(
+                    value = CacheConfig.USER_CONVERSATIONS_CACHE,
+                    allEntries = true
+            ),
+            @CacheEvict(
+                    value = CacheConfig.CONVERSATION_BETWEEN_USERS_CACHE,
+                    key = "'user1:' + #userId + ':user2:' + #otherUserId"
+            ),
+            @CacheEvict(
+                    value = CacheConfig.CONVERSATION_BETWEEN_USERS_CACHE,
+                    key = "'user1:' + #otherUserId + ':user2:' + #userId"
+            )
+    })
     public void deleteConversationWithUser(final UUID userId, final UUID otherUserId) {
         final String logPrefix = "МЕССЕНДЖЕР_СЕРВИС_УДАЛЕНИЕ_ПЕРЕПИСКИ";
         log.info("{}_НАЧАЛО: удаление переписки пользователя {} с пользователем {}",
@@ -201,6 +283,11 @@ public class MessagingServiceImpl implements MessagingService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(
+            value = CacheConfig.CONVERSATION_DETAILS_CACHE,
+            key = "'conversation:' + #conversationId + ':userId:' + #userId",
+            unless = "#result == null"
+    )
     public ConversationDetailsResponse getChatInfo(final UUID userId, final UUID conversationId) {
         final String logPrefix = "МЕССЕНДЖЕР_СЕРВИС_ПОЛУЧЕНИЕ_ИНФОРМАЦИИ_О_ЧАТЕ";
         log.info("{}_НАЧАЛО: получение информации о чате {} для пользователя {}",
@@ -219,6 +306,11 @@ public class MessagingServiceImpl implements MessagingService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(
+            value = CacheConfig.USER_CONVERSATIONS_CACHE,
+            key = "'user:' + #userId + ':detailed:page:' + #pageRequest.pageNumber + ':size:' + #pageRequest.size",
+            unless = "#result == null or #result.content.isEmpty()"
+    )
     public PageResponse<ConversationDetailsResponse> getUserConversationsDetailed(final UUID userId,
                                                                                   final PageRequest pageRequest) {
         final String logPrefix = "МЕССЕНДЖЕР_СЕРВИС_ПОЛУЧЕНИЕ_ДЕТАЛЬНЫХ_БЕСЕД";
@@ -245,6 +337,11 @@ public class MessagingServiceImpl implements MessagingService {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(
+            value = CacheConfig.CONVERSATION_DETAILS_CACHE,
+            key = "'unread:conversation:' + #conversationId + ':userId:' + #userId",
+            unless = "#result == null"
+    )
     public Long getUnreadMessagesCountInConversation(final UUID userId, final UUID conversationId) {
         final String logPrefix = "МЕССЕНДЖЕР_СЕРВИС_ПОЛУЧЕНИЕ_КОЛИЧЕСТВА_НЕПРОЧИТАННЫХ_В_БЕСЕДЕ";
         log.info("{}_НАЧАЛО: получение количества непрочитанных в беседе {} для пользователя {}",

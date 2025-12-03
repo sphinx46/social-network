@@ -14,10 +14,12 @@ import ru.cs.vsu.social_network.messaging_service.entity.Message;
 import ru.cs.vsu.social_network.messaging_service.entity.enums.MessageStatus;
 import ru.cs.vsu.social_network.messaging_service.exception.message.MessageUploadImageException;
 import ru.cs.vsu.social_network.messaging_service.mapping.EntityMapper;
+import ru.cs.vsu.social_network.messaging_service.provider.ConversationEntityProvider;
 import ru.cs.vsu.social_network.messaging_service.provider.MessageEntityProvider;
 import ru.cs.vsu.social_network.messaging_service.repository.MessageRepository;
 import ru.cs.vsu.social_network.messaging_service.service.MessageService;
 import ru.cs.vsu.social_network.messaging_service.service.batch.BatchMessageService;
+import ru.cs.vsu.social_network.messaging_service.service.cache.MessagingCacheEventPublisherService;
 import ru.cs.vsu.social_network.messaging_service.utils.MessageConstants;
 import ru.cs.vsu.social_network.messaging_service.utils.factory.messaging.MessageFactory;
 import ru.cs.vsu.social_network.messaging_service.validation.ConversationValidator;
@@ -41,6 +43,8 @@ public class MessageServiceImpl implements MessageService {
     private final MessageFactory messageFactory;
     private final BatchMessageService batchMessageService;
     private final ConversationValidator conversationValidator;
+    private final ConversationEntityProvider conversationEntityProvider;
+    private final MessagingCacheEventPublisherService cacheEventPublisherService;
 
     public MessageServiceImpl(final MessageRepository messageRepository,
                               final MessageEntityProvider messageEntityProvider,
@@ -48,7 +52,9 @@ public class MessageServiceImpl implements MessageService {
                               final EntityMapper entityMapper,
                               final MessageFactory messageFactory,
                               final BatchMessageService batchMessageService,
-                              final ConversationValidator conversationValidator) {
+                              final ConversationValidator conversationValidator,
+                              final ConversationEntityProvider conversationEntityProvider,
+                              final MessagingCacheEventPublisherService cacheEventPublisherService) {
         this.messageRepository = messageRepository;
         this.messageEntityProvider = messageEntityProvider;
         this.messageValidator = messageValidator;
@@ -56,6 +62,8 @@ public class MessageServiceImpl implements MessageService {
         this.messageFactory = messageFactory;
         this.batchMessageService = batchMessageService;
         this.conversationValidator = conversationValidator;
+        this.conversationEntityProvider = conversationEntityProvider;
+        this.cacheEventPublisherService = cacheEventPublisherService;
     }
 
     /**
@@ -73,6 +81,15 @@ public class MessageServiceImpl implements MessageService {
 
         final Message message = messageFactory.create(keycloakUserId, messageCreateRequest);
         final Message savedMessage = messageRepository.save(message);
+
+        cacheEventPublisherService.publishMessageCreated(
+                this,
+                savedMessage,
+                message.getConversation().getId(),
+                savedMessage.getId(),
+                keycloakUserId,
+                messageCreateRequest.getReceiverId()
+        );
 
         log.info("СООБЩЕНИЕ_СЕРВИС_СОЗДАНИЕ_УСПЕХ: " +
                         "сообщение успешно создано с ID: {} пользователем: {}, получатель: {}",
@@ -100,6 +117,13 @@ public class MessageServiceImpl implements MessageService {
         message.setContent(messageEditRequest.getContent());
         final Message updatedMessage = messageRepository.save(message);
 
+        cacheEventPublisherService.publishMessageUpdated(
+                this,
+                updatedMessage,
+                message.getConversation().getId(),
+                updatedMessage.getId()
+        );
+
         log.info("СООБЩЕНИЕ_СЕРВИС_РЕДАКТИРОВАНИЕ_УСПЕХ: " +
                         "сообщение с ID: {} успешно обновлено пользователем: {}",
                 messageEditRequest.getMessageId(), keycloakUserId);
@@ -121,7 +145,16 @@ public class MessageServiceImpl implements MessageService {
         messageValidator.validateOwnership(keycloakUserId, messageDeleteRequest.getMessageId());
 
         final Message message = messageEntityProvider.getById(messageDeleteRequest.getMessageId());
+        final UUID conversationId = message.getConversation().getId();
         messageRepository.delete(message);
+
+        cacheEventPublisherService.publishMessageDeleted(
+                this,
+                message,
+                conversationId,
+                messageDeleteRequest.getMessageId()
+        );
+
 
         log.info("СООБЩЕНИЕ_СЕРВИС_УДАЛЕНИЕ_УСПЕХ: " +
                         "сообщение с ID: {} успешно удалено пользователем: {}",
@@ -157,6 +190,13 @@ public class MessageServiceImpl implements MessageService {
         message.setImageUrl(imageUrl);
         final Message updatedMessage = messageRepository.save(message);
 
+        cacheEventPublisherService.publishMessageImageUploaded(
+                this,
+                updatedMessage,
+                message.getConversation().getId(),
+                request.getMessageId()
+        );
+
         log.info("СООБЩЕНИЕ_СЕРВИС_ЗАГРУЗКА_ИЗОБРАЖЕНИЯ_УСПЕХ: " +
                         "изображение загружено для сообщения с ID: {} пользователем: {}, " +
                         "URL: {}",
@@ -181,6 +221,13 @@ public class MessageServiceImpl implements MessageService {
         final Message message = messageEntityProvider.getById(messageRemoveImageRequest.getMessageId());
         message.setImageUrl(null);
         final Message updatedMessage = messageRepository.save(message);
+
+        cacheEventPublisherService.publishMessageUpdated(
+                this,
+                updatedMessage,
+                message.getConversation().getId(),
+                messageRemoveImageRequest.getMessageId()
+        );
 
         log.info("СООБЩЕНИЕ_СЕРВИС_УДАЛЕНИЕ_ИЗОБРАЖЕНИЯ_УСПЕХ: " +
                         "изображение удалено у сообщения с ID: {} пользователем: {}",
@@ -240,6 +287,15 @@ public class MessageServiceImpl implements MessageService {
 
             final int markedCount =
                     batchMessageService.batchMarkConversationAsRead(userId, conversationId);
+
+            if (markedCount > 0) {
+                cacheEventPublisherService.publishMessagesRead(
+                        this,
+                        conversationEntityProvider.getById(conversationId),
+                        conversationId,
+                        userId
+                );
+            }
 
             log.info("{}_УСПЕХ: отмечено {} сообщений как прочитанные в беседе {}",
                     logPrefix, markedCount, conversationId);

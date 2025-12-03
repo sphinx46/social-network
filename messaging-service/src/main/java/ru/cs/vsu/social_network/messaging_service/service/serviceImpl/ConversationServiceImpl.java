@@ -2,11 +2,15 @@ package ru.cs.vsu.social_network.messaging_service.service.serviceImpl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.cs.vsu.social_network.messaging_service.config.CacheConfig;
 import ru.cs.vsu.social_network.messaging_service.dto.request.pageable.PageRequest;
 import ru.cs.vsu.social_network.messaging_service.dto.response.messaging.ConversationDetailsResponse;
 import ru.cs.vsu.social_network.messaging_service.dto.response.messaging.ConversationResponse;
@@ -18,6 +22,7 @@ import ru.cs.vsu.social_network.messaging_service.provider.ConversationEntityPro
 import ru.cs.vsu.social_network.messaging_service.repository.ConversationRepository;
 import ru.cs.vsu.social_network.messaging_service.service.ConversationService;
 import ru.cs.vsu.social_network.messaging_service.service.aggregator.ConversationDetailsAggregator;
+import ru.cs.vsu.social_network.messaging_service.service.cache.MessagingCacheEventPublisherService;
 import ru.cs.vsu.social_network.messaging_service.utils.MessageConstants;
 import ru.cs.vsu.social_network.messaging_service.utils.factory.messaging.ConversationFactory;
 import ru.cs.vsu.social_network.messaging_service.validation.ConversationValidator;
@@ -39,12 +44,31 @@ public class ConversationServiceImpl implements ConversationService {
     private final ConversationDetailsAggregator conversationDetailsAggregator;
     private final EntityMapper entityMapper;
     private final ConversationFactory conversationFactory;
+    private final MessagingCacheEventPublisherService cacheEventPublisherService;
 
     /**
      * {@inheritDoc}
      */
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(
+                    value = CacheConfig.USER_CONVERSATIONS_CACHE,
+                    key = "'user:' + #user1Id + '*'"
+            ),
+            @CacheEvict(
+                    value = CacheConfig.USER_CONVERSATIONS_CACHE,
+                    key = "'user:' + #user2Id + '*'"
+            ),
+            @CacheEvict(
+                    value = CacheConfig.CONVERSATION_BETWEEN_USERS_CACHE,
+                    key = "'user1:' + #user1Id + ':user2:' + #user2Id"
+            ),
+            @CacheEvict(
+                    value = CacheConfig.CONVERSATION_BETWEEN_USERS_CACHE,
+                    key = "'user1:' + #user2Id + ':user2:' + #user1Id"
+            )
+    })
     public ConversationResponse createOrGetConversation(final UUID user1Id, final UUID user2Id) {
         final String logPrefix = "БЕСЕДА_СЕРВИС_СОЗДАНИЕ_ИЛИ_ПОЛУЧЕНИЕ";
         log.info("{}_НАЧАЛО: создание или получение беседы между пользователями {} и {}",
@@ -65,6 +89,12 @@ public class ConversationServiceImpl implements ConversationService {
         final Conversation newConversation = conversationFactory.buildNewConversation(user1Id, user2Id);
         final Conversation savedConversation = conversationRepository.save(newConversation);
 
+        cacheEventPublisherService.publishConversationCreated(this,
+                savedConversation,
+                savedConversation.getId(),
+                user1Id,
+                user2Id);
+
         log.info("{}_УСПЕХ: создана новая беседа с ID: {}",
                 logPrefix, savedConversation.getId());
 
@@ -76,6 +106,11 @@ public class ConversationServiceImpl implements ConversationService {
      */
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(
+            value = CacheConfig.CONVERSATION_DETAILS_CACHE,
+            key = "'conversation:' + #conversationId",
+            unless = "#result == null"
+    )
     public ConversationResponse getConversationById(final UUID conversationId) {
         final String logPrefix = "БЕСЕДА_СЕРВИС_ПОЛУЧЕНИЕ_ПО_ID";
         log.info("{}_НАЧАЛО: запрос беседы с ID: {}", logPrefix, conversationId);
@@ -92,6 +127,11 @@ public class ConversationServiceImpl implements ConversationService {
      */
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(
+            value = CacheConfig.CONVERSATION_BETWEEN_USERS_CACHE,
+            key = "'user1:' + #user1Id + ':user2:' + #user2Id",
+            unless = "#result == null"
+    )
     public ConversationResponse getConversationBetweenUsers(final UUID user1Id, final UUID user2Id) {
         final String logPrefix = "БЕСЕДА_СЕРВИС_ПОЛУЧЕНИЕ_МЕЖДУ_ПОЛЬЗОВАТЕЛЯМИ";
         log.info("{}_НАЧАЛО: запрос беседы между пользователями {} и {}", logPrefix, user1Id, user2Id);
@@ -113,6 +153,11 @@ public class ConversationServiceImpl implements ConversationService {
      */
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(
+            value = CacheConfig.USER_CONVERSATIONS_CACHE,
+            key = "'user:' + #userId + ':page:' + #pageRequest.pageNumber + ':size:' + #pageRequest.size + ':sort:' + #pageRequest.sortBy + ':dir:' + #pageRequest.direction",
+            unless = "#result == null or #result.content.isEmpty()"
+    )
     public PageResponse<ConversationResponse> getUserConversations(final UUID userId,
                                                                    final PageRequest pageRequest) {
         final String logPrefix = "БЕСЕДА_СЕРВИС_ПОЛУЧЕНИЕ_БЕСЕД_ПОЛЬЗОВАТЕЛЯ";
@@ -139,6 +184,11 @@ public class ConversationServiceImpl implements ConversationService {
      */
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(
+            value = CacheConfig.CONVERSATION_DETAILS_CACHE,
+            key = "'conversation:' + #conversationId + ':messagesLimit:' + #messagesLimit",
+            unless = "#result == null"
+    )
     public ConversationDetailsResponse getConversationWithMessages(final UUID conversationId,
                                                                    final int messagesLimit) {
         final String logPrefix = "БЕСЕДА_СЕРВИС_ПОЛУЧЕНИЕ_С_СООБЩЕНИЯМИ";
@@ -160,6 +210,11 @@ public class ConversationServiceImpl implements ConversationService {
      */
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(
+            value = CacheConfig.CONVERSATION_MESSAGES_CACHE,
+            key = "'user1:' + #user1Id + ':user2:' + #user2Id + ':page:' + #pageRequest.pageNumber + ':size:' + #pageRequest.size",
+            unless = "#result == null or #result.content.isEmpty()"
+    )
     public PageResponse<ConversationDetailsResponse> getConversationBetweenUsersWithMessages(final UUID user1Id,
                                                                                              final UUID user2Id,
                                                                                              final PageRequest pageRequest) {
@@ -195,6 +250,20 @@ public class ConversationServiceImpl implements ConversationService {
      */
     @Override
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(
+                    value = CacheConfig.CONVERSATION_DETAILS_CACHE,
+                    key = "'conversation:' + #conversationId + '*'"
+            ),
+            @CacheEvict(
+                    value = CacheConfig.CONVERSATION_MESSAGES_CACHE,
+                    key = "'*conversation:' + #conversationId + '*'"
+            ),
+            @CacheEvict(
+                    value = CacheConfig.USER_CONVERSATIONS_CACHE,
+                    allEntries = true
+            )
+    })
     public void deleteConversation(final UUID keycloakUserId,
                                    final UUID conversationId) {
         final String logPrefix = "БЕСЕДА_СЕРВИС_УДАЛЕНИЕ";
@@ -220,6 +289,11 @@ public class ConversationServiceImpl implements ConversationService {
      */
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(
+            value = CacheConfig.CONVERSATION_BETWEEN_USERS_CACHE,
+            key = "'exists:user1:' + #user1Id + ':user2:' + #user2Id",
+            unless = "#result == null"
+    )
     public boolean existsConversationBetweenUsers(final UUID user1Id, final UUID user2Id) {
         final String logPrefix = "БЕСЕДА_СЕРВИС_ПРОВЕРКА_СУЩЕСТВОВАНИЯ";
         log.info("{}_НАЧАЛО: проверка существования беседы между пользователями", logPrefix);

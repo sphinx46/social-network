@@ -65,8 +65,6 @@ public class PostServiceImpl implements PostService {
                         "пост успешно создан с ID: {} для пользователя: {}",
                 savedPost.getId(), keycloakUserId);
 
-        postRepository.flush();
-
         cacheEventPublisherService.publishPostCreated(this, savedPost,
                 keycloakUserId, savedPost.getId());
 
@@ -88,8 +86,6 @@ public class PostServiceImpl implements PostService {
         Post post = postEntityProvider.getById(request.getPostId());
         post.setContent(request.getContent());
         Post updatedPost = postRepository.save(post);
-
-        postRepository.flush();
 
         cacheEventPublisherService.publishPostUpdated(this, updatedPost,
         keycloakUserId, updatedPost.getId());
@@ -114,8 +110,6 @@ public class PostServiceImpl implements PostService {
         Post post = postEntityProvider.getById(request.getPostId());
         post.setImageUrl(null);
         Post updatedPost = postRepository.save(post);
-
-        postRepository.flush();
 
         cacheEventPublisherService.publishPostUpdated(this, updatedPost,
                 keycloakUserId, updatedPost.getId());
@@ -184,8 +178,6 @@ public class PostServiceImpl implements PostService {
 
         post.setImageUrl(imageUrl.trim());
         final Post updatedPost = postRepository.save(post);
-
-        postRepository.flush();
 
         cacheEventPublisherService.publishPostUpdated(this, updatedPost,
                 keycloakUserId, updatedPost.getId());
