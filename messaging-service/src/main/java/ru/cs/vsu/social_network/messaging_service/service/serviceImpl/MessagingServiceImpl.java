@@ -232,6 +232,7 @@ public class MessagingServiceImpl implements MessagingService {
 
         final MessageResponse messageResponse = messageService.uploadImage(userId, request);
 
+
         log.info("{}_УСПЕХ: изображение загружено для сообщения {}",
                 logPrefix, request.getMessageId());
 

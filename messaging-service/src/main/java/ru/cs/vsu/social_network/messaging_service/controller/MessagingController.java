@@ -324,4 +324,19 @@ public class MessagingController {
                 "сообщение {} отредактировано", request.getMessageId());
         return ResponseEntity.ok(messageResponse);
     }
+
+    @Operation(summary = "Получение сообщения по Id")
+    @GetMapping("/{messageId}")
+    public ResponseEntity<MessageResponse> getMessageById(
+            @RequestHeader("X-User-Id") final UUID userId,
+            @Valid @PathVariable("messageId") final UUID messageId) {
+        log.info("МЕССЕНДЖЕР_КОНТРОЛЛЕР_ПОЛУЧЕНИЕ_СООБЩЕНИЯ_НАЧАЛО: {}",
+                messageId);
+
+        MessageResponse messageResponse = messageService.getMessageById(messageId);
+
+        log.info("МЕССЕНДЖЕР_КОНТРОЛЛЕР_ПОЛУЧЕНИЕ_СООБЩЕНИЯ_УСПЕХ: {}",
+                messageId);
+        return ResponseEntity.ok(messageResponse);
+    }
 }

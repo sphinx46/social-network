@@ -175,7 +175,7 @@ public class MessagingCacheEventHandlerImpl implements MessagingCacheEventHandle
 
     /**
      * Обрабатывает событие загрузки изображения в сообщение.
-     * Инвалидирует кеши сообщения и сообщений беседы.
+     * Инвалидирует кеши сообщения, сообщений беседы, деталей беседы и бесед пользователей.
      *
      * @param event событие загрузки изображения
      */
@@ -184,14 +184,39 @@ public class MessagingCacheEventHandlerImpl implements MessagingCacheEventHandle
 
         final UUID conversationId = event.getData("conversationId", UUID.class);
         final UUID messageId = event.getData("messageId", UUID.class);
+        final UUID senderId = event.getData("senderId", UUID.class);
+        final UUID receiverId = event.getData("receiverId", UUID.class);
 
         if (conversationId == null || messageId == null) {
             log.warn("{}: отсутствует conversationId или messageId в событии", logPrefix);
             return;
         }
 
+        log.debug("{}: обработка загрузки изображения в сообщение {} беседы {}, отправитель: {}, получатель: {}",
+                logPrefix, messageId, conversationId, senderId, receiverId);
+
         messagingCacheService.evictMessage(messageId);
+
         messagingCacheService.evictConversationMessages(conversationId);
+
+        messagingCacheService.evictConversationDetails(conversationId);
+
+        if (senderId != null) {
+            messagingCacheService.evictUserConversations(senderId);
+        }
+
+        if (receiverId != null) {
+            messagingCacheService.evictUserConversations(receiverId);
+        }
+
+        if (senderId != null && receiverId != null) {
+            messagingCacheService.evictConversationBetweenUsers(senderId, receiverId);
+        }
+
+        messagingCacheService.evictFirstPages();
+
+        log.debug("{}: полная инвалидация завершена для сообщения {} беседы {}",
+                logPrefix, messageId, conversationId);
     }
 
     /**

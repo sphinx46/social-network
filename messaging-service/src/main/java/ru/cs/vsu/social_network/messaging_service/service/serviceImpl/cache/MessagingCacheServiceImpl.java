@@ -74,8 +74,11 @@ public class MessagingCacheServiceImpl implements MessagingCacheService {
         final String[] basePatterns = {
                 USER_CONVERSATIONS_CACHE + CACHE_KEY_SEPARATOR + userPrefixPattern,
                 USER_CONVERSATIONS_CACHE + CACHE_KEY_SEPARATOR + userIdPattern,
+                "userConversations" + CACHE_KEY_SEPARATOR + userPrefixPattern,
                 "userConversations" + CACHE_KEY_SEPARATOR + userIdPattern,
                 ANY_PREFIX + "userConversations" + ANY_PREFIX + userIdStr + ANY_PREFIX,
+                userIdStr + ANY_PREFIX + "detailed" + ANY_PREFIX,
+                ANY_PREFIX + "detailed" + ANY_PREFIX + userIdStr + ANY_PREFIX,
                 ANY_PREFIX + "conversation" + ANY_PREFIX + userIdStr + ANY_PREFIX,
                 ANY_PREFIX + "conversations" + ANY_PREFIX + userIdStr + ANY_PREFIX
         };
@@ -92,6 +95,8 @@ public class MessagingCacheServiceImpl implements MessagingCacheService {
             allPatterns.add(USER_CONVERSATIONS_CACHE + CACHE_KEY_SEPARATOR + userIdPattern + pageSuffix);
             allPatterns.add(ANY_PREFIX + "userConversations" + ANY_PREFIX + userIdStr + ANY_PREFIX + pageSuffix);
             allPatterns.add(ANY_PREFIX + "conversation" + ANY_PREFIX + userIdStr + ANY_PREFIX + pageSuffix);
+            allPatterns.add(userIdStr + ANY_PREFIX + "detailed" + ANY_PREFIX + pageSuffix);
+            allPatterns.add(userIdStr + ANY_PREFIX + pageSuffix);
         }
 
         return allPatterns.toArray(new String[0]);
@@ -110,18 +115,47 @@ public class MessagingCacheServiceImpl implements MessagingCacheService {
         final String conversationIdPattern = ANY_PREFIX + conversationIdStr + ANY_PREFIX;
         final String conversationPrefixPattern = ANY_PREFIX + CONVERSATION_PREFIX + conversationIdStr + ANY_PREFIX;
 
+        final String[] commonPatterns = {
+                CONVERSATION_DETAILS_CACHE + CACHE_KEY_SEPARATOR + conversationPrefixPattern,
+                CONVERSATION_DETAILS_CACHE + CACHE_KEY_SEPARATOR + conversationIdPattern,
+                CONVERSATION_DETAILS_CACHE + ANY_PREFIX + conversationIdStr + ANY_PREFIX,
+                "conversationDetails" + ANY_PREFIX + conversationIdStr + ANY_PREFIX,
+                ANY_PREFIX + "conversationDetails" + ANY_PREFIX + conversationIdStr + ANY_PREFIX,
+                CONVERSATION_MESSAGES_CACHE + CACHE_KEY_SEPARATOR + conversationPrefixPattern,
+                CONVERSATION_MESSAGES_CACHE + CACHE_KEY_SEPARATOR + conversationIdPattern,
+                CONVERSATION_MESSAGES_CACHE + ANY_PREFIX + conversationIdStr + ANY_PREFIX,
+                "conversationMessages" + CACHE_KEY_SEPARATOR + conversationIdPattern,
+                "conversationMessages" + ANY_PREFIX + conversationIdStr + ANY_PREFIX,
+                ANY_PREFIX + "conversationMessages" + ANY_PREFIX + conversationIdStr + ANY_PREFIX,
+                ANY_PREFIX + CACHE_KEY_SEPARATOR + ANY_PREFIX + conversationIdStr + ANY_PREFIX,
+                ANY_PREFIX + "messages" + ANY_PREFIX + conversationIdStr + ANY_PREFIX,
+                ANY_PREFIX + "user1:" + ANY_PREFIX + conversationIdStr + ANY_PREFIX,
+                ANY_PREFIX + "user2:" + ANY_PREFIX + conversationIdStr + ANY_PREFIX
+        };
+
         if ("messages".equals(cacheType)) {
-            return new String[] {
+            final String[] messagePatterns = {
                     CONVERSATION_MESSAGES_CACHE + CACHE_KEY_SEPARATOR + conversationPrefixPattern,
                     CONVERSATION_MESSAGES_CACHE + CACHE_KEY_SEPARATOR + conversationIdPattern,
+                    CONVERSATION_MESSAGES_CACHE + ANY_PREFIX + conversationIdStr + ANY_PREFIX,
                     "conversationMessages" + CACHE_KEY_SEPARATOR + conversationIdPattern,
-                    ANY_PREFIX + "conversationMessages" + ANY_PREFIX + conversationIdStr + ANY_PREFIX
+                    "conversationMessages" + ANY_PREFIX + conversationIdStr + ANY_PREFIX,
+                    ANY_PREFIX + "conversationMessages" + ANY_PREFIX + conversationIdStr + ANY_PREFIX,
+                    ANY_PREFIX + CACHE_KEY_SEPARATOR + ANY_PREFIX + conversationIdStr + ANY_PREFIX,
+                    ANY_PREFIX + "messages" + ANY_PREFIX + conversationIdStr + ANY_PREFIX,
+                    ANY_PREFIX + "user1:" + ANY_PREFIX + conversationIdStr + ANY_PREFIX,
+                    ANY_PREFIX + "user2:" + ANY_PREFIX + conversationIdStr + ANY_PREFIX
             };
+            return messagePatterns;
         } else {
-            return new String[] {
+            final String[] detailsPatterns = {
                     CONVERSATION_DETAILS_CACHE + CACHE_KEY_SEPARATOR + conversationPrefixPattern,
-                    CONVERSATION_DETAILS_CACHE + CACHE_KEY_SEPARATOR + conversationIdPattern
+                    CONVERSATION_DETAILS_CACHE + CACHE_KEY_SEPARATOR + conversationIdPattern,
+                    CONVERSATION_DETAILS_CACHE + ANY_PREFIX + conversationIdStr + ANY_PREFIX,
+                    "conversationDetails" + ANY_PREFIX + conversationIdStr + ANY_PREFIX,
+                    ANY_PREFIX + "conversationDetails" + ANY_PREFIX + conversationIdStr + ANY_PREFIX
             };
+            return detailsPatterns;
         }
     }
 
@@ -242,8 +276,12 @@ public class MessagingCacheServiceImpl implements MessagingCacheService {
             final String[] patterns = {
                     MESSAGE_CACHE + CACHE_KEY_SEPARATOR + messagePrefixPattern,
                     MESSAGE_CACHE + CACHE_KEY_SEPARATOR + messageIdPattern,
+                    MESSAGE_CACHE + ANY_PREFIX + messageIdStr + ANY_PREFIX,
                     "message" + CACHE_KEY_SEPARATOR + messageIdPattern,
-                    ANY_PREFIX + "message" + ANY_PREFIX + messageIdStr + ANY_PREFIX
+                    "message" + ANY_PREFIX + messageIdStr + ANY_PREFIX,
+                    ANY_PREFIX + "message" + ANY_PREFIX + messageIdStr + ANY_PREFIX,
+                    ANY_PREFIX + CACHE_KEY_SEPARATOR + ANY_PREFIX + messageIdStr + ANY_PREFIX,
+                    ANY_PREFIX + "Message" + ANY_PREFIX + messageIdStr + ANY_PREFIX
             };
 
             final int totalDeleted = deleteKeysByPatterns(patterns, logPrefix);
@@ -277,10 +315,12 @@ public class MessagingCacheServiceImpl implements MessagingCacheService {
             final String user2PrefixPattern = ANY_PREFIX + USER_PREFIX + user2Id + ANY_PREFIX;
 
             final String[] patterns = {
-                    ANY_PREFIX + CACHE_KEY_SEPARATOR + user1PrefixPattern + user2PrefixPattern,
-                    ANY_PREFIX + CACHE_KEY_SEPARATOR + user2PrefixPattern + user1PrefixPattern,
-                    ANY_PREFIX + CACHE_KEY_SEPARATOR + userId1Pattern + userId2Pattern,
-                    ANY_PREFIX + CACHE_KEY_SEPARATOR + userId2Pattern + userId1Pattern
+                    ANY_PREFIX + CACHE_KEY_SEPARATOR + user1PrefixPattern + ANY_PREFIX + user2PrefixPattern + ANY_PREFIX,
+                    ANY_PREFIX + CACHE_KEY_SEPARATOR + user2PrefixPattern + ANY_PREFIX + user1PrefixPattern + ANY_PREFIX,
+                    ANY_PREFIX + CACHE_KEY_SEPARATOR + userId1Pattern + ANY_PREFIX + userId2Pattern + ANY_PREFIX,
+                    ANY_PREFIX + CACHE_KEY_SEPARATOR + userId2Pattern + ANY_PREFIX + userId1Pattern + ANY_PREFIX,
+                    ANY_PREFIX + "user1:" + user1Id + ANY_PREFIX + "user2:" + user2Id + ANY_PREFIX,
+                    ANY_PREFIX + "user1:" + user2Id + ANY_PREFIX + "user2:" + user1Id + ANY_PREFIX
             };
 
             final int totalDeleted = deleteKeysByPatterns(patterns, logPrefix);
@@ -311,8 +351,11 @@ public class MessagingCacheServiceImpl implements MessagingCacheService {
                 final String pageSuffix = ANY_PREFIX + PAGE_PREFIX + page + ANY_PREFIX;
                 final String[] patterns = {
                         USER_CONVERSATIONS_CACHE + CACHE_KEY_SEPARATOR + ANY_PREFIX + pageSuffix,
+                        USER_CONVERSATIONS_CACHE + ANY_PREFIX + pageSuffix,
                         "userConversations" + CACHE_KEY_SEPARATOR + ANY_PREFIX + pageSuffix,
-                        ANY_PREFIX + "userConversations" + ANY_PREFIX + pageSuffix
+                        "userConversations" + ANY_PREFIX + pageSuffix,
+                        ANY_PREFIX + "userConversations" + ANY_PREFIX + pageSuffix,
+                        ANY_PREFIX + "detailed" + ANY_PREFIX + pageSuffix
                 };
                 totalDeleted += deleteKeysByPatterns(patterns, logPrefix);
             }
