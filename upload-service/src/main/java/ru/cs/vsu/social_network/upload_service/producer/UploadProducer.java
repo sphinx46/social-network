@@ -29,7 +29,7 @@ public final class UploadProducer {
     private static final String AVATAR_TOPIC = "avatar-uploaded";
     private static final String POST_IMAGE_TOPIC = "post-image-uploaded";
     private static final String COMMENT_IMAGE_TOPIC = "comment-image-uploaded";
-    private static final String MESSAGE_IMAGE_TOPIC = "message-image-uploaded";
+    private static final String MESSAGE_IMAGE_TOPIC = "messaging-image-uploaded";
 
     /**
      * Отправляет событие загрузки аватара в Kafka.

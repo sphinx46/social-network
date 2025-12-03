@@ -5,10 +5,12 @@ import org.modelmapper.ModelMapper;
 import org.modelmapper.PropertyMap;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import ru.cs.vsu.social_network.messaging_service.dto.request.messaging.MessageUploadImageRequest;
 import ru.cs.vsu.social_network.messaging_service.dto.response.messaging.ConversationDetailsResponse;
 import ru.cs.vsu.social_network.messaging_service.dto.response.messaging.ConversationResponse;
 import ru.cs.vsu.social_network.messaging_service.dto.response.messaging.MessageResponse;
 import ru.cs.vsu.social_network.messaging_service.entity.Message;
+import ru.cs.vsu.social_network.messaging_service.event.MessageImageUploadedEvent;
 
 /**
  * Конфигурационный класс для настройки ModelMapper.
@@ -34,6 +36,7 @@ public class ModelMapperConfig {
 
         configureMessageMappings(modelMapper);
         configureConversationDetailsMappings(modelMapper);
+        configureEventMappings(modelMapper);
 
         modelMapper.getConfiguration()
                 .setFieldMatchingEnabled(true)
@@ -87,6 +90,19 @@ public class ModelMapperConfig {
         });
     }
 
-
-
+    /**
+     * Настраивает маппинги для преобразования событий в DTO.
+     * Определяет правила преобразования MessageUploadedEvent в MessageUploadImageRequest.
+     *
+     * @param modelMapper ModelMapper для настройки
+     */
+    private void configureEventMappings(final ModelMapper modelMapper) {
+        modelMapper.addMappings(new PropertyMap<MessageImageUploadedEvent, MessageUploadImageRequest>() {
+            @Override
+            protected void configure() {
+                map().setImageUrl(source.getPublicUrl());
+            }
+        });
+        log.debug("MODEL_MAPPER_СОБЫТИЯ_МАППИНГИ_НАСТРОЕНЫ: настройки для событий применены");
+    }
 }

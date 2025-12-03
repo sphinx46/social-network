@@ -48,21 +48,11 @@ management:
     health:
       show-details: always
 
-#logging:
-#  level:
-#    ru.cs.vsu.social_network.messaging_service: INFO
-#  pattern:
-#    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 logging:
   level:
-    ru.cs.vsu.social_network.messaging_service: DEBUG
-    org.springframework.web: DEBUG
-    org.hibernate: INFO
-    org.springframework.security: DEBUG
-    org.apache.kafka: INFO
+    ru.cs.vsu.social_network.messaging_service: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 springdoc:
   api-docs:
@@ -78,3 +68,16 @@ springdoc:
 app:
   gateway:
     signature-secret: ${SIGNATURE_KEY_SECRET:dev-shared-signature-secret}
+
+
+kafka:
+  bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  consumer:
+    group-id: messaging-service-group
+    auto-offset-reset: earliest
+    enable-auto-commit: false
+    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+  producer:
+    key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
