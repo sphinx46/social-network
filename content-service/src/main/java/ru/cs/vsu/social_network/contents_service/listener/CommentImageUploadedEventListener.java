@@ -22,7 +22,7 @@ public final class CommentImageUploadedEventListener {
      */
     @KafkaListener(
             topics = "comment-image-uploaded",
-            groupId = "content-service-group",
+            groupId = "messaging-service-group",
             containerFactory = "kafkaListenerContainerFactoryCommentImageUpload"
     )
     public void onCommentImageUploaded(final CommentImageUploadedEvent event) {

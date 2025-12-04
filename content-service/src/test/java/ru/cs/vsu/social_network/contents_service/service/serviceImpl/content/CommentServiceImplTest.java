@@ -17,7 +17,6 @@ import ru.cs.vsu.social_network.contents_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.contents_service.provider.CommentEntityProvider;
 import ru.cs.vsu.social_network.contents_service.repository.CommentRepository;
 import ru.cs.vsu.social_network.contents_service.service.cache.CacheEventPublisherService;
-import ru.cs.vsu.social_network.contents_service.service.serviceImpl.content.CommentServiceImpl;
 import ru.cs.vsu.social_network.contents_service.utils.MessageConstants;
 import ru.cs.vsu.social_network.contents_service.utils.TestDataFactory;
 import ru.cs.vsu.social_network.contents_service.utils.factory.content.CommentFactory;
@@ -75,7 +74,6 @@ class CommentServiceImplTest {
         assertNotNull(actual);
         assertEquals(expectedResponse, actual);
         verify(commentRepository).save(comment);
-        verify(commentRepository).flush();
     }
 
     @Test
@@ -132,7 +130,6 @@ class CommentServiceImplTest {
         assertEquals(expectedResponse, actual);
         verify(commentValidator).validateOwnership(USER_ID, COMMENT_ID);
         verify(commentRepository).delete(comment);
-        verify(commentRepository).flush();
     }
 
     @Test

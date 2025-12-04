@@ -1,0 +1,108 @@
+package ru.cs.vsu.social_network.messaging_service.mapping.config;
+
+import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
+import org.modelmapper.PropertyMap;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import ru.cs.vsu.social_network.messaging_service.dto.request.messaging.MessageUploadImageRequest;
+import ru.cs.vsu.social_network.messaging_service.dto.response.messaging.ConversationDetailsResponse;
+import ru.cs.vsu.social_network.messaging_service.dto.response.messaging.ConversationResponse;
+import ru.cs.vsu.social_network.messaging_service.dto.response.messaging.MessageResponse;
+import ru.cs.vsu.social_network.messaging_service.entity.Message;
+import ru.cs.vsu.social_network.messaging_service.event.MessageImageUploadedEvent;
+
+/**
+ * Конфигурационный класс для настройки ModelMapper.
+ * Определяет правила маппинга между сущностями, DTO и событиями.
+ * Обеспечивает корректное преобразование данных между слоями приложения.
+ *
+ */
+@Slf4j
+@Configuration
+public class ModelMapperConfig {
+
+    /**
+     * Создает и настраивает ModelMapper для преобразования сущностей в DTO и события.
+     * Включает сопоставление полей, пропуск null значений и доступ к приватным полям.
+     *
+     * @return настроенный экземпляр ModelMapper с определенными правилами маппинга
+     */
+    @Bean
+    public ModelMapper modelMapper() {
+        log.info("MODEL_MAPPER_КОНФИГУРАЦИЯ_НАЧАЛО");
+
+        final ModelMapper modelMapper = new ModelMapper();
+
+        configureMessageMappings(modelMapper);
+        configureConversationDetailsMappings(modelMapper);
+        configureEventMappings(modelMapper);
+
+        modelMapper.getConfiguration()
+                .setFieldMatchingEnabled(true)
+                .setSkipNullEnabled(true)
+                .setFieldAccessLevel(
+                        org.modelmapper.config.Configuration
+                                .AccessLevel.PRIVATE);
+
+        log.info("MODEL_MAPPER_КОНФИГУРАЦИЯ_УСПЕХ");
+        return modelMapper;
+    }
+
+    /**
+     * Настраивает маппинг между сущностью Message и MessageResponse.
+     * Определяет правила преобразования полей сообщения в DTO ответа.
+     *
+     * @param modelMapper экземпляр ModelMapper для настройки
+     */
+    private void configureMessageMappings(final ModelMapper modelMapper) {
+        modelMapper.addMappings(new PropertyMap<Message, MessageResponse>() {
+            @Override
+            protected void configure() {
+                map().setConversationId(source.getConversation().getId());
+                map().setReceiverId(source.getReceiverId());
+                map().setSenderId(source.getSenderId());
+                map().setContent(source.getContent());
+                map().setImageUrl(source.getImageUrl());
+                map().setCreatedAt(source.getCreatedAt());
+                map().setUpdatedAt(source.getUpdatedAt());
+            }
+        });
+    }
+
+    /**
+     * Настраивает маппинг между dto ConversationResponse и ConversationDetailsResponse.
+     * Определяет правила преобразования полей переписки в расширенный DTO ответа.
+     *
+     * @param modelMapper экземпляр ModelMapper для настройки
+     */
+    private void configureConversationDetailsMappings(final ModelMapper modelMapper) {
+        modelMapper.addMappings(new PropertyMap<ConversationResponse, ConversationDetailsResponse>() {
+            @Override
+            protected void configure() {
+                map().setConversationId(source.getConversationId());
+                map().setUser1Id(source.getUser1Id());
+                map().setUser2Id(source.getUser2Id());
+                map().setMessagesCount(source.getMessagesCount());
+                map().setCreatedAt(source.getCreatedAt());
+                map().setUpdatedAt(source.getUpdatedAt());
+            }
+        });
+    }
+
+    /**
+     * Настраивает маппинги для преобразования событий в DTO.
+     * Определяет правила преобразования MessageUploadedEvent в MessageUploadImageRequest.
+     *
+     * @param modelMapper ModelMapper для настройки
+     */
+    private void configureEventMappings(final ModelMapper modelMapper) {
+        modelMapper.addMappings(new PropertyMap<MessageImageUploadedEvent, MessageUploadImageRequest>() {
+            @Override
+            protected void configure() {
+                map().setImageUrl(source.getPublicUrl());
+            }
+        });
+        log.debug("MODEL_MAPPER_СОБЫТИЯ_МАППИНГИ_НАСТРОЕНЫ: настройки для событий применены");
+    }
+}

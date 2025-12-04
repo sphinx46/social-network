@@ -20,7 +20,6 @@ import ru.cs.vsu.social_network.contents_service.mapping.EntityMapper;
 import ru.cs.vsu.social_network.contents_service.provider.PostEntityProvider;
 import ru.cs.vsu.social_network.contents_service.repository.PostRepository;
 import ru.cs.vsu.social_network.contents_service.service.cache.CacheEventPublisherService;
-import ru.cs.vsu.social_network.contents_service.service.serviceImpl.content.PostServiceImpl;
 import ru.cs.vsu.social_network.contents_service.utils.MessageConstants;
 import ru.cs.vsu.social_network.contents_service.utils.TestDataFactory;
 import ru.cs.vsu.social_network.contents_service.utils.factory.content.PostFactory;
@@ -62,8 +61,8 @@ class PostServiceImplTest {
     @Test
     @DisplayName("Создание поста - успешно")
     void create_whenRequestIsValid_shouldReturnResponse() {
-        PostCreateRequest request = TestDataFactory.createPostCreateRequest("Test content");
-        Post post = TestDataFactory.createPostEntity(POST_ID, USER_ID, "Test content", null);
+        PostCreateRequest request = TestDataFactory.createPostCreateRequest("Test messaging");
+        Post post = TestDataFactory.createPostEntity(POST_ID, USER_ID, "Test messaging", null);
         Post savedPost = TestDataFactory.createPostEntity(POST_ID);
         PostResponse expectedResponse = TestDataFactory.createPostResponse(POST_ID, USER_ID);
 
@@ -77,15 +76,14 @@ class PostServiceImplTest {
         assertNotNull(actual);
         assertEquals(expectedResponse, actual);
         verify(postRepository).save(post);
-        verify(postRepository).flush();
     }
 
     @Test
     @DisplayName("Редактирование поста - успешно")
     void editPost_whenRequestIsValid_shouldReturnResponse() {
-        PostEditRequest request = TestDataFactory.createPostEditRequest(POST_ID, "Updated content");
-        Post post = TestDataFactory.createPostEntity(POST_ID, USER_ID, "Old content", null);
-        Post updatedPost = TestDataFactory.createPostEntity(POST_ID, USER_ID, "Updated content", null);
+        PostEditRequest request = TestDataFactory.createPostEditRequest(POST_ID, "Updated messaging");
+        Post post = TestDataFactory.createPostEntity(POST_ID, USER_ID, "Old messaging", null);
+        Post updatedPost = TestDataFactory.createPostEntity(POST_ID, USER_ID, "Updated messaging", null);
         PostResponse expectedResponse = TestDataFactory.createPostResponse(POST_ID, USER_ID);
 
         doNothing().when(postValidator).validateOwnership(USER_ID, POST_ID);
@@ -96,7 +94,7 @@ class PostServiceImplTest {
 
         PostResponse actual = postService.editPost(USER_ID, request);
 
-        assertEquals("Updated content", post.getContent());
+        assertEquals("Updated messaging", post.getContent());
         assertEquals(expectedResponse, actual);
         verify(postValidator).validateOwnership(USER_ID, POST_ID);
     }
@@ -104,7 +102,7 @@ class PostServiceImplTest {
     @Test
     @DisplayName("Редактирование поста - доступ запрещен")
     void editPost_whenUserNotOwner_shouldThrowException() {
-        PostEditRequest request = TestDataFactory.createPostEditRequest(POST_ID, "Updated content");
+        PostEditRequest request = TestDataFactory.createPostEditRequest(POST_ID, "Updated messaging");
 
         doThrow(new AccessDeniedException(MessageConstants.ACCESS_DENIED))
                 .when(postValidator).validateOwnership(ANOTHER_USER_ID, POST_ID);

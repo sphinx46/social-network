@@ -11,6 +11,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import ru.cs.vsu.social_network.upload_service.event.AvatarUploadedEvent;
+import ru.cs.vsu.social_network.upload_service.event.MessageImageUploadedEvent;
 import ru.cs.vsu.social_network.upload_service.event.PostImageUploadedEvent;
 import ru.cs.vsu.social_network.upload_service.event.CommentImageUploadedEvent;
 
@@ -139,6 +140,38 @@ public class KafkaProducerConfig {
     public KafkaTemplate<String, CommentImageUploadedEvent> commentImageUploadedEventKafkaTemplate(
             final ProducerFactory<String, CommentImageUploadedEvent> producerFactory) {
         log.info("KAFKA_TEMPLATE_СОЗДАНИЕ: тип=CommentImageUploadedEvent");
+        return new KafkaTemplate<>(producerFactory);
+    }
+
+    /**
+     * Создает фабрику Producer'ов для событий загрузки изображений сообщений.
+     * Использует JsonSerializer для сериализации объектов MessageImageUploadedEvent.
+     * Гарантирует thread-safe создание экземпляров Producer.
+     *
+     * @return фабрика Producer'ов для MessageImageUploadedEvent
+     */
+    @Bean
+    public ProducerFactory<String, MessageImageUploadedEvent> messageImageUploadedEventProducerFactory() {
+        log.info("KAFKA_PRODUCER_FACTORY_СОЗДАНИЕ: тип=MessageImageUploadedEvent");
+
+        Map<String, Object> config = producerConfig();
+        config.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
+
+        return new DefaultKafkaProducerFactory<>(config);
+    }
+
+    /**
+     * Создает KafkaTemplate для отправки событий загрузки изображений сообщений.
+     * Предоставляет высокоуровневый API для асинхронной отправки сообщений.
+     * Поддерживает callback'и для обработки результатов отправки.
+     *
+     * @param producerFactory фабрика Producer'ов для создания экземпляров
+     * @return настроенный KafkaTemplate для работы с MessageImageUploadedEvent
+     */
+    @Bean
+    public KafkaTemplate<String, MessageImageUploadedEvent> messageImageUploadedEventKafkaTemplate(
+            final ProducerFactory<String, MessageImageUploadedEvent> producerFactory) {
+        log.info("KAFKA_TEMPLATE_СОЗДАНИЕ: тип=MessageImageUploadedEvent");
         return new KafkaTemplate<>(producerFactory);
     }
 }

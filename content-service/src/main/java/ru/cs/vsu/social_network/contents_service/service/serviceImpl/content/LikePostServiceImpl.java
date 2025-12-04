@@ -65,8 +65,6 @@ public class LikePostServiceImpl implements LikePostService {
         LikePost likePost = likePostFactory.create(keycloakUserId, likePostRequest);
         LikePost savedLike = likePostRepository.save(likePost);
 
-        likePostRepository.flush();
-
         cacheEventPublisherService.publishPostLikeCreated(this, savedLike, likePostRequest.getPostId(),
                 savedLike.getId(), keycloakUserId);
 
@@ -98,8 +96,6 @@ public class LikePostServiceImpl implements LikePostService {
 
         likePostValidator.validateOwnership(keycloakUserId, likePost.getId());
         likePostRepository.delete(likePost);
-
-        likePostRepository.flush();
 
         cacheEventPublisherService.publishPostLikeDeleted(this, likePost, likePostRequest.getPostId(),
                 likePost.getId(), keycloakUserId);

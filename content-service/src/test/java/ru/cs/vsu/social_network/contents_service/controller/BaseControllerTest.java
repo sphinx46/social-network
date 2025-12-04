@@ -7,7 +7,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import ru.cs.vsu.social_network.contents_service.utils.MockMvcUtils;
 
 /**
- * Базовый класс для stand-alone тестирования REST-контроллеров content-service.
+ * Базовый класс для stand-alone тестирования REST-контроллеров messaging-service.
  * Инкапсулирует создание {@link MockMvc} и утилит для упрощения написания тестов.
  */
 public abstract class BaseControllerTest {

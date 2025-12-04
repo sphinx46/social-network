@@ -271,7 +271,13 @@ public class UserContextFilter
                 || path.startsWith("/api/content/like/comment/create")
                 || path.startsWith("/api/content/like/comment/delete")
                 || path.startsWith("/api/content/post/pagesPost")
-                || path.startsWith("/api/content/comment/pagesCommentByUserAndPost");
+                || path.startsWith("/api/content/comment/pagesCommentByUserAndPost")
+                || path.startsWith("/api/messaging/send")
+                || path.startsWith("/api/messaging/conversation/")
+                || path.startsWith("/api/messaging/conversations/")
+                || path.startsWith("/api/messaging/chat/")
+                || path.startsWith("/api/messaging/message/")
+                || path.startsWith("/api/messaging/websocket-messaging/");
     }
 
     /**

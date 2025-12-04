@@ -72,7 +72,7 @@ public class GlobalExceptionHandler implements ErrorWebExceptionHandler {
         String json = "{\"timestamp\":\"" + errorBody.get("timestamp")
                 + "\",\"status\":" + errorBody.get("status")
                 + ",\"error\":\"" + errorBody.get("error")
-                + "\",\"message\":\"" + message.replace("\"", "\\\"")
+                + "\",\"messaging\":\"" + message.replace("\"", "\\\"")
                 + "\",\"path\":\"" + errorBody.get("path") + "\"}";
 
         DataBuffer buffer = response.bufferFactory()

@@ -1,0 +1,43 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+    import: optional:file:./.env.prod[.properties]
+  datasource:
+    url: ${MESSAGING_DB_URL:jdbc:postgresql://messaging-postgres:5432/messaging}
+    username: ${MESSAGING_DB_USERNAME:messaging}
+    password: ${MESSAGING_DB_PASSWORD:messaging}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 15
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS_INTERNAL}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: messaging-service-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+
+server:
+  port: ${MESSAGING_SERVICE_PORT:8085}
+
+eureka:
+  instance:
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:messaging-service}
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULT_ZONE}
+
+logging:
+  level:
+    ru.cs.vsu.social_network.messaging_service: INFO
+  file:
+    name: /var/log/messaging-service/application.log

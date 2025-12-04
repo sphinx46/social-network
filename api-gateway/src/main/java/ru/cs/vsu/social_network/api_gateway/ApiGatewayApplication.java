@@ -6,7 +6,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 @SpringBootApplication
 @EnableDiscoveryClient
-public final class ApiGatewayApplication {
+public class ApiGatewayApplication {
 
     private ApiGatewayApplication() {
         // Utility class

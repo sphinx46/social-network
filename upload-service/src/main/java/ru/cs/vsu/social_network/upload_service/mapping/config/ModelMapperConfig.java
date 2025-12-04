@@ -10,6 +10,7 @@ import ru.cs.vsu.social_network.upload_service.dto.response.MediaResponse;
 import ru.cs.vsu.social_network.upload_service.entity.MediaEntity;
 import ru.cs.vsu.social_network.upload_service.event.AvatarUploadedEvent;
 import ru.cs.vsu.social_network.upload_service.event.CommentImageUploadedEvent;
+import ru.cs.vsu.social_network.upload_service.event.MessageImageUploadedEvent;
 import ru.cs.vsu.social_network.upload_service.event.PostImageUploadedEvent;
 
 import java.time.LocalDateTime;
@@ -27,7 +28,6 @@ public class ModelMapperConfig {
 
     /**
      * Создает и настраивает ModelMapper для преобразования сущностей в DTO и события.
-     * Настраивает маппинги для MediaEntity, MediaResponse, MediaMetadataResponse и AvatarUploadedEvent.
      * Включает сопоставление полей, пропуск null значений и доступ к приватным полям.
      *
      * @return настроенный экземпляр ModelMapper с определенными правилами маппинга
@@ -43,6 +43,7 @@ public class ModelMapperConfig {
         configureAvatarUploadedEventWithMappings(modelMapper);
         configurePostImageUploadedEventWithMappings(modelMapper);
         configureCommentImageUploadedEventWithMappings(modelMapper);
+        configureMessageImageUploadedEventWithMappings(modelMapper);
 
         modelMapper.getConfiguration()
                 .setFieldMatchingEnabled(true)
@@ -159,6 +160,30 @@ public class ModelMapperConfig {
      */
     private void configureCommentImageUploadedEventWithMappings(final ModelMapper modelMapper) {
         modelMapper.addMappings(new PropertyMap<MediaEntity, CommentImageUploadedEvent>() {
+            @Override
+            protected void configure() {
+                map().setEventId(UUID.randomUUID());
+                map().setEventTimeStamp(LocalDateTime.now());
+                map().setOwnerId(source.getOwnerId());
+                map().setPublicUrl(source.getPublicUrl());
+                map().setObjectName(source.getObjectName());
+                map().setMimeType(source.getMimeType());
+                map().setSize(source.getSize());
+                map().setDescription(source.getDescription());
+                map().setOriginalFileName(source.getOriginalFileName());
+            }
+        });
+    }
+
+    /**
+     * Настраивает маппинг между MediaEntity и MessageImageUploadedEvent.
+     * Автоматически генерирует eventId и eventTimeStamp для события.
+     * Определяет соответствие полей сущности медиа и события загрузки изображения сообщения.
+     *
+     * @param modelMapper экземпляр ModelMapper для настройки
+     */
+    private void configureMessageImageUploadedEventWithMappings(final ModelMapper modelMapper) {
+        modelMapper.addMappings(new PropertyMap<MediaEntity, MessageImageUploadedEvent>() {
             @Override
             protected void configure() {
                 map().setEventId(UUID.randomUUID());

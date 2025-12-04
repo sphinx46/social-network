@@ -69,8 +69,6 @@ public class CommentServiceImpl implements CommentService {
         final Comment comment = commentFactory.create(keycloakUserId, commentCreateRequest);
         final Comment savedComment = commentRepository.save(comment);
 
-        commentRepository.flush();
-
         cacheEventPublisherService.publishCommentCreated(this, savedComment,
                 commentCreateRequest.getPostId(), savedComment.getId(), keycloakUserId);
 
@@ -100,8 +98,6 @@ public class CommentServiceImpl implements CommentService {
         comment.setContent(commentEditRequest.getContent());
         final Comment updatedComment = commentRepository.save(comment);
 
-        commentRepository.flush();
-
         cacheEventPublisherService.publishCommentUpdated(this, updatedComment,
                 comment.getPost().getId(), updatedComment.getId(), keycloakUserId);
 
@@ -128,8 +124,6 @@ public class CommentServiceImpl implements CommentService {
         final Comment comment = commentEntityProvider.getById(commentDeleteRequest.getCommentId());
         final UUID postId = comment.getPost().getId();
         commentRepository.delete(comment);
-
-        commentRepository.flush();
 
         cacheEventPublisherService.publishCommentDeleted(this, comment,
                 postId, comment.getId(), keycloakUserId);
@@ -159,8 +153,6 @@ public class CommentServiceImpl implements CommentService {
                 commentEntityProvider.getById(commentRemoveImageRequest.getCommentId());
         comment.setImageUrl(null);
         final Comment updatedComment = commentRepository.save(comment);
-
-        commentRepository.flush();
 
         cacheEventPublisherService.publishCommentUpdated(this, updatedComment,
                 comment.getPost().getId(), updatedComment.getId(), keycloakUserId);
@@ -265,8 +257,6 @@ public class CommentServiceImpl implements CommentService {
 
         comment.setImageUrl(imageUrl);
         final Comment updatedComment = commentRepository.save(comment);
-
-        commentRepository.flush();
 
         cacheEventPublisherService.publishCommentUpdated(this, updatedComment,
                 comment.getPost().getId(), updatedComment.getId(), keycloakUserId);

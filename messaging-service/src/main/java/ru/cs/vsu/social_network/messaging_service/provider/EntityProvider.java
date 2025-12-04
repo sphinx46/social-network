@@ -1,0 +1,17 @@
+package ru.cs.vsu.social_network.messaging_service.provider;
+
+import java.util.UUID;
+
+/**
+ * Абстрактный провайдер для доступа к сущностям.
+ * Обеспечивает получение постов по идентификатору с обработкой ошибок.
+ */
+public interface EntityProvider<T> {
+    /**
+     * Получает сущность по идентификатору.
+     *
+     * @param id идентификатор сущности
+     * @return найденная сущность
+     */
+    T getById(UUID id);
+}

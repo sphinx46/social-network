@@ -15,7 +15,7 @@ scrape_configs:
           - 'api:8091'
           - 'user-api:8092'
           - 'relationship-api:8093'
-          - 'content-api:8094'
+          - 'messaging-api:8094'
           - 'notification-api:8095'
           - 'feed-api:8096'
           - 'messaging-api:8097'
@@ -39,5 +39,5 @@ scrape_configs:
           - 'feed-postgres-exporter:9187'
           - 'messaging-postgres-exporter:9187'
           - 'notification-postgres-exporter:9187'
-          - 'content-postgres-exporter:9187'
+          - 'messaging-postgres-exporter:9187'
 

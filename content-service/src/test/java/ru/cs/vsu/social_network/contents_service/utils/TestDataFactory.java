@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 /**
- * Фабрика тестовых данных для content-service.
+ * Фабрика тестовых данных для messaging-service.
  * Содержит методы для создания тестовых DTO, сущностей и запросов.
  */
 public final class TestDataFactory {
@@ -43,11 +43,11 @@ public final class TestDataFactory {
     public static final UUID TEST_ANOTHER_USER_ID = UUID.fromString("e0d8a734-6f6c-4ab4-b4fe-e93cc63d8406");
 
     // Константы для тестового содержимого
-    public static final String TEST_POST_CONTENT = "Test post content";
-    public static final String TEST_COMMENT_CONTENT = "Test comment content";
+    public static final String TEST_POST_CONTENT = "Test post messaging";
+    public static final String TEST_COMMENT_CONTENT = "Test comment messaging";
     public static final String TEST_IMAGE_URL = "http://example.com/image.jpg";
     public static final String TEST_COMMENT_IMAGE_URL = "http://example.com/comment-image.jpg";
-    public static final String TEST_UPDATED_CONTENT = "Updated content";
+    public static final String TEST_UPDATED_CONTENT = "Updated messaging";
 
     /**
      * Создает тестовый запрос на создание поста.
@@ -354,7 +354,7 @@ public final class TestDataFactory {
         final Comment comment = new Comment();
         comment.setId(commentId);
         comment.setOwnerId(ownerId);
-        comment.setPost(createPostEntity(postId, ownerId, "Post content", null));
+        comment.setPost(createPostEntity(postId, ownerId, "Post messaging", null));
         comment.setContent(content);
         comment.setImageUrl(imageUrl);
         comment.setCreatedAt(LocalDateTime.now());
@@ -386,7 +386,7 @@ public final class TestDataFactory {
         final LikePost like = new LikePost();
         like.setId(likeId);
         like.setOwnerId(ownerId);
-        like.setPost(createPostEntity(postId, ownerId, "Post content", null));
+        like.setPost(createPostEntity(postId, ownerId, "Post messaging", null));
         like.setCreatedAt(LocalDateTime.now());
         return like;
     }
@@ -405,7 +405,7 @@ public final class TestDataFactory {
         final LikeComment like = new LikeComment();
         like.setId(likeId);
         like.setOwnerId(ownerId);
-        like.setComment(createCommentEntity(commentId, ownerId, TEST_POST_ID, "Comment content", null));
+        like.setComment(createCommentEntity(commentId, ownerId, TEST_POST_ID, "Comment messaging", null));
         like.setCreatedAt(LocalDateTime.now());
         return like;
     }
@@ -499,7 +499,7 @@ public final class TestDataFactory {
         return PostDetailsResponse.builder()
                 .id(postId)
                 .ownerId(TEST_USER_ID)
-                .content("Detailed post content")
+                .content("Detailed post messaging")
                 .imageUrl(TEST_IMAGE_URL)
                 .commentsCount(5L)
                 .likesCount(10L)
@@ -519,7 +519,7 @@ public final class TestDataFactory {
                 .id(commentId)
                 .ownerId(TEST_USER_ID)
                 .postId(TEST_POST_ID)
-                .content("Detailed comment content")
+                .content("Detailed comment messaging")
                 .imageUrl(null)
                 .likesCount(3L)
                 .createdAt(LocalDateTime.now())
