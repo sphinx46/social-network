@@ -136,7 +136,6 @@ jobs:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_ALL_CODEBASE: false
-          FILTER_REGEX_EXCLUDE: .*monolith.*
           VALIDATE_JAVA: true
           VALIDATE_YAML: true
           VALIDATE_DOCKERFILE_HADOLINT: true
@@ -146,8 +145,7 @@ jobs:
         run: |
           cat > .codacy.yml << 'EOF'
           ---
-          exclude_paths:
-            - "monolith/**"
+          exclude_paths:        
             - "**/*.sql"
             - "infrastructure/**"
           EOF
@@ -180,7 +178,7 @@ jobs:
       - name: Run OWASP dependency check
         if: github.event_name == 'pull_request'
         run: |
-          mvn -B clean compile org.owasp:dependency-check-maven:check -DskipTests -pl '!monolith'
+          mvn -B clean compile org.owasp:dependency-check-maven:check -DskipTests 
 
       - name: Check for vulnerable dependencies
         uses: aquasecurity/trivy-action@master
@@ -189,7 +187,6 @@ jobs:
           scan-ref: '.'
           format: 'sarif'
           output: 'trivy-results.sarif'
-          skip-dirs: monolith
 
       - name: Upload security results
         uses: github/codeql-action/upload-sarif@v4
