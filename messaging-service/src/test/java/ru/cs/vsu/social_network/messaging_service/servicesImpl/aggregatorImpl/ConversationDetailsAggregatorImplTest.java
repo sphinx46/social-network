@@ -248,14 +248,19 @@ class ConversationDetailsAggregatorImplTest {
             when(mapper.map(conversation, ConversationDetailsResponse.class)).thenReturn(response);
         });
 
-        when(batchMessageService.getRecentMessagesForConversations(conversationIds, effectiveLimit))
+        when(batchMessageService.getRecentMessagesForConversations(anyList(), eq(effectiveLimit)))
                 .thenReturn(messagesMap);
 
         Page<ConversationDetailsResponse> result = conversationDetailsAggregator.aggregateConversationsPage(
                 conversationsPage, true, messagesLimit);
 
         assertNotNull(result);
-        verify(batchMessageService).getRecentMessagesForConversations(conversationIds, effectiveLimit);
+        verify(batchMessageService).getRecentMessagesForConversations(anyList(), eq(effectiveLimit));
+
+        verify(batchMessageService).getRecentMessagesForConversations(
+                argThat(list -> list.containsAll(conversationIds) && list.size() == conversationIds.size()),
+                eq(effectiveLimit)
+        );
     }
 
     @Test

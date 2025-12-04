@@ -1,12 +1,8 @@
 package ru.cs.vsu.social_network.messaging_service.utils;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import ru.cs.vsu.social_network.messaging_service.dto.request.messaging.*;
 import ru.cs.vsu.social_network.messaging_service.dto.request.pageable.PageRequest;
-import ru.cs.vsu.social_network.messaging_service.dto.request.websocket.MessageStatusUpdate;
 import ru.cs.vsu.social_network.messaging_service.dto.request.websocket.TypingIndicator;
 import ru.cs.vsu.social_network.messaging_service.dto.response.messaging.ConversationDetailsResponse;
 import ru.cs.vsu.social_network.messaging_service.dto.response.messaging.ConversationResponse;
@@ -45,11 +41,15 @@ public final class TestDataFactory {
     public static final String TEST_MESSAGE_CONTENT = "Test message content";
     public static final String TEST_UPDATED_CONTENT = "Updated message content";
     public static final String TEST_IMAGE_URL = "http://example.com/image.jpg";
-    public static final String TEST_CONVERSATION_NAME = "Test Conversation";
 
     public static final LocalDateTime TEST_CREATED_AT = LocalDateTime.of(2024, 1, 1, 10, 0);
     public static final LocalDateTime TEST_UPDATED_AT = LocalDateTime.of(2024, 1, 1, 11, 0);
 
+    /**
+     * Создает тестовый запрос на создание сообщения с параметрами по умолчанию.
+     *
+     * @return запрос на создание сообщения
+     */
     public static MessageCreateRequest createMessageCreateRequest() {
         return MessageCreateRequest.builder()
                 .receiverId(TEST_USER2_ID)
@@ -57,6 +57,13 @@ public final class TestDataFactory {
                 .build();
     }
 
+    /**
+     * Создает тестовый запрос на создание сообщения с указанными параметрами.
+     *
+     * @param receiverId идентификатор получателя
+     * @param content содержание сообщения
+     * @return запрос на создание сообщения
+     */
     public static MessageCreateRequest createMessageCreateRequest(final UUID receiverId, final String content) {
         return MessageCreateRequest.builder()
                 .receiverId(receiverId)
@@ -64,6 +71,11 @@ public final class TestDataFactory {
                 .build();
     }
 
+    /**
+     * Создает тестовый запрос на редактирование сообщения с параметрами по умолчанию.
+     *
+     * @return запрос на редактирование сообщения
+     */
     public static MessageEditRequest createMessageEditRequest() {
         return MessageEditRequest.builder()
                 .messageId(TEST_MESSAGE_ID)
@@ -71,6 +83,13 @@ public final class TestDataFactory {
                 .build();
     }
 
+    /**
+     * Создает тестовый запрос на редактирование сообщения с указанными параметрами.
+     *
+     * @param messageId идентификатор сообщения
+     * @param content новое содержание сообщения
+     * @return запрос на редактирование сообщения
+     */
     public static MessageEditRequest createMessageEditRequest(final UUID messageId, final String content) {
         return MessageEditRequest.builder()
                 .messageId(messageId)
@@ -78,18 +97,22 @@ public final class TestDataFactory {
                 .build();
     }
 
+    /**
+     * Создает тестовый запрос на удаление сообщения с параметрами по умолчанию.
+     *
+     * @return запрос на удаление сообщения
+     */
     public static MessageDeleteRequest createMessageDeleteRequest() {
         return MessageDeleteRequest.builder()
                 .messageId(TEST_MESSAGE_ID)
                 .build();
     }
 
-    public static MessageDeleteRequest createMessageDeleteRequest(final UUID messageId) {
-        return MessageDeleteRequest.builder()
-                .messageId(messageId)
-                .build();
-    }
-
+    /**
+     * Создает тестовый запрос на загрузку изображения для сообщения с параметрами по умолчанию.
+     *
+     * @return запрос на загрузку изображения
+     */
     public static MessageUploadImageRequest createMessageUploadImageRequest() {
         return MessageUploadImageRequest.builder()
                 .messageId(TEST_MESSAGE_ID)
@@ -97,6 +120,13 @@ public final class TestDataFactory {
                 .build();
     }
 
+    /**
+     * Создает тестовый запрос на загрузку изображения для сообщения с указанными параметрами.
+     *
+     * @param messageId идентификатор сообщения
+     * @param imageUrl URL изображения
+     * @return запрос на загрузку изображения
+     */
     public static MessageUploadImageRequest createMessageUploadImageRequest(final UUID messageId, final String imageUrl) {
         return MessageUploadImageRequest.builder()
                 .messageId(messageId)
@@ -104,18 +134,22 @@ public final class TestDataFactory {
                 .build();
     }
 
+    /**
+     * Создает тестовый запрос на удаление изображения из сообщения с параметрами по умолчанию.
+     *
+     * @return запрос на удаление изображения
+     */
     public static MessageRemoveImageRequest createMessageRemoveImageRequest() {
         return MessageRemoveImageRequest.builder()
                 .messageId(TEST_MESSAGE_ID)
                 .build();
     }
 
-    public static MessageRemoveImageRequest createMessageRemoveImageRequest(final UUID messageId) {
-        return MessageRemoveImageRequest.builder()
-                .messageId(messageId)
-                .build();
-    }
-
+    /**
+     * Создает тестовый запрос на постраничное получение данных с параметрами по умолчанию.
+     *
+     * @return запрос на постраничное получение данных
+     */
     public static PageRequest createPageRequest() {
         return PageRequest.builder()
                 .pageNumber(0)
@@ -125,19 +159,23 @@ public final class TestDataFactory {
                 .build();
     }
 
-    public static PageRequest createPageRequest(final int page, final int size) {
-        return PageRequest.builder()
-                .pageNumber(page)
-                .size(size)
-                .sortBy("createdAt")
-                .direction(Sort.Direction.DESC)
-                .build();
-    }
-
+    /**
+     * Создает тестовую сущность беседы с параметрами по умолчанию.
+     *
+     * @return сущность беседы
+     */
     public static Conversation createConversationEntity() {
         return createConversationEntity(TEST_CONVERSATION_ID, TEST_USER_ID, TEST_USER2_ID);
     }
 
+    /**
+     * Создает тестовую сущность беседы с указанными параметрами.
+     *
+     * @param id идентификатор беседы
+     * @param user1Id идентификатор первого пользователя
+     * @param user2Id идентификатор второго пользователя
+     * @return сущность беседы
+     */
     public static Conversation createConversationEntity(final UUID id, final UUID user1Id, final UUID user2Id) {
         Conversation conversation = new Conversation();
         conversation.setId(id);
@@ -148,10 +186,24 @@ public final class TestDataFactory {
         return conversation;
     }
 
+    /**
+     * Создает тестовую сущность сообщения с параметрами по умолчанию.
+     *
+     * @return сущность сообщения
+     */
     public static Message createMessageEntity() {
         return createMessageEntity(TEST_MESSAGE_ID, TEST_USER_ID, TEST_USER2_ID, TEST_CONVERSATION_ID);
     }
 
+    /**
+     * Создает тестовую сущность сообщения с указанными параметрами.
+     *
+     * @param id идентификатор сообщения
+     * @param senderId идентификатор отправителя
+     * @param receiverId идентификатор получателя
+     * @param conversationId идентификатор беседы
+     * @return сущность сообщения
+     */
     public static Message createMessageEntity(final UUID id, final UUID senderId, final UUID receiverId, final UUID conversationId) {
         Message message = new Message();
         message.setId(id);
@@ -168,16 +220,35 @@ public final class TestDataFactory {
         return message;
     }
 
+    /**
+     * Создает тестовую сущность сообщения с изображением с параметрами по умолчанию.
+     *
+     * @return сущность сообщения с изображением
+     */
     public static Message createMessageEntityWithImage() {
         Message message = createMessageEntity();
         message.setImageUrl(TEST_IMAGE_URL);
         return message;
     }
 
+    /**
+     * Создает тестовый ответ с данными сообщения с параметрами по умолчанию.
+     *
+     * @return ответ с данными сообщения
+     */
     public static MessageResponse createMessageResponse() {
         return createMessageResponse(TEST_MESSAGE_ID, TEST_USER_ID, TEST_USER2_ID, TEST_CONVERSATION_ID);
     }
 
+    /**
+     * Создает тестовый ответ с данными сообщения с указанными параметрами.
+     *
+     * @param messageId идентификатор сообщения
+     * @param senderId идентификатор отправителя
+     * @param receiverId идентификатор получателя
+     * @param conversationId идентификатор беседы
+     * @return ответ с данными сообщения
+     */
     public static MessageResponse createMessageResponse(final UUID messageId, final UUID senderId, final UUID receiverId, final UUID conversationId) {
         return MessageResponse.builder()
                 .messageId(messageId)
@@ -192,10 +263,23 @@ public final class TestDataFactory {
                 .build();
     }
 
+    /**
+     * Создает тестовый ответ с данными беседы с параметрами по умолчанию.
+     *
+     * @return ответ с данными беседы
+     */
     public static ConversationResponse createConversationResponse() {
         return createConversationResponse(TEST_CONVERSATION_ID, TEST_USER_ID, TEST_USER2_ID);
     }
 
+    /**
+     * Создает тестовый ответ с данными беседы с указанными параметрами.
+     *
+     * @param conversationId идентификатор беседы
+     * @param user1Id идентификатор первого пользователя
+     * @param user2Id идентификатор второго пользователя
+     * @return ответ с данными беседы
+     */
     public static ConversationResponse createConversationResponse(final UUID conversationId, final UUID user1Id, final UUID user2Id) {
         return ConversationResponse.builder()
                 .conversationId(conversationId)
@@ -206,10 +290,23 @@ public final class TestDataFactory {
                 .build();
     }
 
+    /**
+     * Создает тестовый ответ с детальными данными беседы с параметрами по умолчанию.
+     *
+     * @return ответ с детальными данными беседы
+     */
     public static ConversationDetailsResponse createConversationDetailsResponse() {
         return createConversationDetailsResponse(TEST_CONVERSATION_ID, TEST_USER_ID, TEST_USER2_ID);
     }
 
+    /**
+     * Создает тестовый ответ с детальными данными беседы с указанными параметрами.
+     *
+     * @param conversationId идентификатор беседы
+     * @param user1Id идентификатор первого пользователя
+     * @param user2Id идентификатор второго пользователя
+     * @return ответ с детальными данными беседы
+     */
     public static ConversationDetailsResponse createConversationDetailsResponse(final UUID conversationId, final UUID user1Id, final UUID user2Id) {
         MessageResponse messageResponse = createMessageResponse();
         return ConversationDetailsResponse.builder()
@@ -224,10 +321,13 @@ public final class TestDataFactory {
                 .build();
     }
 
-    public static <T> Page<T> createPage(final List<T> content) {
-        return new PageImpl<>(content, Pageable.ofSize(10), content.size());
-    }
-
+    /**
+     * Создает тестовый постраничный ответ с указанным содержимым.
+     *
+     * @param <T> тип элементов в содержимом
+     * @param content список элементов содержимого
+     * @return постраничный ответ
+     */
     public static <T> PageResponse<T> createPageResponse(final List<T> content) {
         return PageResponse.<T>builder()
                 .content(content)
@@ -240,6 +340,13 @@ public final class TestDataFactory {
                 .build();
     }
 
+    /**
+     * Создает тестовое кэш-событие с указанным типом и идентификатором сущности.
+     *
+     * @param eventType тип события
+     * @param entityId идентификатор сущности
+     * @return кэш-событие
+     */
     public static GenericMessagingCacheEvent createCacheEvent(final CacheEventType eventType, final UUID entityId) {
         return new GenericMessagingCacheEvent(
                 new Object(),
@@ -249,15 +356,11 @@ public final class TestDataFactory {
         );
     }
 
-    public static MessageStatusUpdate createMessageStatusUpdate() {
-        return MessageStatusUpdate.builder()
-                .conversationId(TEST_CONVERSATION_ID)
-                .readCount(5)
-                .status(MessageStatus.READ.name())
-                .timestamp(System.currentTimeMillis())
-                .build();
-    }
-
+    /**
+     * Создает тестовый индикатор набора текста с параметрами по умолчанию.
+     *
+     * @return индикатор набора текста
+     */
     public static TypingIndicator createTypingIndicator() {
         return TypingIndicator.builder()
                 .userId(TEST_USER_ID)
@@ -266,6 +369,12 @@ public final class TestDataFactory {
                 .build();
     }
 
+    /**
+     * Создает список тестовых идентификаторов сообщений указанного размера.
+     *
+     * @param count количество идентификаторов для создания
+     * @return список идентификаторов сообщений
+     */
     public static List<UUID> createMessageIds(final int count) {
         List<UUID> ids = new ArrayList<>();
         for (int i = 0; i < count; i++) {
@@ -274,6 +383,12 @@ public final class TestDataFactory {
         return ids;
     }
 
+    /**
+     * Создает список тестовых сущностей сообщений указанного размера.
+     *
+     * @param count количество сообщений для создания
+     * @return список сущностей сообщений
+     */
     public static List<Message> createMessageList(final int count) {
         List<Message> messages = new ArrayList<>();
         for (int i = 0; i < count; i++) {
@@ -287,6 +402,12 @@ public final class TestDataFactory {
         return messages;
     }
 
+    /**
+     * Создает список тестовых сущностей бесед указанного размера.
+     *
+     * @param count количество бесед для создания
+     * @return список сущностей бесед
+     */
     public static List<Conversation> createConversationList(final int count) {
         List<Conversation> conversations = new ArrayList<>();
         for (int i = 0; i < count; i++) {
@@ -299,6 +420,12 @@ public final class TestDataFactory {
         return conversations;
     }
 
+    /**
+     * Создает карту количества непрочитанных сообщений для указанных идентификаторов бесед.
+     *
+     * @param conversationIds список идентификаторов бесед
+     * @return карта, где ключ - идентификатор беседы, значение - количество непрочитанных сообщений
+     */
     public static Map<UUID, Long> createUnreadMessagesCountMap(List<UUID> conversationIds) {
         final Map<UUID, Long> result = new HashMap<>();
         for (UUID conversationId : conversationIds) {
@@ -307,6 +434,13 @@ public final class TestDataFactory {
         return result;
     }
 
+    /**
+     * Создает карту последних сообщений для указанных идентификаторов бесед.
+     *
+     * @param conversationIds список идентификаторов бесед
+     * @param limit максимальное количество сообщений для каждой беседы
+     * @return карта, где ключ - идентификатор беседы, значение - список последних сообщений
+     */
     public static Map<UUID, List<MessageResponse>> createRecentMessagesMap(List<UUID> conversationIds, int limit) {
         final Map<UUID, List<MessageResponse>> result = new HashMap<>();
         for (UUID conversationId : conversationIds) {
@@ -324,6 +458,13 @@ public final class TestDataFactory {
         return result;
     }
 
+    /**
+     * Создает список тестовых сущностей сообщений для указанной беседы.
+     *
+     * @param count количество сообщений для создания
+     * @param conversationId идентификатор беседы
+     * @return список сущностей сообщений
+     */
     public static List<Message> createMessageEntityList(final int count, final UUID conversationId) {
         List<Message> messages = new ArrayList<>();
         for (int i = 0; i < count; i++) {
@@ -337,6 +478,14 @@ public final class TestDataFactory {
         return messages;
     }
 
+    /**
+     * Создает список тестовых сущностей непрочитанных сообщений.
+     *
+     * @param count количество сообщений для создания
+     * @param receiverId идентификатор получателя
+     * @param conversationId идентификатор беседы
+     * @return список сущностей непрочитанных сообщений
+     */
     public static List<Message> createUnreadMessageEntityList(final int count, final UUID receiverId, final UUID conversationId) {
         List<Message> messages = new ArrayList<>();
         for (int i = 0; i < count; i++) {
@@ -352,6 +501,12 @@ public final class TestDataFactory {
         return messages;
     }
 
+    /**
+     * Создает список тестовых сущностей бесед с сообщениями.
+     *
+     * @param count количество бесед для создания
+     * @return список сущностей бесед
+     */
     public static List<Conversation> createConversationListWithMessages(int count) {
         List<Conversation> conversations = new ArrayList<>();
         for (int i = 0; i < count; i++) {
@@ -365,81 +520,48 @@ public final class TestDataFactory {
         return conversations;
     }
 
-    public static Page<Conversation> createConversationPage(List<Conversation> conversations) {
-        return new PageImpl<>(conversations, org.springframework.data.domain.PageRequest.of(0, 10), conversations.size());
-    }
-
-    public static ConversationDetailsResponse createConversationDetailsResponseWithMessages(UUID conversationId, int messageCount) {
-        ConversationDetailsResponse response = createConversationDetailsResponse(conversationId, TEST_USER_ID, TEST_USER2_ID);
-        List<MessageResponse> messages = new ArrayList<>();
-        for (int i = 0; i < messageCount; i++) {
-            messages.add(createMessageResponse(
-                    UUID.randomUUID(),
-                    i % 2 == 0 ? TEST_USER_ID : TEST_USER2_ID,
-                    i % 2 == 0 ? TEST_USER2_ID : TEST_USER_ID,
-                    conversationId
-            ));
-        }
-        response.setMessages(messages);
-        response.setMessagesCount((long) messageCount);
-        if (!messages.isEmpty()) {
-            response.setLastMessageId(messages.get(messages.size() - 1).getMessageId());
-        }
-        return response;
-    }
-
-    public static UUID createRandomUUID() {
-        return UUID.randomUUID();
-    }
-
+    /**
+     * Создает тестовый идентификатор беседы.
+     *
+     * @return идентификатор беседы
+     */
     public static UUID createTestConversationId() {
         return UUID.fromString("8dce7d87-60d9-4b66-8851-e7dba4684538");
     }
 
+    /**
+     * Создает тестовый идентификатор сообщения.
+     *
+     * @return идентификатор сообщения
+     */
     public static UUID createTestMessageId() {
         return UUID.fromString("40d4dde4-663d-4113-bd08-25f5e1d42efe");
     }
 
+    /**
+     * Создает тестовый идентификатор первого пользователя.
+     *
+     * @return идентификатор первого пользователя
+     */
     public static UUID createTestUserId1() {
         return UUID.fromString("3fc4530f-5c0c-429d-8a64-810ce3bd1415");
     }
 
+    /**
+     * Создает тестовый идентификатор второго пользователя.
+     *
+     * @return идентификатор второго пользователя
+     */
     public static UUID createTestUserId2() {
         return UUID.fromString("e0d8a734-6f6c-4ab4-b4fe-e93cc63d8406");
     }
 
-    public static List<UUID> createConversationIds(int count) {
-        List<UUID> ids = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            ids.add(UUID.randomUUID());
-        }
-        return ids;
-    }
-
-    public static Map<UUID, CacheEventType> createPendingConversationMap(int count) {
-        Map<UUID, CacheEventType> map = new HashMap<>();
-        for (int i = 0; i < count; i++) {
-            map.put(UUID.randomUUID(), CacheEventType.MESSAGE_CREATED);
-        }
-        return map;
-    }
-
-    public static Map<UUID, CacheEventType> createPendingMessageMap(int count) {
-        Map<UUID, CacheEventType> map = new HashMap<>();
-        for (int i = 0; i < count; i++) {
-            map.put(UUID.randomUUID(), CacheEventType.MESSAGE_UPDATED);
-        }
-        return map;
-    }
-
-    public static Map<UUID, CacheEventType> createPendingUserMap(int count) {
-        Map<UUID, CacheEventType> map = new HashMap<>();
-        for (int i = 0; i < count; i++) {
-            map.put(UUID.randomUUID(), CacheEventType.MESSAGES_READ);
-        }
-        return map;
-    }
-
+    /**
+     * Создает набор тестовых ключей Redis для пользователя.
+     *
+     * @param userId идентификатор пользователя
+     * @return набор ключей Redis
+     */
     public static Set<String> createRedisKeysForUser(UUID userId) {
         Set<String> keys = new HashSet<>();
         keys.add("userConversations::user:" + userId + ":page:0");
@@ -449,6 +571,12 @@ public final class TestDataFactory {
         return keys;
     }
 
+    /**
+     * Создает набор тестовых ключей Redis для беседы.
+     *
+     * @param conversationId идентификатор беседы
+     * @return набор ключей Redis
+     */
     public static Set<String> createRedisKeysForConversation(UUID conversationId) {
         Set<String> keys = new HashSet<>();
         keys.add("conversationDetails::conversation:" + conversationId + ":messages:true");
@@ -458,6 +586,12 @@ public final class TestDataFactory {
         return keys;
     }
 
+    /**
+     * Создает набор тестовых ключей Redis для сообщения.
+     *
+     * @param messageId идентификатор сообщения
+     * @return набор ключей Redis
+     */
     public static Set<String> createRedisKeysForMessage(UUID messageId) {
         Set<String> keys = new HashSet<>();
         keys.add("message::message:" + messageId + ":details");
@@ -466,6 +600,11 @@ public final class TestDataFactory {
         return keys;
     }
 
+    /**
+     * Создает набор тестовых ключей Redis для первых страниц.
+     *
+     * @return набор ключей Redis
+     */
     public static Set<String> createRedisKeysForFirstPages() {
         Set<String> keys = new HashSet<>();
         keys.add("userConversations::page:0");
